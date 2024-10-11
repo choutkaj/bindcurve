@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import lmfit
 import models
 import data
-
-
-
+import traceback
 
 def generate_guess(df, saturation=False):
     
@@ -63,10 +61,10 @@ def define_pars(model, min_guess, max_guess, IC50_guess, RT=None, LsT=None, Kds=
             if model == "IC50":
                 pars.add('IC50', value = IC50_guess, min = 0)
             if model == "logIC50":
-                pars.add('logIC50', value = np.log10(IC50_guess), min = 0)
+                pars.add('logIC50', value = np.log10(IC50_guess))
 
 
-        # Setting parameters for the saturation models
+        # Setting parameters for the direct binding Kd models
         if model in models.get_list_of_models("Kd_saturation"):
             # Experimental constants
             pars.add('LsT', value = LsT, vary=False)
@@ -78,7 +76,7 @@ def define_pars(model, min_guess, max_guess, IC50_guess, RT=None, LsT=None, Kds=
         if model == "dir_simple":
             pars.add('Kds', value = IC50_guess/2, min = 0)
 
-        # Setting parameters for the Kd models
+        # Setting parameters for the competitive binding Kd models
         if model in models.get_list_of_models("Kd_competition"):
             # Experimental constants
             pars.add('RT', value = RT, vary=False)
@@ -191,19 +189,22 @@ def fit_50(df, model, compound_sel = False, fix_min = False, fix_max = False, fi
         
             # Creating new row for the output dataframe      
             new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                       model, result.params['min'].value, result.params['max'].value, result.params['slope'].value,Chi_squared,R_squared]
+                        model, result.params['min'].value, result.params['max'].value, result.params['slope'].value,Chi_squared,R_squared]
                     
                     
             # Adding new row to the output dataframe
             output_df.loc[len(output_df)] = new_row
+         
         except:
-            print("Calculation for compound " + compound + " failed :(")    
-                
+            print("Calculation for compound " + compound + " failed.")
+            if verbose:
+                traceback.print_exc()  
+              
     return output_df
 
 
 
-def fit_Kd_saturation(df, model, LsT, Ns=False, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd_saturation(df, model, LsT, Ns=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     
@@ -319,14 +320,16 @@ def fit_Kd_saturation(df, model, LsT, Ns=False, compound_sel = False, fix_min = 
             output_df.loc[len(output_df)] = new_row
         
         except:
-            print("Calculation for compound " + compound + " failed :(")
+            print("Calculation for compound " + compound + " failed.")
+            if verbose:
+                traceback.print_exc()  
                 
     return output_df
 
 
 
 
-def fit_Kd(df, model, RT, LsT, Kds, N, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd(df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     # Initial checks
@@ -447,19 +450,16 @@ def fit_Kd(df, model, RT, LsT, Kds, N, compound_sel = False, fix_min = False, fi
             output_df.loc[len(output_df)] = new_row
             
         except:
-            print("Calculation for compound " + compound + " failed :(")
+            print("Calculation for compound " + compound + " failed.")
+            if verbose:
+                traceback.print_exc()  
                 
     return output_df
 
 
 
 
-
-
-
-
-
-def convert(df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False, ci=True):
+def convert(df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False, ci=True, verbose=False):
     print("Converting IC50 to Kd using", model, "model...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
@@ -511,6 +511,8 @@ def convert(df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False,
             output_df.loc[len(output_df)] = new_row
             
         except:
-            print("Calculation for compound " + compound + " failed :(")
+            print("Calculation for compound " + compound + " failed.")
+            if verbose:
+                traceback.print_exc()  
     
     return output_df

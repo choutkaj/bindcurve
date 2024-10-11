@@ -20,7 +20,6 @@ def get_list_of_models(kind):
 
 
 
-
 def IC50(LT, min, max, slope, IC50):
 
     model = min + (max - min)/(1 + (IC50/LT)**slope)
@@ -248,14 +247,18 @@ def comp_4st_specific(LT, min, max, RT, LsT, Kds, Kd, Kd3):
 
         p = [a, b, c, d, e, f] 
         roots = np.roots(p) 
-        R = max(roots)
+        R = np.max(roots)   # takes the max root
+        R = np.real(R)      # returns the real part if the root of R is complex
         
         Fsb = R/(Kds + R)
 
         Fsb_array.append(Fsb)
         
+    Fsb_array = np.array(Fsb_array)    
     model = min + (max - min)*Fsb_array
+    
     return model
+
 
 def comp_4st_specific_lmfit(params, x, data=None): 
     min = params['min']
@@ -265,9 +268,9 @@ def comp_4st_specific_lmfit(params, x, data=None):
     Kds = params['Kds']
     Kd = params['Kd']
     Kd3 = params['Kd3']
-    
+      
     model = comp_4st_specific(x, min, max, RT, LsT, Kds, Kd, Kd3)
- 
+    
     if data is None:
         return model
     else:
@@ -289,13 +292,14 @@ def comp_4st_total(LT, min, max, RT, LsT, Kds, Kd, Kd3, N):
 
         p = [a, b, c, d, e, f] 
         roots = np.roots(p) 
-        R = roots[0]
-        R = max(roots)
+        R = np.max(roots)   # takes the max root
+        R = np.real(R)      # returns the real part if the root of R is complex
         
         Fsb = R/(Kds + R)
 
         Fsb_array.append(Fsb)
         
+    Fsb_array = np.array(Fsb_array)    
     model = min + (max - min)*Fsb_array
     return model
 
@@ -336,6 +340,7 @@ def cheng_prusoff(LsT, Kds, IC50):
     return Kd
 
 
+# Reference: https://doi.org/10.3109/10799898809049010
 def cheng_prusoff_corrected(LsT, Kds, y0, IC50):
     
     Kd = IC50/(1 + (LsT*(y0+2)/2*Kds*(y0+1) + y0)) + Kds*(y0/(y0+2))
@@ -343,6 +348,7 @@ def cheng_prusoff_corrected(LsT, Kds, y0, IC50):
     return Kd
 
 
+# Reference: https://doi.org/10.1016/j.ab.2004.05.055
 def coleska(RT, LsT, Kds, IC50):
     
     a = LsT + Kds - RT

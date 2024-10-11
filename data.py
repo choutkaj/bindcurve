@@ -85,7 +85,7 @@ def fetch_pars(df, x_curve):
     if df['model'].iloc[0] == "logIC50":
         pars.add('min', value = float(df['min'].iloc[0]))
         pars.add('max', value = float(df['max'].iloc[0]))
-        pars.add('IC50', value = float(df['logIC50'].iloc[0]))
+        pars.add('logIC50', value = float(df['logIC50'].iloc[0]))
         pars.add('slope', value = float(df['slope'].iloc[0]))
         y_curve = models.logIC50_lmfit(pars, x_curve)
         
@@ -203,10 +203,132 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
     # Iterate through compounds and plot them in matplotlib    
     for i, compound in enumerate(compounds):
         
+
+        
         # This is a selection from the dataframe with the experimental data
         sel_data = data_df.loc[data_df['compound'] == compound]
         # This is a selection from the dataframe with the fitting results
         sel_results = results_df.loc[results_df['compound'] == compound]
+        
+
+        if sel_results['model'].iloc[0] == "logIC50":
+            conc = "log c"
+        else:
+            conc = "c"
+        
+
+        # Turning on/off plotting of errorbars, all data, or medians (defaults is medians with errorbars)
+        if show_errorbars:
+            plt.errorbar(sel_data[conc], sel_data["median"], yerr=sel_data[errorbars_kind], elinewidth=errorbar_linewidth, capthick=errorbar_linewidth, capsize=errorbar_capsize, linestyle="", marker="none", markersize=markersize, color=colors[i])
+        if show_medians:
+            plt.plot(sel_data[conc], sel_data["median"], marker=marker, markersize=markersize, linestyle="", color=colors[i])        
+        if show_all_data:
+            sel_data_pooled = pool_data(sel_data)
+            plt.plot(sel_data_pooled[conc], sel_data_pooled["response"], marker=marker, markersize=markersize, linestyle="", color=colors[i])
+
+
+        # Setting min and max on x axis for the curves
+        if xmin:
+            min_curve=xmin
+        else:
+            min_curve = min(sel_data[conc])
+        if xmax:
+            max_curve=xmax
+        else:
+            max_curve = max(sel_data[conc]) 
+
+        # Setting up the x values for the curve
+        x_curve = np.logspace(np.log10(min_curve), np.log10(max_curve), 1000)
+        #x_curve = np.linspace(min_curve, max_curve, int((max_curve-min_curve)*100))
+
+        # Fetching parameters for a given model and getting y values
+        y_curve = fetch_pars(sel_results, x_curve)
+
+        # Plotting the curve
+        plt.plot(x_curve, y_curve, color=colors[i], linestyle=linestyle, linewidth=linewidth)
+        
+        # Hidden plots just to make labels for the legend
+        if single_label == False:
+            if show_medians==True and show_all_data==False:
+                plt.plot(sel_data[conc].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])
+            if show_all_data==True:
+                plt.plot(sel_data_pooled[conc].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])        
+            if show_medians==False and show_all_data==False:
+                plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=labels[i])
+                
+    if single_label != False:
+        if show_medians==True and show_all_data==False:
+            plt.plot(sel_data[conc].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)
+        if show_all_data==True:
+            plt.plot(sel_data_pooled[conc].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)        
+        if show_medians==False and show_all_data==False:
+            plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=single_label)
+
+            
+
+
+
+
+
+
+def plot_old(data_df, results_df, compound_sel=False, xmin=False, xmax=False, 
+         marker="o", 
+         markersize=5, 
+         linewidth=1, 
+         linestyle="-",
+         show_medians=True,
+         show_all_data=False, 
+         show_errorbars=True, 
+         errorbars_kind="SD", 
+         errorbar_linewidth = 1, 
+         errorbar_capsize=3, 
+         cmap="brg_r", 
+         cmap_min = 0, 
+         cmap_max = 1, 
+         custom_colors=False, 
+         single_color=False, 
+         custom_labels=False,
+         single_label=False,
+         no_labels=False):
+    
+
+    # In compound selection is provided, than use it, otherwise plot all compounds
+    if compound_sel == False:
+        compounds = results_df["compound"].unique()
+    else:
+        compounds = compound_sel
+
+    # Setting up colors
+    # By default, colors are set up as a cmap
+    # cmap options: https://matplotlib.org/stable/gallery/color/colormap_reference.html
+    colors = plt.colormaps[cmap](np.linspace(cmap_min, cmap_max, len(compounds)))
+    if custom_colors:
+        colors=custom_colors
+    if single_color:
+        colors=custom_colors
+        colors = [single_color for _ in range(len(compounds))]
+        
+    # Setting up labels    
+    labels = compounds
+    if custom_labels:
+        labels=custom_labels
+    if single_label:
+        labels = [single_label for _ in range(len(compounds))]
+    if no_labels:
+        labels = [None for _ in range(len(compounds))]
+
+    
+    # Iterate through compounds and plot them in matplotlib    
+    for i, compound in enumerate(compounds):
+        
+
+        
+        # This is a selection from the dataframe with the experimental data
+        sel_data = data_df.loc[data_df['compound'] == compound]
+        # This is a selection from the dataframe with the fitting results
+        sel_results = results_df.loc[results_df['compound'] == compound]
+        
+        
 
         # Turning on/off plotting of errorbars, all data, or medians (defaults is medians with errorbars)
         if show_errorbars:
@@ -254,10 +376,7 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
             plt.plot(sel_data_pooled['c'].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)        
         if show_medians==False and show_all_data==False:
             plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=single_label)
-
-            
-      
-      
+     
       
 
       
