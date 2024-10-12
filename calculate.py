@@ -98,12 +98,12 @@ def define_pars(model, min_guess, max_guess, IC50_guess, RT=None, LsT=None, Kds=
     
     
     
-def fit_50(df, model, compound_sel = False, fix_min = False, fix_max = False, fix_slope = False, ci=True, verbose = False):
+def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = False, fix_slope = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
     if compound_sel == False:
-        compounds = df["compound"].unique()
+        compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
         
@@ -116,7 +116,7 @@ def fit_50(df, model, compound_sel = False, fix_min = False, fix_max = False, fi
     
     for compound in compounds:
         
-        df_compound = df[df["compound"].isin([compound])]
+        df_compound = input_df[input_df["compound"].isin([compound])]
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
@@ -204,7 +204,7 @@ def fit_50(df, model, compound_sel = False, fix_min = False, fix_max = False, fi
 
 
 
-def fit_Kd_saturation(df, model, LsT, Ns=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     
@@ -216,7 +216,7 @@ def fit_Kd_saturation(df, model, LsT, Ns=None, compound_sel = False, fix_min = F
       
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
     if compound_sel == False:
-        compounds = df["compound"].unique()
+        compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
 
@@ -231,7 +231,7 @@ def fit_Kd_saturation(df, model, LsT, Ns=None, compound_sel = False, fix_min = F
   
     for compound in compounds:
         
-        df_compound = df[df["compound"].isin([compound])]
+        df_compound = input_df[input_df["compound"].isin([compound])]
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
@@ -329,7 +329,7 @@ def fit_Kd_saturation(df, model, LsT, Ns=None, compound_sel = False, fix_min = F
 
 
 
-def fit_Kd(df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     # Initial checks
@@ -340,7 +340,7 @@ def fit_Kd(df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = Fals
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
     if compound_sel == False:
-        compounds = df["compound"].unique()
+        compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
         
@@ -357,7 +357,7 @@ def fit_Kd(df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = Fals
     
     for compound in compounds:
         
-        df_compound = df[df["compound"].isin([compound])]
+        df_compound = input_df[input_df["compound"].isin([compound])]
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
@@ -459,20 +459,20 @@ def fit_Kd(df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = Fals
 
 
 
-def convert(df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False, ci=True, verbose=False):
+def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False, ci=True, verbose=False):
     print("Converting IC50 to Kd using", model, "model...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
     if compound_sel == False:
-        compounds = df["compound"].unique()
+        compounds = IC50_df["compound"].unique()
     else:
         compounds = compound_sel
         
-    if 'IC50' not in df.columns:
+    if 'IC50' not in IC50_df.columns:
         exit("Provided dataframe does not contain IC50 column. Aborting...")
         
     # If the provided df contains no CL, than only convert means 
-    if df["loCL"].iloc[0] == "nd" and df["upCL"].iloc[0] == "nd":
+    if IC50_df["loCL"].iloc[0] == "nd" and IC50_df["upCL"].iloc[0] == "nd":
         ci=False
         print("Confidence limits not detected in the provided dataframe. Converting only mean values...")
     if ci==False:
@@ -484,7 +484,7 @@ def convert(df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False,
 
     for compound in compounds:
         
-        df_compound = df[df["compound"].isin([compound])]
+        df_compound = IC50_df[IC50_df["compound"].isin([compound])]
         
         try:
             # Here are the actual conversions

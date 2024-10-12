@@ -7,6 +7,21 @@ import models
 
 
 def load_csv(csvfile, c_scale=1):
+    """Loads data from csv file. The file must contain data in correct format accepted by bindcurve 
+    (first column: compound name, second column: concentration, third to Nth columns: response data).
+
+    :param csvfile: Path to the csv file.
+    :type csvfile: str
+
+    :param c_scale: Scales concentration by a provided factor. Used for unit conversion at input., defaults to 1
+    :type c_scale: int or float, optional
+
+    ...
+    :return: Pandas DataFrame containing all input data needed for further calculations in bindcurve.
+    :rtype: Dataframe
+    """
+    
+    
     print("Loading data from", csvfile)
     
     # Loading input .csv file to pandas
@@ -153,7 +168,7 @@ def fetch_pars(df, x_curve):
     return y_curve
 
 
-def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False, 
+def plot(input_df, results_df, compound_sel=False, xmin=False, xmax=False, 
          marker="o", 
          markersize=5, 
          linewidth=1, 
@@ -164,7 +179,7 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
          errorbars_kind="SD", 
          errorbar_linewidth = 1, 
          errorbar_capsize=3, 
-         cmap="brg_r", 
+         cmap="tab10", 
          cmap_min = 0, 
          cmap_max = 1, 
          custom_colors=False, 
@@ -203,10 +218,9 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
     # Iterate through compounds and plot them in matplotlib    
     for i, compound in enumerate(compounds):
         
-
         
         # This is a selection from the dataframe with the experimental data
-        sel_data = data_df.loc[data_df['compound'] == compound]
+        sel_data = input_df.loc[input_df['compound'] == compound]
         # This is a selection from the dataframe with the fitting results
         sel_results = results_df.loc[results_df['compound'] == compound]
         
@@ -237,9 +251,14 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
         else:
             max_curve = max(sel_data[conc]) 
 
+        
         # Setting up the x values for the curve
-        x_curve = np.logspace(np.log10(min_curve), np.log10(max_curve), 1000)
-        #x_curve = np.linspace(min_curve, max_curve, int((max_curve-min_curve)*100))
+        
+        if conc == "log c":
+            x_curve = np.linspace(min_curve, max_curve, int((max_curve-min_curve)*100))
+        else:
+            x_curve = np.logspace(np.log10(min_curve), np.log10(max_curve), 1000)
+        
 
         # Fetching parameters for a given model and getting y values
         y_curve = fetch_pars(sel_results, x_curve)
@@ -263,15 +282,10 @@ def plot(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
             plt.plot(sel_data_pooled[conc].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)        
         if show_medians==False and show_all_data==False:
             plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=single_label)
+      
 
-            
-
-
-
-
-
-
-def plot_old(data_df, results_df, compound_sel=False, xmin=False, xmax=False, 
+      
+def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False, 
          marker="o", 
          markersize=5, 
          linewidth=1, 
@@ -282,116 +296,7 @@ def plot_old(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
          errorbars_kind="SD", 
          errorbar_linewidth = 1, 
          errorbar_capsize=3, 
-         cmap="brg_r", 
-         cmap_min = 0, 
-         cmap_max = 1, 
-         custom_colors=False, 
-         single_color=False, 
-         custom_labels=False,
-         single_label=False,
-         no_labels=False):
-    
-
-    # In compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
-        compounds = results_df["compound"].unique()
-    else:
-        compounds = compound_sel
-
-    # Setting up colors
-    # By default, colors are set up as a cmap
-    # cmap options: https://matplotlib.org/stable/gallery/color/colormap_reference.html
-    colors = plt.colormaps[cmap](np.linspace(cmap_min, cmap_max, len(compounds)))
-    if custom_colors:
-        colors=custom_colors
-    if single_color:
-        colors=custom_colors
-        colors = [single_color for _ in range(len(compounds))]
-        
-    # Setting up labels    
-    labels = compounds
-    if custom_labels:
-        labels=custom_labels
-    if single_label:
-        labels = [single_label for _ in range(len(compounds))]
-    if no_labels:
-        labels = [None for _ in range(len(compounds))]
-
-    
-    # Iterate through compounds and plot them in matplotlib    
-    for i, compound in enumerate(compounds):
-        
-
-        
-        # This is a selection from the dataframe with the experimental data
-        sel_data = data_df.loc[data_df['compound'] == compound]
-        # This is a selection from the dataframe with the fitting results
-        sel_results = results_df.loc[results_df['compound'] == compound]
-        
-        
-
-        # Turning on/off plotting of errorbars, all data, or medians (defaults is medians with errorbars)
-        if show_errorbars:
-            plt.errorbar(sel_data["c"], sel_data["median"], yerr=sel_data[errorbars_kind], elinewidth=errorbar_linewidth, capthick=errorbar_linewidth, capsize=errorbar_capsize, linestyle="", marker="none", markersize=markersize, color=colors[i])
-        if show_medians:
-            plt.plot(sel_data["c"], sel_data["median"], marker=marker, markersize=markersize, linestyle="", color=colors[i])        
-        if show_all_data:
-            sel_data_pooled = pool_data(sel_data)
-            plt.plot(sel_data_pooled["c"], sel_data_pooled["response"], marker=marker, markersize=markersize, linestyle="", color=colors[i])
-
-
-        # Setting min and max on x axis for the curves
-        if xmin:
-            min_curve=xmin
-        else:
-            min_curve = min(sel_data["c"])
-        if xmax:
-            max_curve=xmax
-        else:
-            max_curve = max(sel_data["c"]) 
-
-        # Setting up the x values for the curve
-        x_curve = np.logspace(np.log10(min_curve), np.log10(max_curve), 1000)
-        #x_curve = np.linspace(min_curve, max_curve, int((max_curve-min_curve)*100))
-
-        # Fetching parameters for a given model and getting y values
-        y_curve = fetch_pars(sel_results, x_curve)
-
-        # Plotting the curve
-        plt.plot(x_curve, y_curve, color=colors[i], linestyle=linestyle, linewidth=linewidth)
-        
-        # Hidden plots just to make labels for the legend
-        if single_label == False:
-            if show_medians==True and show_all_data==False:
-                plt.plot(sel_data['c'].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])
-            if show_all_data==True:
-                plt.plot(sel_data_pooled['c'].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])        
-            if show_medians==False and show_all_data==False:
-                plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=labels[i])
-                
-    if single_label != False:
-        if show_medians==True and show_all_data==False:
-            plt.plot(sel_data['c'].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)
-        if show_all_data==True:
-            plt.plot(sel_data_pooled['c'].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)        
-        if show_medians==False and show_all_data==False:
-            plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=single_label)
-     
-      
-
-      
-def plot_grid(data_df, results_df, compound_sel=False, xmin=False, xmax=False, 
-         marker="o", 
-         markersize=5, 
-         linewidth=1, 
-         linestyle="-",
-         show_medians=True,
-         show_all_data=False, 
-         show_errorbars=True, 
-         errorbars_kind="SD", 
-         errorbar_linewidth = 1, 
-         errorbar_capsize=3, 
-         cmap="brg_r", 
+         cmap="tab10", 
          cmap_min = 0, 
          cmap_max = 1, 
          custom_colors=False, 
@@ -465,7 +370,7 @@ def plot_grid(data_df, results_df, compound_sel=False, xmin=False, xmax=False,
     for i, compound in enumerate(compounds):
         
         # This is a selection from the dataframe with the experimental data
-        sel_data = data_df.loc[data_df['compound'] == compound]
+        sel_data = input_df.loc[input_df['compound'] == compound]
         # This is a selection from the dataframe with the fitting results
         sel_results = results_df.loc[results_df['compound'] == compound]
 
@@ -649,9 +554,9 @@ def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, 
 
 
 
-def report(df, decimals=2, p=False):
+def report(results_df, decimals=2, p=False):
     
-    compounds = df["compound"].unique()
+    compounds = results_df["compound"].unique()
 
     # Initiating empty output_df
     output_df = pd.DataFrame(columns=['compound', 'Mean (95% CI)', 'Mean \u00B1 SE'])
@@ -659,7 +564,7 @@ def report(df, decimals=2, p=False):
     
     for compound in compounds:
         
-        df_compound = df[df["compound"].isin([compound])]
+        df_compound = results_df[results_df["compound"].isin([compound])]
         
         
         value_compound = df_compound.iloc[0, 2]
