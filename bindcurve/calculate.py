@@ -2,8 +2,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import lmfit
-import models
-import data
+#import data
+#import models
+from bindcurve import data
+from bindcurve import models
+
 import traceback
 
 def generate_guess(df, saturation=False):

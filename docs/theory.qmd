@@ -1,0 +1,27 @@
+---
+title: "Theory"
+---
+
+Here goes the theory
+
+
+
+$$
+\int_0^\infty x^2 e^{-x} \, dx = 2
+$$
+
+
+$$
+e+1 \intop
+$$
+
+
+
+
+| Day  | Temperature (°C) | Precipitation (mm) |
+|------|------------------|--------------------|
+| Mon  | 20               | 5                  |
+| Tue  | 22               | 0                  |
+| Wed  | 18               | 12                 |
+| Thu  | 24               | 0                  |
+| Fri  | 19               | 8                  |

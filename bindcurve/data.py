@@ -3,7 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import lmfit
-import models
+# import models
+from bindcurve import models
 
 
 def load_csv(csvfile, c_scale=1):
@@ -16,9 +17,24 @@ def load_csv(csvfile, c_scale=1):
     :param c_scale: Scales concentration by a provided factor. Used for unit conversion at input., defaults to 1
     :type c_scale: int or float, optional
 
-    ...
+    
     :return: Pandas DataFrame containing all input data needed for further calculations in bindcurve.
     :rtype: Dataframe
+    
+    
+    
+    
+    
+    Args:
+        param1 (int): The first parameter.
+        param2 (str): The second parameter.
+        
+    Raises:
+        error: eror
+
+    Returns:
+        bool: The return value. True for success, False otherwise.
+        bool: another return
     """
     
     

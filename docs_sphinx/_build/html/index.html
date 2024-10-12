@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>bindcurve documentation &#8212; bindcurve alfa documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=bdd22b20"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="bindcurve" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bindcurve-documentation">
+<h1>bindcurve documentation<a class="headerlink" href="#bindcurve-documentation" title="Link to this heading">¶</a></h1>
+<p>Add your content using <code class="docutils literal notranslate"><span class="pre">reStructuredText</span></code> syntax. See the
+<a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">reStructuredText</a>
+documentation for details.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">bindcurve</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html">bindcurve package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindcurve.html">bindcurve package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#module-bindcurve.calculate">bindcurve.calculate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#module-bindcurve.data">bindcurve.data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#bindcurve-main-module">bindcurve.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#module-bindcurve.models">bindcurve.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#module-bindcurve.models_other">bindcurve.models_other module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html#module-bindcurve">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="newpage.html">New Page Title</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">bindcurve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindcurve.html">bindcurve package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="my-modules">
+<h1>My modules<a class="headerlink" href="#my-modules" title="Link to this heading">¶</a></h1>
+<blockquote>
+<div><p>introductory reStructuredText</p>
+</div></blockquote>
+<section id="function-documentation">
+<h2>Function documentation<a class="headerlink" href="#function-documentation" title="Link to this heading">¶</a></h2>
+<p>Here it is</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="bindcurve.data.load_csv">
+<span class="sig-prename descclassname"><span class="pre">bindcurve.data.</span></span><span class="sig-name descname"><span class="pre">load_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bindcurve/data.html#load_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bindcurve.data.load_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Loads data from csv file. The file must contain data in correct format accepted by bindcurve
+(first column: compound name, second column: concentration, third to Nth columns: response data).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csvfile</strong> (<em>str</em>) – Path to the csv file.</p></li>
+<li><p><strong>c_scale</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Scales concentration by a provided factor. Used for unit conversion at input., defaults to 1</p></li>
+<li><p><strong>param1</strong> (<em>int</em>) – The first parameter.</p></li>
+<li><p><strong>param2</strong> (<em>str</em>) – The second parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pandas DataFrame containing all input data needed for further calculations in bindcurve.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>error</strong> – eror</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The return value. True for success, False otherwise.
+bool: another return</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The test module contains…</p>
+</section>
+<section id="the-foo-function">
+<h2>The foo function<a class="headerlink" href="#the-foo-function" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">bindcurve.data.</span></span><span class="sig-name descname"><span class="pre">load_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bindcurve/data.html#load_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Loads data from csv file. The file must contain data in correct format accepted by bindcurve
+(first column: compound name, second column: concentration, third to Nth columns: response data).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csvfile</strong> (<em>str</em>) – Path to the csv file.</p></li>
+<li><p><strong>c_scale</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Scales concentration by a provided factor. Used for unit conversion at input., defaults to 1</p></li>
+<li><p><strong>param1</strong> (<em>int</em>) – The first parameter.</p></li>
+<li><p><strong>param2</strong> (<em>str</em>) – The second parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pandas DataFrame containing all input data needed for further calculations in bindcurve.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>error</strong> – eror</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The return value. True for success, False otherwise.
+bool: another return</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">bindcurve</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">bindcurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindcurve.html">bindcurve package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="newpage.html">New Page Title</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="modules.html" title="next chapter">bindcurve</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, choutkaj.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.1</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
