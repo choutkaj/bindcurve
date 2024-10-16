@@ -18,40 +18,40 @@ def generate_guess(df, saturation=False):
         df = df.sort_values(by=['c'], ascending=False)
     
     # Defining important points on "median response" axis
-    min_guess = min(df["median"])
-    max_guess = max(df["median"])
-    y_middle = min_guess+(max_guess-min_guess)/2
+    ymin_guess = min(df["median"])
+    ymax_guess = max(df["median"])
+    y_middle = ymin_guess+(ymax_guess-ymin_guess)/2
     
     # Interpolating to obtain guess for concentration axis
     IC50_guess = np.interp(y_middle, df["median"], df["c"])
     
  
     # This is plotting just for development purposes
-    #y_curve = np.linspace(min_guess, max_guess, 1000)
+    #y_curve = np.linspace(ymin_guess, ymax_guess, 1000)
     #plt.plot(df["median"], df["c"], "o")
     #plt.plot(y_curve, np.interp(y_curve, df["median"], df["c"]))
     #plt.yscale("log")
     #plt.show()
     
-    return min_guess, max_guess, IC50_guess
+    return ymin_guess, ymax_guess, IC50_guess
 
 
 
-def define_pars(model, min_guess, max_guess, IC50_guess, RT=None, LsT=None, Kds=None, Ns=False, N=False, fix_min=False, fix_max=False, fix_slope=False):
+def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kds=None, Ns=False, N=False, fix_ymin=False, fix_ymax=False, fix_slope=False):
     
         # Initiating Parameters class in lmfit
         pars = lmfit.Parameters()
         
-        # Setting min and max
-        if fix_min == False:
-            pars.add('min', value = min_guess)
+        # Setting ymin and ymax
+        if fix_ymin == False:
+            pars.add('ymin', value = ymin_guess)
         else:
-            pars.add('min', value = fix_min, vary=False)
+            pars.add('ymin', value = fix_ymin, vary=False)
             
-        if fix_max == False:
-            pars.add('max', value = max_guess)
+        if fix_ymax == False:
+            pars.add('ymax', value = ymax_guess)
         else:
-            pars.add('max', value = fix_max, vary=False)  
+            pars.add('ymax', value = fix_ymax, vary=False)  
                 
         # Setting parameters for the logistic models
         if model in models.get_list_of_models("logistic"):
@@ -101,7 +101,7 @@ def define_pars(model, min_guess, max_guess, IC50_guess, RT=None, LsT=None, Kds=
     
     
     
-def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = False, fix_slope = False, ci=True, verbose = False):
+def fit_50(input_df, model, compound_sel = False, fix_ymin = False, fix_ymax = False, fix_slope = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
@@ -112,9 +112,9 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
         
     # Initiating empty output_df
     if model == "IC50":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'IC50', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'slope', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'IC50', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'slope', 'Chi^2', 'R^2' ])
     if model == "logIC50":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'logIC50', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'slope', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'logIC50', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'slope', 'Chi^2', 'R^2' ])
     
     
     for compound in compounds:
@@ -123,7 +123,7 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
-        min_guess, max_guess, IC50_guess = generate_guess(df_compound)
+        ymin_guess, ymax_guess, IC50_guess = generate_guess(df_compound)
     
 
         # Defining x and y
@@ -136,7 +136,7 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
     
 
         # Setting up the initial parameter values
-        pars = define_pars(model, min_guess, max_guess, IC50_guess, fix_min=fix_min, fix_max=fix_max, fix_slope=fix_slope)
+        pars = define_pars(model, ymin_guess, ymax_guess, IC50_guess, fix_ymin=fix_ymin, fix_ymax=fix_ymax, fix_slope=fix_slope)
 
         try:
             # Here is the actual fit in lmfit, the function is called from the "models" module
@@ -174,8 +174,8 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
                 print("Data for compound:\n", df_compound_pooled)
                 print()        
                 print("---Initial guesses:")
-                print("min_guess:", min_guess)
-                print("max_guess:", max_guess)
+                print("ymin_guess:", ymin_guess)
+                print("ymax_guess:", ymax_guess)
                 print("IC50_guess:", IC50_guess)
                 print()            
                 print("---Fitting results:")
@@ -192,7 +192,7 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
         
             # Creating new row for the output dataframe      
             new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['slope'].value,Chi_squared,R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['slope'].value,Chi_squared,R_squared]
                     
                     
             # Adding new row to the output dataframe
@@ -207,12 +207,12 @@ def fit_50(input_df, model, compound_sel = False, fix_min = False, fix_max = Fal
 
 
 
-def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_ymin = False, fix_ymax = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     
     # Initial checks
-    if fix_min != False and fix_max != False:
+    if fix_ymin != False and fix_ymax != False:
         ci=False
         print("Only one parameter is fitted. Confidence intervals will not be calculated.")
         
@@ -226,11 +226,11 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
 
     # Initiating empty output_df
     if model == "dir_simple":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'Chi^2', 'R^2'])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'Chi^2', 'R^2'])
     if model == "dir_specific":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'LsT', 'Chi^2', 'R^2'])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'LsT', 'Chi^2', 'R^2'])
     if model == "dir_total":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'LsT', 'Ns', 'Chi^2', 'R^2'])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kds', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'LsT', 'Ns', 'Chi^2', 'R^2'])
   
     for compound in compounds:
         
@@ -238,7 +238,7 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
-        min_guess, max_guess, IC50_guess = generate_guess(df_compound, saturation=True)
+        ymin_guess, ymax_guess, IC50_guess = generate_guess(df_compound, saturation=True)
 
 
         # Defining x and y
@@ -249,7 +249,7 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
             LsT=None
 
         # Setting up the initial parameter values
-        pars = define_pars(model, min_guess, max_guess, IC50_guess, LsT=LsT, Ns=Ns, fix_min=fix_min, fix_max=fix_max)
+        pars = define_pars(model, ymin_guess, ymax_guess, IC50_guess, LsT=LsT, Ns=Ns, fix_ymin=fix_ymin, fix_ymax=fix_ymax)
         
         
         try:
@@ -290,8 +290,8 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
                 print("Data for compound:\n", df_compound_pooled)
                 print()        
                 print("---Initial guesses:")
-                print("min_guess:", min_guess)
-                print("max_guess:", max_guess)
+                print("ymin_guess:", ymin_guess)
+                print("ymax_guess:", ymax_guess)
                 print("IC50_guess:", IC50_guess)
                 print("Kds_guess:", IC50_guess/2)
                 print()            
@@ -310,13 +310,13 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
             # Creating new row for the output dataframe  
             if model == "dir_simple":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, Chi_squared, R_squared]
             if model == "dir_specific":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['LsT'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['LsT'].value, Chi_squared, R_squared]
             if model == "dir_total":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['LsT'].value, result.params['Ns'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['LsT'].value, result.params['Ns'].value, Chi_squared, R_squared]
         
 
             # Adding new row to the output dataframe
@@ -332,11 +332,11 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_min =
 
 
 
-def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_min = False, fix_max = False, ci=True, verbose = False):
+def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_ymin = False, fix_ymax = False, ci=True, verbose = False):
     print("Fitting", model, "...")
     
     # Initial checks
-    if fix_min != False and fix_max != False:
+    if fix_ymin != False and fix_ymax != False:
         ci=False
         print("Only one parameter is fitted. Confidence intervals will not be calculated.")
         
@@ -349,13 +349,13 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
         
     # Initiating empty output_df
     if model == "comp_3st_specific":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'RT', 'LsT', 'Kds', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'RT', 'LsT', 'Kds', 'Chi^2', 'R^2' ])
     if model == "comp_3st_total":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'RT', 'LsT', 'Kds', 'N', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'RT', 'LsT', 'Kds', 'N', 'Chi^2', 'R^2' ])
     if model == "comp_4st_specific":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'RT', 'LsT', 'Kds', 'Kd3', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'RT', 'LsT', 'Kds', 'Kd3', 'Chi^2', 'R^2' ])
     if model == "comp_4st_total":
-        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'min', 'max', 'RT', 'LsT', 'Kds', 'Kd3', 'N', 'Chi^2', 'R^2' ])
+        output_df = pd.DataFrame(columns=['compound', 'n_points', 'Kd', 'loCL', 'upCL', 'SE', 'model', 'ymin', 'ymax', 'RT', 'LsT', 'Kds', 'Kd3', 'N', 'Chi^2', 'R^2' ])
    
     
     for compound in compounds:
@@ -364,7 +364,7 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
         df_compound_pooled = data.pool_data(df_compound)
         
         # Generating initial guesses
-        min_guess, max_guess, IC50_guess = generate_guess(df_compound)
+        ymin_guess, ymax_guess, IC50_guess = generate_guess(df_compound)
     
 
         # Defining x and y
@@ -373,7 +373,7 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
     
 
         # Setting up the initial parameter values
-        pars = define_pars(model, min_guess, max_guess, IC50_guess, RT=RT, LsT=LsT, Kds=Kds, N=N, fix_min=fix_min, fix_max=fix_max)
+        pars = define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=RT, LsT=LsT, Kds=Kds, N=N, fix_ymin=fix_ymin, fix_ymax=fix_ymax)
         
 
         try:
@@ -417,8 +417,8 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
                 print("Data for compound:\n", df_compound_pooled)
                 print()        
                 print("---Initial guesses:")
-                print("min_guess:", min_guess)
-                print("max_guess:", max_guess)
+                print("ymin_guess:", ymin_guess)
+                print("ymax_guess:", ymax_guess)
                 print("IC50_guess:", IC50_guess)
                 print("Kd_guess:", IC50_guess/2)
                 print()            
@@ -437,16 +437,16 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
             # Creating new row for the output dataframe  
             if model == "comp_3st_specific":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, Chi_squared, R_squared]
             if model == "comp_3st_total":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['N'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['N'].value, Chi_squared, R_squared]
             if model == "comp_4st_specific":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['Kd3'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['Kd3'].value, Chi_squared, R_squared]
             if model == "comp_4st_total":    
                 new_row = [compound, result.ndata, result.params[fitted_parameter].value, loCL, upCL, result.params[fitted_parameter].stderr, 
-                        model, result.params['min'].value, result.params['max'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['Kd3'].value, result.params['N'].value, Chi_squared, R_squared]
+                        model, result.params['ymin'].value, result.params['ymax'].value, result.params['RT'].value, result.params['LsT'].value, result.params['Kds'].value, result.params['Kd3'].value, result.params['N'].value, Chi_squared, R_squared]
 
 
             # Adding new row to the output dataframe
@@ -496,11 +496,11 @@ def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=F
                 if ci==True:
                     loCL = models.cheng_prusoff(LsT, Kds, df_compound["loCL"].iloc[0])
                     upCL = models.cheng_prusoff(LsT, Kds, df_compound["upCL"].iloc[0])
-            if model == "cheng_prusoff_corrected":
-                Kd = models.cheng_prusoff_corrected(LsT, Kds, y0, df_compound["IC50"].iloc[0])
+            if model == "cheng_prusoff_corr":
+                Kd = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["IC50"].iloc[0])
                 if ci==True:
-                    loCL = models.cheng_prusoff_corrected(LsT, Kds, y0, df_compound["loCL"].iloc[0])
-                    upCL = models.cheng_prusoff_corrected(LsT, Kds, y0, df_compound["upCL"].iloc[0])
+                    loCL = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["loCL"].iloc[0])
+                    upCL = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["upCL"].iloc[0])
             if model == "coleska":
                 Kd = models.coleska(RT, LsT, Kds, df_compound["IC50"].iloc[0])
                 if ci==True:

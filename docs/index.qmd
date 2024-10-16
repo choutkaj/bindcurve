@@ -1,6 +1,14 @@
 ---
-title: "docs"
+title: "BindCurve"
 ---
+
+top menu:
+introduction
+tutorials
+API reference
+theory
+playground
+
 
 This is a Quarto website.
 

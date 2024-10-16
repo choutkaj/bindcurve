@@ -2,9 +2,14 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "docs",
+    "title": "BindCurve",
     "section": "",
-    "text": "This is a Quarto website.\nthis is a new sentence\nTo learn more about Quarto websites visit https://quarto.org/docs/websites."
+    "text": "top menu: introduction tutorials API reference theory playground\nThis is a Quarto website.\nthis is a new sentence\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.",
+    "crumbs": [
+      "Home",
+      "Basics",
+      "BindCurve"
+    ]
   },
   {
     "objectID": "about.html",
@@ -18,6 +23,76 @@
     "href": "theory.html",
     "title": "Theory",
     "section": "",
-    "text": "Here goes the theory\n\\[\n\\int_0^\\infty x^2 e^{-x} \\, dx = 2\n\\]\n\\[\ne+1 \\intop\n\\]\n\n\n\nDay\nTemperature (°C)\nPrecipitation (mm)\n\n\n\n\nMon\n20\n5\n\n\nTue\n22\n0\n\n\nWed\n18\n12\n\n\nThu\n24\n0\n\n\nFri\n19\n8"
+    "text": "\\([R]_T\\) \\([R]\\)\n\\([L^*]_T\\) \\([L^*]\\)\n\\([L]_T\\) \\([L]\\)\n\\([RL^*]\\) \\([RL]\\) \\([RLL^*]\\)\n\\(K_d^*\\) \\(K_d\\) \\(K_{d3}\\)\n\nSymbols used in BindCurve models\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\nHere goes the theory\n\\[\nE = mc^2\n\\tag{1}\\]\n\\[\n\\frac{\\partial \\mathrm C}{ \\partial \\mathrm t } + \\frac{1}{2}\\sigma^{2} \\mathrm S^{2}\n\\frac{\\partial^{2} \\mathrm C}{\\partial \\mathrm C^2}\n  + \\mathrm r \\mathrm S \\frac{\\partial \\mathrm C}{\\partial \\mathrm S}\\ =\n  \\mathrm r \\mathrm C\n\\tag{2}\\]"
+  },
+  {
+    "objectID": "theory.html#model---direct-binding-simple",
+    "href": "theory.html#model---direct-binding-simple",
+    "title": "Theory",
+    "section": "2 Model - Direct Binding, Simple",
+    "text": "2 Model - Direct Binding, Simple\n\n2.1 Model A\n\n\n2.2 Model B\n\\[[R] = [R]_T\\]"
+  },
+  {
+    "objectID": "theory.html#model---direct-binding-specific",
+    "href": "theory.html#model---direct-binding-specific",
+    "title": "Theory",
+    "section": "3 Model - Direct Binding, Specific",
+    "text": "3 Model - Direct Binding, Specific\nDissociation constant is defined as\n\\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\nConservation of mass requires that\n\\[ [L^* ]_T = [L^*] + [RL^*] \\]\n\\[ [R]_T = [R] + [RL^*] \\]\nand thus\n\\[ [RL^*] = \\frac{[R][L^*]_T}{K_d^* + [R]} \\]\nQuadratic Equation:\n\\[ [R]^2 + a[R] + b = 0 \\]\nwhere\n\\[ a = K_d^* + [L^* ]_T - [R]_T \\]\n\\[ b = -K_d^* [R]_T \\]\nUsing the quadratic formula, the positive root is\n\\[ [R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2} \\]"
+  },
+  {
+    "objectID": "theory.html#model---direct-binding-specific-nonspecific",
+    "href": "theory.html#model---direct-binding-specific-nonspecific",
+    "title": "Theory",
+    "section": "4 Model - Direct Binding, Specific + Nonspecific",
+    "text": "4 Model - Direct Binding, Specific + Nonspecific\nDissociation constant is defined as\n\\[ K_d^* = \\frac{[R][L^*]}{[RL^*]} \\]\nConservation of mass requires that\n\\[ [L^* ]_T = [L^*] + [RL^*] + N^* [L^*] \\]\n\\[ [R]_T = [R] + [RL^*] \\]\nand thus\n\\[ [RL^*] = \\frac{[R][L^*]_T}{K_d^* (1 + N^*) + [R]} \\]\nQuadratic Equation:\n\\[ [R]^2 + a[R] + b = 0 \\]\nwhere\n\\[ a = K_d^* (1 + N^*) + [L^* ]_T - [R]_T \\]\n\\[ b = -K_d^* [R]_T (1 + N^*) \\]\nUsing the quadratic formula, the positive root is\n\\[ [R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2} \\]\ndalší pokusy:\n\\[\n[R] = -\\frac{a}{3} + \\frac{2}{3} \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right)\n\\]\n\n\n\nDay\nTemperature (°C)\nPrecipitation (mm)\n\n\n\n\nMon\n20\n5\n\n\nTue\n22\n0\n\n\nWed\n18\n12\n\n\nThu\n24\n0\n\n\nFri\n19\n8"
+  },
+  {
+    "objectID": "theory.html#symbols",
+    "href": "theory.html#symbols",
+    "title": "Theory",
+    "section": "",
+    "text": "\\([R]_T\\) \\([R]\\)\n\\([L^*]_T\\) \\([L^*]\\)\n\\([L]_T\\) \\([L]\\)\n\\([RL^*]\\) \\([RL]\\) \\([RLL^*]\\)\n\\(K_d^*\\) \\(K_d\\) \\(K_{d3}\\)\n\nSymbols used in BindCurve models\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\nHere goes the theory\n\\[\nE = mc^2\n\\tag{1}\\]\n\\[\n\\frac{\\partial \\mathrm C}{ \\partial \\mathrm t } + \\frac{1}{2}\\sigma^{2} \\mathrm S^{2}\n\\frac{\\partial^{2} \\mathrm C}{\\partial \\mathrm C^2}\n  + \\mathrm r \\mathrm S \\frac{\\partial \\mathrm C}{\\partial \\mathrm S}\\ =\n  \\mathrm r \\mathrm C\n\\tag{2}\\]"
+  },
+  {
+    "objectID": "models.html",
+    "href": "models.html",
+    "title": "Models",
+    "section": "",
+    "text": "BindCurve offers several models:"
+  },
+  {
+    "objectID": "models.html#symbols",
+    "href": "models.html#symbols",
+    "title": "Models",
+    "section": "1 Symbols",
+    "text": "1 Symbols\n\\([R]_T\\) \\([R]\\)\n\\([L^*]_T\\) \\([L^*]\\)\n\\([L]_T\\) \\([L]\\)\n\\([RL^*]\\) \\([RL]\\) \\([RLL^*]\\)\n\\(K_d^*\\) \\(K_d\\) \\(K_{d3}\\)\nfit_50, fit_Kd_direct, fit_Kd_competition, convert\n\n1.1 Direct binding models\nThese models are calculated by the fit_Kd_direct function. It is assumed that LsT is fixed and RT is titrated. Parameters min and max could be fixed.\n\n\n\n\n\n\n\n\n\n\nModel name\nDescription\nComplexity\nInput parameters\nFitted parameters\n\n\n\n\ndir_simple\nDirect binding - simple\n\\([R] = [R]_T\\)\n-\nmin, max, Kds\n\n\ndir_specific\nDirect binding - specific\nquadratic\nLsT\nmin, max, Kds\n\n\ndir_total\nDirect binding - total\nquadratic\nLsT, Ns\nmin, max, Kds\n\n\n\n\n\n1.2 Competitive binding - logistic models\nThese models are calculated by the fit_50 function. You can use these models for any dose-response curves without knowing any concentrations of the system components. Parameters min, max and slope could be fixed. If you fix slope to -1 or 1, the model will be reduced from a model with variable slope to a model with fixed slope.\n\n\n\n\n\n\n\n\n\n\nModel name\nDescription\nComplexity\nInput parameters\nFitted parameters\n\n\n\n\nIC50\nFits midpoint from c\nlogistic\n-\nmin, max, slope, IC50\n\n\nlogIC50\nFits midpoint from log(c)\nlogistic\n-\nmin, max, slope, logIC50\n\n\n\n\n\n1.3 Competitive binding - exact polynomial models\nThese models are calculated using the fit_Kd_competition function.\n\n\n1.4 IC50 -&gt; Kd conversion models\nThese models are calculated using the convert function."
+  },
+  {
+    "objectID": "models.html#fixing",
+    "href": "models.html#fixing",
+    "title": "Models",
+    "section": "2 Fixing",
+    "text": "2 Fixing"
+  },
+  {
+    "objectID": "models.html#fixing-parameters",
+    "href": "models.html#fixing-parameters",
+    "title": "Models",
+    "section": "1 Fixing parameters",
+    "text": "1 Fixing parameters\nBindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the min and/or max parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix min to 0 and max to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The fit_50 function also allows fixing the slope parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.\nFixing of min and max parameters is controled by fix_min and fix_max arguments when calling any fitting function in BindCurve. The slope parameter can be fixed by fix_slope argument (only available for fit_50 function). All of these parameters are set to False by default, which means the parameter is fitted freely. When you change the fix_min, fix_max or fix_slope to any numerical value, the parameter will be fixed to the given value.\n\n# This will fix minimum to 0. Maximum and slope are fitted freely.\nIC50_results = bc.fit_50(input_data, model=\"IC50\", fix_min=0)\n\n# This will fix minimum to 0 and maximum to 1, slope is fitted variably\nIC50_results = bc.fit_50(input_data, model=\"IC50\", fix_min=0, fix_max=1)\n\n# This will fix minimum to 0, maximum to 1 and slope to -1\nIC50_results = bc.fit_50(input_data, model=\"IC50\", fix_min=0, fix_max=1, fix_slope=-1)\n\nFixing can also be useful when fitting Kd using the exact polynomial models. For example, if your competitive inhibition curve is not titrated all the way to the minimum asymptote, you can just fix the min parameter to the value of the lower asymptote, which you have determined previously from direct binding.\n\n# This will fix minimum to 20, maximum is fitted freely\nKd_results = bc.fit_Kd_competition(input_data, model=\"comp_3st_specific\", fix_min=20)\n\n# This will fix minimum to 20 and maximum to 140\nKd_results = bc.fit_Kd_competition(input_data, model=\"comp_3st_specific\", fix_min=20, fix_max=140)\n\n\n\n\n\n\n\nNote\n\n\n\nThe min and max parameters have different meaning for the logistic models and for the exact Kd models. In the logistic models, min and max will always correspont to the actual minimum and maximum of the curve, while for the exact Kd models these values define the asymptotes of the model, which might not be the same as the minimum and maximum of the observed curve."
+  },
+  {
+    "objectID": "models.html#uncertainties",
+    "href": "models.html#uncertainties",
+    "title": "Models",
+    "section": "2 Uncertainties",
+    "text": "2 Uncertainties\nBindCurve offers two kinds of uncertainty estimates for the fitted parameters, both obtained from the underlying LMFIT library. For every fit, standard error (SE) is outputted. Additionally, the calculation of 95% confidence intervals is enabled by default, but could be disabled by setting ci=False. The 95% confidence interval is outputted as loCL and upCL, which correspond to lower and upper confidence limits. Please note that the 95% confidence interval can only be calculated if more than one parameter is freely fitted. In case only one parameter is freely fitted, BindCurve will automatically set ci=False and only SE will be calculated."
+  },
+  {
+    "objectID": "models.html#goodness-of-fit",
+    "href": "models.html#goodness-of-fit",
+    "title": "Models",
+    "section": "3 Goodness of fit",
+    "text": "3 Goodness of fit\nTo quantify the goodness of fit, \\(\\chi^2\\) and \\(R^2\\) metrics are outputted for every fit. Good fit is characterized by low value of \\(\\chi^2\\) and high value (close to 1) of \\(R^2\\)."
   }
 ]

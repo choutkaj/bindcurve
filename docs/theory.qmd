@@ -2,18 +2,170 @@
 title: "Theory"
 ---
 
+## Symbols
+
+$[R]_T$
+$[R]$
+
+$[L^*]_T$
+$[L^*]$
+
+$[L]_T$
+$[L]$
+
+$[RL^*]$
+$[RL]$
+$[RLL^*]$
+
+$K_d^*$
+$K_d$
+$K_{d3}$
+
+
+
+| Symbol     | Symbol in code | Meaning            |
+|------------|----------------|--------------------|
+| $[R]_T$    | RT             | Total concentration of receptor.                                      |
+| $[R]$      | R              | Concentration of free receptor.                                       |
+| $[L^*]_T$  | LsT            | Total concentration of labelled ligand.                               |
+| $[L^*]$    | Ls             | Concentration of free labelled ligand.                                |
+| $[L]_T$    | LT             | Total concentration of unlabelled ligand.                             |
+| $[L]$      | L              | Concentration of free unlabelled ligand.                              |
+| $[RL^*]$   | RLs            | Concentration of (receptor-labelled ligand) complex.                  |
+| $[RL]$     | RL             | Concentration of (receptor-unlabelled ligand) complex.                |
+| $[RLL^*]$  | RLLs           | Concentration of (receptor-unlabelled ligand-labelled ligand) complex.|
+| $K_d^*$    | Kds            | Dissociation constant of labelled ligand.                             |
+| $K_d$      | Kd             | Dissociation constant of unlabelled ligand.                           |
+| $K_{d3}$   | Kd3            | The third dissociation constant in four-state models.                 |
+: Symbols used in BindCurve models {tbl-colwidths="[10,10,50]"}
+
+
+
+
 Here goes the theory
 
 
 
 $$
-\int_0^\infty x^2 e^{-x} \, dx = 2
+E = mc^2
+$$ {#eq-equation}
+
+
+
+$$
+\frac{\partial \mathrm C}{ \partial \mathrm t } + \frac{1}{2}\sigma^{2} \mathrm S^{2}
+\frac{\partial^{2} \mathrm C}{\partial \mathrm C^2}
+  + \mathrm r \mathrm S \frac{\partial \mathrm C}{\partial \mathrm S}\ =
+  \mathrm r \mathrm C 
+$$ {#eq-black-scholes}
+
+
+
+
+## Model - Direct Binding, Simple
+### Model A
+### Model B
+
+
+$$[R] = [R]_T$$
+
+
+
+## Model - Direct Binding, Specific
+
+Dissociation constant is defined as
+
+$$
+K_d^* = \frac{[R][L^*]}{[RL^*]}
 $$
 
 
+Conservation of mass requires that
+
+$$ [L^* ]_T = [L^*] + [RL^*] $$
+
+$$ [R]_T = [R] + [RL^*] $$
+
+and thus
+
+$$ [RL^*] = \frac{[R][L^*]_T}{K_d^* + [R]} $$
+
+Quadratic Equation:
+
+$$ [R]^2 + a[R] + b = 0 $$
+
+where
+
+$$ a = K_d^* + [L^* ]_T - [R]_T $$
+
+$$ b = -K_d^* [R]_T $$
+
+Using the quadratic formula, the positive root is
+
+$$ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} $$
+
+## Model - Direct Binding, Specific + Nonspecific
+
+Dissociation constant is defined as
+
+$$ K_d^* = \frac{[R][L^*]}{[RL^*]} $$
+
+Conservation of mass requires that
+
+$$ [L^* ]_T = [L^*] + [RL^*] + N^* [L^*] $$
+
+$$ [R]_T = [R] + [RL^*] $$
+
+and thus
+
+$$ [RL^*] = \frac{[R][L^*]_T}{K_d^* (1 + N^*) + [R]} $$
+
+Quadratic Equation:
+
+$$ [R]^2 + a[R] + b = 0 $$
+
+where
+
+$$ a = K_d^* (1 + N^*) + [L^* ]_T - [R]_T $$
+
+$$ b = -K_d^* [R]_T (1 + N^*) $$
+
+Using the quadratic formula, the positive root is
+
+$$ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} $$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+další pokusy:
+
+
+
 $$
-e+1 \intop
+[R] = -\frac{a}{3} + \frac{2}{3} \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right)
 $$
+
+
+
+
+
+
+
 
 
 

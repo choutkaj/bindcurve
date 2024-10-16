@@ -13,26 +13,26 @@ def get_list_of_models(kind):
         models = ["dir_simple", "dir_specific", "dir_total"]
                 
     if kind == "conversion":
-        models = ["cheng_prusoff","cheng_prusoff_corrected","coleska"]
+        models = ["cheng_prusoff","cheng_prusoff_corr","coleska"]
     
     return models
 
 
 
 
-def IC50(LT, min, max, slope, IC50):
+def IC50(LT, ymin, ymax, slope, IC50):
 
-    model = min + (max - min)/(1 + (IC50/LT)**slope)
+    model = ymin + (ymax - ymin)/(1 + (IC50/LT)**slope)
     
     return model
 
 def IC50_lmfit(params, x, data=None):
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     IC50_par = params['IC50']
     slope = params['slope']
     
-    model = IC50(x, min, max, slope, IC50_par)
+    model = IC50(x, ymin, ymax, slope, IC50_par)
     
     if data is None:
         return model
@@ -41,20 +41,20 @@ def IC50_lmfit(params, x, data=None):
     
     
     
-def logIC50(LT, min, max, slope, logIC50):
+def logIC50(LT, ymin, ymax, slope, logIC50):
     
-    model = min + (max - min)/(1 + 10**((logIC50-LT)*slope))
+    model = ymin + (ymax - ymin)/(1 + 10**((logIC50-LT)*slope))
     
     return model
 
 
 def logIC50_lmfit(params, x, data=None):
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     logIC50_par = params['logIC50']
     slope = params['slope']
     
-    model = logIC50(x, min, max, slope, logIC50_par)
+    model = logIC50(x, ymin, ymax, slope, logIC50_par)
     
     if data is None:
         return model
@@ -63,19 +63,19 @@ def logIC50_lmfit(params, x, data=None):
 
 
 
-def dir_simple(RT, min, max, Kds):
+def dir_simple(RT, ymin, ymax, Kds):
     
     R = RT
     Fsb = R/(Kds+R)
-    model = min + (max - min)*Fsb
+    model = ymin + (ymax - ymin)*Fsb
     return model
 
 def dir_simple_lmfit(params, x, data=None):
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     Kds = params['Kds']
     
-    model = dir_simple(x, min, max, Kds)
+    model = dir_simple(x, ymin, ymax, Kds)
     
     if data is None:
         return model
@@ -84,7 +84,7 @@ def dir_simple_lmfit(params, x, data=None):
 
 
 
-def dir_specific(RT, min, max, LsT, Kds):
+def dir_specific(RT, ymin, ymax, LsT, Kds):
     
     a = Kds + LsT - RT
     b = -Kds*RT
@@ -92,7 +92,7 @@ def dir_specific(RT, min, max, LsT, Kds):
     R = (-a + np.sqrt(a**2 - 4*b))/2
 
     Fsb = R/(Kds+R)
-    model = min + (max - min)*Fsb
+    model = ymin + (ymax - ymin)*Fsb
     
     # other components
     RLs = RT - R
@@ -102,12 +102,12 @@ def dir_specific(RT, min, max, LsT, Kds):
 
 
 def dir_specific_lmfit(params, x, data=None):
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     LsT = params['LsT']
     Kds = params['Kds']
 
-    model = dir_specific(x, min, max, LsT, Kds)[0]
+    model = dir_specific(x, ymin, ymax, LsT, Kds)[0]
     
     if data is None:
         return model
@@ -116,7 +116,7 @@ def dir_specific_lmfit(params, x, data=None):
 
 
 
-def dir_total(RT, min, max, LsT, Kds, Ns):
+def dir_total(RT, ymin, ymax, LsT, Kds, Ns):
     
     a = (1+Ns)*Kds + LsT - RT
     b = -Kds*RT*(1+Ns)
@@ -124,7 +124,7 @@ def dir_total(RT, min, max, LsT, Kds, Ns):
     R = (-a + np.sqrt(a**2 - 4*b))/2
 
     Fsb = R/(Kds+R)
-    model = min + (max - min)*Fsb
+    model = ymin + (ymax - ymin)*Fsb
     
     # other components
     RLs = RT - R
@@ -136,13 +136,13 @@ def dir_total(RT, min, max, LsT, Kds, Ns):
 
 
 def dir_total_lmfit(params, x, data=None):
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     LsT = params['LsT']
     Kds = params['Kds']
     Ns = params['Ns']
 
-    model = dir_total(x, min, max, LsT, Kds, Ns)[0]
+    model = dir_total(x, ymin, ymax, LsT, Kds, Ns)[0]
     
     if data is None:
         return model
@@ -155,7 +155,7 @@ def dir_total_lmfit(params, x, data=None):
 
 # An exact mathematical expression for describing competitive binding of two different ligands to a protein molecule
 # https://doi.org/10.1016/0014-5793(95)00062-E
-def comp_3st_specific(LT, min, max, RT, LsT, Kds, Kd): 
+def comp_3st_specific(LT, ymin, ymax, RT, LsT, Kds, Kd): 
 
     a = Kds + Kd + LsT + LT - RT
     b = Kds*(LT - RT) + Kd*(LsT - RT) + Kds*Kd
@@ -166,7 +166,7 @@ def comp_3st_specific(LT, min, max, RT, LsT, Kds, Kd):
     R = -(a/3) + (2/3)*np.sqrt(a**2 - 3*b)*np.cos(theta/3)
 
     Fsb = R/(Kds + R)
-    model = min + (max - min)*Fsb 
+    model = ymin + (ymax - ymin)*Fsb 
        
     # Other components
     RLs = (LsT*(2*np.sqrt(a**2 - 3*b)*np.cos(theta/3)-a)) / (3*Kds + (2*np.sqrt(a**2 - 3*b)*np.cos(theta/3)-a))
@@ -178,14 +178,14 @@ def comp_3st_specific(LT, min, max, RT, LsT, Kds, Kd):
 
 
 def comp_3st_specific_lmfit(params, x, data=None): 
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     RT = params['RT']
     LsT = params['LsT']
     Kds = params['Kds']
     Kd = params['Kd']
     
-    model = comp_3st_specific(x, min, max, RT, LsT, Kds, Kd)[0]
+    model = comp_3st_specific(x, ymin, ymax, RT, LsT, Kds, Kd)[0]
     
     if data is None:
         return model
@@ -193,7 +193,7 @@ def comp_3st_specific_lmfit(params, x, data=None):
         return model-data
 
 
-def comp_3st_total(LT, min, max, RT, LsT, Kds, Kd, N): 
+def comp_3st_total(LT, ymin, ymax, RT, LsT, Kds, Kd, N): 
 
     a = Kds + (1+N)*Kd + LsT + LT - RT
     b = Kds*(LT - RT) + (1+N)*Kd*(LsT - RT) + (1+N)*Kds*Kd
@@ -204,7 +204,7 @@ def comp_3st_total(LT, min, max, RT, LsT, Kds, Kd, N):
     R = -(a/3) + (2/3)*np.sqrt(a**2 - 3*b)*np.cos(theta/3)
     
     Fsb = R/(Kds + R)
-    model = min + (max - min)*Fsb
+    model = ymin + (ymax - ymin)*Fsb
     
     # Other components
     RLs = (LsT*(2*np.sqrt(a**2 - 3*b)*np.cos(theta/3)-a)) / (3*Kds + (2*np.sqrt(a**2 - 3*b)*np.cos(theta/3)-a))
@@ -216,15 +216,15 @@ def comp_3st_total(LT, min, max, RT, LsT, Kds, Kd, N):
 
 
 def comp_3st_total_lmfit(params, x, data=None): 
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     RT = params['RT']
     LsT = params['LsT']
     Kds = params['Kds']
     Kd = params['Kd']
     N = params['N']
     
-    model = comp_3st_total(x, min, max, RT, LsT, Kds, Kd, N)[0]
+    model = comp_3st_total(x, ymin, ymax, RT, LsT, Kds, Kd, N)[0]
 
     if data is None:
         return model
@@ -233,7 +233,7 @@ def comp_3st_total_lmfit(params, x, data=None):
 
 
 
-def comp_4st_specific(LT, min, max, RT, LsT, Kds, Kd, Kd3): 
+def comp_4st_specific(LT, ymin, ymax, RT, LsT, Kds, Kd, Kd3): 
     
     Fsb_array = []
     
@@ -255,21 +255,21 @@ def comp_4st_specific(LT, min, max, RT, LsT, Kds, Kd, Kd3):
         Fsb_array.append(Fsb)
         
     Fsb_array = np.array(Fsb_array)    
-    model = min + (max - min)*Fsb_array
+    model = ymin + (ymax - ymin)*Fsb_array
     
     return model
 
 
 def comp_4st_specific_lmfit(params, x, data=None): 
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     RT = params['RT']
     LsT = params['LsT']
     Kds = params['Kds']
     Kd = params['Kd']
     Kd3 = params['Kd3']
       
-    model = comp_4st_specific(x, min, max, RT, LsT, Kds, Kd, Kd3)
+    model = comp_4st_specific(x, ymin, ymax, RT, LsT, Kds, Kd, Kd3)
     
     if data is None:
         return model
@@ -279,7 +279,7 @@ def comp_4st_specific_lmfit(params, x, data=None):
 
 
 
-def comp_4st_total(LT, min, max, RT, LsT, Kds, Kd, Kd3, N): 
+def comp_4st_total(LT, ymin, ymax, RT, LsT, Kds, Kd, Kd3, N): 
     
     Fsb_array = []
     for LT in LT:
@@ -300,14 +300,14 @@ def comp_4st_total(LT, min, max, RT, LsT, Kds, Kd, Kd3, N):
         Fsb_array.append(Fsb)
         
     Fsb_array = np.array(Fsb_array)    
-    model = min + (max - min)*Fsb_array
+    model = ymin + (ymax - ymin)*Fsb_array
     return model
 
 
 
 def comp_4st_total_lmfit(params, x, data=None): 
-    min = params['min']
-    max = params['max']
+    ymin = params['ymin']
+    ymax = params['ymax']
     RT = params['RT']
     LsT = params['LsT']
     Kds = params['Kds']
@@ -315,7 +315,7 @@ def comp_4st_total_lmfit(params, x, data=None):
     Kd3 = params['Kd3']
     N = params['N']
     
-    model = comp_4st_total(x, min, max, RT, LsT, Kds, Kd, Kd3, N)
+    model = comp_4st_total(x, ymin, ymax, RT, LsT, Kds, Kd, Kd3, N)
     
     if data is None:
         return model
@@ -341,7 +341,7 @@ def cheng_prusoff(LsT, Kds, IC50):
 
 
 # Reference: https://doi.org/10.3109/10799898809049010
-def cheng_prusoff_corrected(LsT, Kds, y0, IC50):
+def cheng_prusoff_corr(LsT, Kds, y0, IC50):
     
     Kd = IC50/(1 + (LsT*(y0+2)/2*Kds*(y0+1) + y0)) + Kds*(y0/(y0+2))
     

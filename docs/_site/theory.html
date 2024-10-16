@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Theory – docs</title>
+<title>Theory – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -100,7 +100,7 @@ window.Quarto = {
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-sidebar docked nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -108,7 +108,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">docs</span>
+    <span class="navbar-title">BindCurve</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -118,7 +118,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -126,7 +126,7 @@ window.Quarto = {
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./theory.html" aria-current="page"> 
+    <a class="nav-link" href="./theory.html"> 
 <span class="menu-text">Theory</span></a>
   </li>  
 </ul>
@@ -135,13 +135,120 @@ window.Quarto = {
 </div>
       </div> <!-- /container-fluid -->
     </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Theory</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./introduction.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./basics-summary.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BindCurve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+ <span class="menu-text">basics-knitr.qmd</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">basics-jupyter.qmd</span>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Layout</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+ <span class="menu-text">layout.qmd</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">layout-knitr.qmd</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">layout-jupyter.qmd</span>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">advanced.qmd</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+ <span class="menu-text">raw-code.qmd</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">custom-theme.qmd</span>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+ <span class="menu-text">acknowlegment.qmd</span>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#symbols" id="toc-symbols" class="nav-link active" data-scroll-target="#symbols"><span class="header-section-number">1</span> Symbols</a></li>
+  <li><a href="#model---direct-binding-simple" id="toc-model---direct-binding-simple" class="nav-link" data-scroll-target="#model---direct-binding-simple"><span class="header-section-number">2</span> Model - Direct Binding, Simple</a>
+  <ul class="collapse">
+  <li><a href="#model-a" id="toc-model-a" class="nav-link" data-scroll-target="#model-a"><span class="header-section-number">2.1</span> Model A</a></li>
+  <li><a href="#model-b" id="toc-model-b" class="nav-link" data-scroll-target="#model-b"><span class="header-section-number">2.2</span> Model B</a></li>
+  </ul></li>
+  <li><a href="#model---direct-binding-specific" id="toc-model---direct-binding-specific" class="nav-link" data-scroll-target="#model---direct-binding-specific"><span class="header-section-number">3</span> Model - Direct Binding, Specific</a></li>
+  <li><a href="#model---direct-binding-specific-nonspecific" id="toc-model---direct-binding-specific-nonspecific" class="nav-link" data-scroll-target="#model---direct-binding-specific-nonspecific"><span class="header-section-number">4</span> Model - Direct Binding, Specific + Nonspecific</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -165,12 +272,149 @@ window.Quarto = {
 </header>
 
 
+<section id="symbols" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="symbols"><span class="header-section-number">1</span> Symbols</h2>
+<p><span class="math inline">\([R]_T\)</span> <span class="math inline">\([R]\)</span></p>
+<p><span class="math inline">\([L^*]_T\)</span> <span class="math inline">\([L^*]\)</span></p>
+<p><span class="math inline">\([L]_T\)</span> <span class="math inline">\([L]\)</span></p>
+<p><span class="math inline">\([RL^*]\)</span> <span class="math inline">\([RL]\)</span> <span class="math inline">\([RLL^*]\)</span></p>
+<p><span class="math inline">\(K_d^*\)</span> <span class="math inline">\(K_d\)</span> <span class="math inline">\(K_{d3}\)</span></p>
+<table class="caption-top table">
+<caption>Symbols used in BindCurve models</caption>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Symbol in code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\([R]_T\)</span></td>
+<td>RT</td>
+<td>Total concentration of receptor.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\([R]\)</span></td>
+<td>R</td>
+<td>Concentration of free receptor.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\([L^*]_T\)</span></td>
+<td>LsT</td>
+<td>Total concentration of labelled ligand.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\([L^*]\)</span></td>
+<td>Ls</td>
+<td>Concentration of free labelled ligand.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\([L]_T\)</span></td>
+<td>LT</td>
+<td>Total concentration of unlabelled ligand.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\([L]\)</span></td>
+<td>L</td>
+<td>Concentration of free unlabelled ligand.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\([RL^*]\)</span></td>
+<td>RLs</td>
+<td>Concentration of (receptor-labelled ligand) complex.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\([RL]\)</span></td>
+<td>RL</td>
+<td>Concentration of (receptor-unlabelled ligand) complex.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\([RLL^*]\)</span></td>
+<td>RLLs</td>
+<td>Concentration of (receptor-unlabelled ligand-labelled ligand) complex.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(K_d^*\)</span></td>
+<td>Kds</td>
+<td>Dissociation constant of labelled ligand.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(K_d\)</span></td>
+<td>Kd</td>
+<td>Dissociation constant of unlabelled ligand.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(K_{d3}\)</span></td>
+<td>Kd3</td>
+<td>The third dissociation constant in four-state models.</td>
+</tr>
+</tbody>
+</table>
 <p>Here goes the theory</p>
+<p><span id="eq-equation"><span class="math display">\[
+E = mc^2
+\tag{1}\]</span></span></p>
+<p><span id="eq-black-scholes"><span class="math display">\[
+\frac{\partial \mathrm C}{ \partial \mathrm t } + \frac{1}{2}\sigma^{2} \mathrm S^{2}
+\frac{\partial^{2} \mathrm C}{\partial \mathrm C^2}
+  + \mathrm r \mathrm S \frac{\partial \mathrm C}{\partial \mathrm S}\ =
+  \mathrm r \mathrm C
+\tag{2}\]</span></span></p>
+</section>
+<section id="model---direct-binding-simple" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="model---direct-binding-simple"><span class="header-section-number">2</span> Model - Direct Binding, Simple</h2>
+<section id="model-a" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="model-a"><span class="header-section-number">2.1</span> Model A</h3>
+</section>
+<section id="model-b" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="model-b"><span class="header-section-number">2.2</span> Model B</h3>
+<p><span class="math display">\[[R] = [R]_T\]</span></p>
+</section>
+</section>
+<section id="model---direct-binding-specific" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="model---direct-binding-specific"><span class="header-section-number">3</span> Model - Direct Binding, Specific</h2>
+<p>Dissociation constant is defined as</p>
 <p><span class="math display">\[
-\int_0^\infty x^2 e^{-x} \, dx = 2
+K_d^* = \frac{[R][L^*]}{[RL^*]}
 \]</span></p>
+<p>Conservation of mass requires that</p>
+<p><span class="math display">\[ [L^* ]_T = [L^*] + [RL^*] \]</span></p>
+<p><span class="math display">\[ [R]_T = [R] + [RL^*] \]</span></p>
+<p>and thus</p>
+<p><span class="math display">\[ [RL^*] = \frac{[R][L^*]_T}{K_d^* + [R]} \]</span></p>
+<p>Quadratic Equation:</p>
+<p><span class="math display">\[ [R]^2 + a[R] + b = 0 \]</span></p>
+<p>where</p>
+<p><span class="math display">\[ a = K_d^* + [L^* ]_T - [R]_T \]</span></p>
+<p><span class="math display">\[ b = -K_d^* [R]_T \]</span></p>
+<p>Using the quadratic formula, the positive root is</p>
+<p><span class="math display">\[ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} \]</span></p>
+</section>
+<section id="model---direct-binding-specific-nonspecific" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="model---direct-binding-specific-nonspecific"><span class="header-section-number">4</span> Model - Direct Binding, Specific + Nonspecific</h2>
+<p>Dissociation constant is defined as</p>
+<p><span class="math display">\[ K_d^* = \frac{[R][L^*]}{[RL^*]} \]</span></p>
+<p>Conservation of mass requires that</p>
+<p><span class="math display">\[ [L^* ]_T = [L^*] + [RL^*] + N^* [L^*] \]</span></p>
+<p><span class="math display">\[ [R]_T = [R] + [RL^*] \]</span></p>
+<p>and thus</p>
+<p><span class="math display">\[ [RL^*] = \frac{[R][L^*]_T}{K_d^* (1 + N^*) + [R]} \]</span></p>
+<p>Quadratic Equation:</p>
+<p><span class="math display">\[ [R]^2 + a[R] + b = 0 \]</span></p>
+<p>where</p>
+<p><span class="math display">\[ a = K_d^* (1 + N^*) + [L^* ]_T - [R]_T \]</span></p>
+<p><span class="math display">\[ b = -K_d^* [R]_T (1 + N^*) \]</span></p>
+<p>Using the quadratic formula, the positive root is</p>
+<p><span class="math display">\[ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} \]</span></p>
+<p>další pokusy:</p>
 <p><span class="math display">\[
-e+1 \intop
+[R] = -\frac{a}{3} + \frac{2}{3} \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right)
 \]</span></p>
 <table class="caption-top table">
 <thead>
@@ -210,6 +454,7 @@ e+1 \intop
 </table>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

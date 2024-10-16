@@ -107,43 +107,43 @@ def fetch_pars(df, x_curve):
     pars = lmfit.Parameters()   
     
     if df['model'].iloc[0] == "IC50":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('IC50', value = float(df['IC50'].iloc[0]))
         pars.add('slope', value = float(df['slope'].iloc[0]))
         y_curve = models.IC50_lmfit(pars, x_curve)
     
     if df['model'].iloc[0] == "logIC50":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('logIC50', value = float(df['logIC50'].iloc[0]))
         pars.add('slope', value = float(df['slope'].iloc[0]))
         y_curve = models.logIC50_lmfit(pars, x_curve)
         
     if df['model'].iloc[0] == "dir_simple":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
         y_curve = models.dir_simple_lmfit(pars, x_curve)
         
     if df['model'].iloc[0] == "dir_specific":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
         y_curve = models.dir_specific_lmfit(pars, x_curve)         
         
     if df['model'].iloc[0] == "dir_total":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
         pars.add('Ns', value = float(df['Ns'].iloc[0]))
         y_curve = models.dir_total_lmfit(pars, x_curve)         
       
     if df['model'].iloc[0] == "comp_3st_specific":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('RT', value = float(df['RT'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
@@ -151,8 +151,8 @@ def fetch_pars(df, x_curve):
         y_curve = models.comp_3st_specific_lmfit(pars, x_curve)         
         
     if df['model'].iloc[0] == "comp_3st_total":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('RT', value = float(df['RT'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
@@ -161,8 +161,8 @@ def fetch_pars(df, x_curve):
         y_curve = models.comp_3st_total_lmfit(pars, x_curve)               
                      
     if df['model'].iloc[0] == "comp_4st_specific":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('RT', value = float(df['RT'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
@@ -171,8 +171,8 @@ def fetch_pars(df, x_curve):
         y_curve = models.comp_4st_specific_lmfit(pars, x_curve)         
         
     if df['model'].iloc[0] == "comp_4st_total":
-        pars.add('min', value = float(df['min'].iloc[0]))
-        pars.add('max', value = float(df['max'].iloc[0]))
+        pars.add('ymin', value = float(df['ymin'].iloc[0]))
+        pars.add('ymax', value = float(df['ymax'].iloc[0]))
         pars.add('RT', value = float(df['RT'].iloc[0]))
         pars.add('LsT', value = float(df['LsT'].iloc[0]))        
         pars.add('Kds', value = float(df['Kds'].iloc[0]))
@@ -481,9 +481,9 @@ def plot_asymptotes(results_df, compound_sel=False, lower=True, upper=True, colo
         sel_results = results_df.loc[results_df['compound'] == compound]
         
         if lower:
-            plt.axhline(y = float(sel_results['min'].iloc[0]), color=color, linestyle=linestyle, linewidth=linewidth) 
+            plt.axhline(y = float(sel_results['ymin'].iloc[0]), color=color, linestyle=linestyle, linewidth=linewidth) 
         if upper:
-            plt.axhline(y = float(sel_results['max'].iloc[0]), color=color, linestyle=linestyle, linewidth=linewidth)   
+            plt.axhline(y = float(sel_results['ymax'].iloc[0]), color=color, linestyle=linestyle, linewidth=linewidth)   
 
 
 
