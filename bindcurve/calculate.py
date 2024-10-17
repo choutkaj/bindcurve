@@ -9,6 +9,8 @@ from bindcurve import models
 
 import traceback
 
+
+
 def generate_guess(df, saturation=False):
     
     # Sorting the df
@@ -57,7 +59,7 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
         if model in models.get_list_of_models("logistic"):
            
             if fix_slope == False:
-                pars.add('slope', value = -1)
+                pars.add('slope', value = 0)
             else:
                 pars.add('slope', value = fix_slope, vary=False) 
                 

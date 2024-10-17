@@ -359,11 +359,11 @@ def coleska(RT, LsT, Kds, IC50):
 
     # Calculating the rest of the terms
     Ls0 = LsT/(1+(R0/Kds))
-    PL0 = RT/(1+(Kds/Ls0))
-    PLs50 = PL0 / 2
-    Ls50 = LsT - PLs50
-    PL50 = RT + (Kds*(PLs50/Ls50)) + PLs50
-    L50 = IC50 - PL50
+    RLs0 = RT/(1+(Kds/Ls0))
+    RLs50 = RLs0 / 2
+    Ls50 = LsT - RLs50
+    RL50 = RT + (Kds*(RLs50/Ls50)) + RLs50
+    L50 = IC50 - RL50
     Kd = L50/((Ls50/Kds) + (R0/Kds) + 1)
     
     return Kd

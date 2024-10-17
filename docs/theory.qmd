@@ -37,6 +37,9 @@ $K_{d3}$
 | $K_d^*$    | Kds            | Dissociation constant of labelled ligand.                             |
 | $K_d$      | Kd             | Dissociation constant of unlabelled ligand.                           |
 | $K_{d3}$   | Kd3            | The third dissociation constant in four-state models.                 |
+| $N^*$      | Ns             | Nonspecific binding parameter for the labeled ligand.                 |
+| $N$        | N              | Nonspecific binding parameter for the unlabeled ligand.               |
+
 : Symbols used in BindCurve models {tbl-colwidths="[10,10,50]"}
 
 

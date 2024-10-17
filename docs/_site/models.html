@@ -277,7 +277,7 @@ window.Quarto = {
   <li><a href="#competitive-binding---logistic-models" id="toc-competitive-binding---logistic-models" class="nav-link" data-scroll-target="#competitive-binding---logistic-models"><span class="header-section-number">0.2</span> Competitive binding - logistic models</a></li>
   <li><a href="#competitive-binding---exact-polynomial-models" id="toc-competitive-binding---exact-polynomial-models" class="nav-link" data-scroll-target="#competitive-binding---exact-polynomial-models"><span class="header-section-number">0.3</span> Competitive binding - exact polynomial models</a></li>
   <li><a href="#ic50---kd-conversion-models" id="toc-ic50---kd-conversion-models" class="nav-link" data-scroll-target="#ic50---kd-conversion-models"><span class="header-section-number">0.4</span> IC50 -&gt; Kd conversion models</a></li>
-  <li><a href="#fixing-parameters" id="toc-fixing-parameters" class="nav-link" data-scroll-target="#fixing-parameters"><span class="header-section-number">1</span> Fixing parameters</a></li>
+  <li><a href="#parameter-fixing" id="toc-parameter-fixing" class="nav-link" data-scroll-target="#parameter-fixing"><span class="header-section-number">1</span> Parameter fixing</a></li>
   <li><a href="#uncertainties" id="toc-uncertainties" class="nav-link" data-scroll-target="#uncertainties"><span class="header-section-number">2</span> Uncertainties</a></li>
   <li><a href="#goodness-of-fit" id="toc-goodness-of-fit" class="nav-link" data-scroll-target="#goodness-of-fit"><span class="header-section-number">3</span> Goodness of fit</a></li>
   </ul>
@@ -308,14 +308,14 @@ window.Quarto = {
 <p>BindCurve offers several models:</p>
 <section id="direct-binding-models" class="level3" data-number="0.1">
 <h3 data-number="0.1" class="anchored" data-anchor-id="direct-binding-models"><span class="header-section-number">0.1</span> Direct binding models</h3>
-<p>These models are calculated by the <code>fit_Kd_direct</code> function. It is assumed that <code>LsT</code> is fixed and <code>RT</code> is titrated. Parameters <code>min</code> and <code>max</code> could be fixed.</p>
+<p>These models are calculated by the <code>fit_Kd_direct</code> function. It is assumed that <code>LsT</code> is fixed and <code>RT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 18%">
 <col style="width: 25%">
-<col style="width: 15%">
+<col style="width: 13%">
 <col style="width: 18%">
-<col style="width: 22%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -332,35 +332,35 @@ window.Quarto = {
 <td>Simplified direct binding</td>
 <td><span class="math inline">\([R] = [R]_T\)</span></td>
 <td>-</td>
-<td><code>min</code>, <code>max</code>, <code>Kds</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
 </tr>
 <tr class="even">
 <td><code>dir_specific</code></td>
 <td>Specific direct binding</td>
 <td>quadratic</td>
 <td><code>LsT</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kds</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
 </tr>
 <tr class="odd">
 <td><code>dir_total</code></td>
 <td>Total direct binding</td>
 <td>quadratic</td>
 <td><code>LsT</code>, <code>Ns</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kds</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="competitive-binding---logistic-models" class="level3" data-number="0.2">
 <h3 data-number="0.2" class="anchored" data-anchor-id="competitive-binding---logistic-models"><span class="header-section-number">0.2</span> Competitive binding - logistic models</h3>
-<p>These models are calculated by the <code>fit_50</code> function. You can use these models for any dose-response curves without knowing any concentrations of the system components. Parameters <code>min</code>, <code>max</code> and <code>slope</code> could be fixed. If you fix <code>slope</code> to <code>-1</code> or <code>1</code>, the model will be reduced from a model with variable slope to a model with fixed slope.</p>
+<p>These models are calculated by the <code>fit_50</code> function. You can use these models for any dose-response curves without knowing any concentrations in the system. Parameters <code>ymin</code>, <code>ymax</code> and <code>slope</code> could be fixed. If you fix <code>slope</code> to <code>-1</code> or <code>1</code>, the model will be reduced from a model with variable slope to a model with fixed slope.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 18%">
 <col style="width: 25%">
-<col style="width: 15%">
+<col style="width: 13%">
 <col style="width: 18%">
-<col style="width: 22%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -377,28 +377,28 @@ window.Quarto = {
 <td>Fits midpoint from c</td>
 <td>logistic</td>
 <td>-</td>
-<td><code>min</code>, <code>max</code>, <code>slope</code>, <code>IC50</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>slope</code>, <code>IC50</code></td>
 </tr>
 <tr class="even">
 <td><code>logIC50</code></td>
 <td>Fits midpoint from log(c)</td>
 <td>logistic</td>
 <td>-</td>
-<td><code>min</code>, <code>max</code>, <code>slope</code>, <code>logIC50</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>slope</code>, <code>logIC50</code></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="competitive-binding---exact-polynomial-models" class="level3" data-number="0.3">
 <h3 data-number="0.3" class="anchored" data-anchor-id="competitive-binding---exact-polynomial-models"><span class="header-section-number">0.3</span> Competitive binding - exact polynomial models</h3>
-<p>These models are calculated using the <code>fit_Kd_competition</code> function. It is assumed that <code>RT</code> and <code>Lst</code> are fixed and <code>LT</code> is titrated. Parameters <code>min</code> and <code>max</code> could be fixed. When fitting <code>comp_4st_specific</code> or <code>comp_4st_total</code>, it is highly recommended to fix the <code>min</code> parameter (minimal asymptote of the model).</p>
+<p>These models are calculated using the <code>fit_Kd_competition</code> function. It is assumed that <code>RT</code> and <code>LsT</code> are fixed and <code>LT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed. When fitting <code>comp_4st_specific</code> or <code>comp_4st_total</code>, it is recommended to fix the <code>ymin</code> parameter (minimal asymptote of the model).</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 18%">
 <col style="width: 25%">
-<col style="width: 15%">
+<col style="width: 13%">
 <col style="width: 18%">
-<col style="width: 22%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -414,32 +414,45 @@ window.Quarto = {
 <td><code>comp_3st_specific</code></td>
 <td>Three-state, specific</td>
 <td>cubic</td>
-<td><code>RT</code>, <code>Lst</code>, <code>Kds</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kd</code></td>
+<td><code>RT</code>, <code>LsT</code>, <code>Kds</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code></td>
 </tr>
 <tr class="even">
 <td><code>comp_3st_total</code></td>
 <td>Three-state, total</td>
 <td>cubic</td>
-<td><code>RT</code>, <code>Lst</code>, <code>Kds</code>, <code>N</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kd</code></td>
+<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>N</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code></td>
 </tr>
 <tr class="odd">
 <td><code>comp_4st_specific</code></td>
 <td>Four-state, specific binding</td>
 <td>quintic</td>
-<td><code>RT</code>, <code>Lst</code>, <code>Kds</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kd</code>, <code>Kd3</code></td>
+<td><code>RT</code>, <code>LsT</code>, <code>Kds</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code>, <code>Kd3</code></td>
 </tr>
 <tr class="even">
 <td><code>comp_4st_total</code></td>
 <td>Four-state, total binding</td>
 <td>quintic</td>
-<td><code>RT</code>, <code>Lst</code>, <code>Kds</code>, <code>N</code></td>
-<td><code>min</code>, <code>max</code>, <code>Kd</code>, <code>Kd3</code></td>
+<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>N</code></td>
+<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code>, <code>Kd3</code></td>
 </tr>
 </tbody>
 </table>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The quintic models <code>comp_4st_specific</code> and <code>comp_4st_total</code> are solved numerically. Choosing the physical root is not always straightforward. The current implementation might give unphysical results in some situations, for example in strongly cooperative regimes.</p>
+</div>
+</div>
 </section>
 <section id="ic50---kd-conversion-models" class="level3" data-number="0.4">
 <h3 data-number="0.4" class="anchored" data-anchor-id="ic50---kd-conversion-models"><span class="header-section-number">0.4</span> IC50 -&gt; Kd conversion models</h3>
@@ -448,9 +461,9 @@ window.Quarto = {
 <colgroup>
 <col style="width: 18%">
 <col style="width: 25%">
-<col style="width: 15%">
+<col style="width: 13%">
 <col style="width: 18%">
-<col style="width: 22%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -466,47 +479,47 @@ window.Quarto = {
 <td><code>cheng_prusoff</code></td>
 <td>Cheng-Prusoff</td>
 <td>-</td>
-<td><code>Lst</code>, <code>Kds</code>, <code>IC50</code></td>
+<td><code>LsT</code>, <code>Kds</code>, <code>IC50</code></td>
 <td><code>Kd</code></td>
 </tr>
 <tr class="even">
 <td><code>cheng_prusoff_corr</code></td>
 <td>Corrected Cheng-Prusoff</td>
 <td>-</td>
-<td><code>Lst</code>, <code>Kds</code>, <code>y0</code>, <code>IC50</code></td>
+<td><code>LsT</code>, <code>Kds</code>, <code>y0</code>, <code>IC50</code></td>
 <td><code>Kd</code></td>
 </tr>
 <tr class="odd">
 <td><code>coleska</code></td>
 <td>Nikolovska-Coleska</td>
 <td>quadratic</td>
-<td><code>RT</code>, <code>Lst</code>, <code>Kds</code>, <code>IC50</code></td>
+<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>IC50</code></td>
 <td><code>Kd</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="fixing-parameters" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="fixing-parameters"><span class="header-section-number">1</span> Fixing parameters</h2>
-<p>BindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the <code>min</code> and/or <code>max</code> parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix <code>min</code> to 0 and <code>max</code> to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The <code>fit_50</code> function also allows fixing the <code>slope</code> parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.</p>
-<p>Fixing of <code>min</code> and <code>max</code> parameters is controled by <code>fix_min</code> and <code>fix_max</code> arguments when calling any fitting function in BindCurve. The <code>slope</code> parameter can be fixed by <code>fix_slope</code> argument (only available for <code>fit_50</code> function). All of these parameters are set to <code>False</code> by default, which means the parameter is fitted freely. When you change the <code>fix_min</code>, <code>fix_max</code> or <code>fix_slope</code> to any numerical value, the parameter will be fixed to the given value.</p>
-<div id="26dd4c9d" class="cell" data-execution_count="1">
+<section id="parameter-fixing" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="parameter-fixing"><span class="header-section-number">1</span> Parameter fixing</h2>
+<p>BindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the <code>ymin</code> and/or <code>ymax</code> parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix <code>ymin</code> to 0 and <code>ymax</code> to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The <code>fit_50</code> function also allows fixing the <code>slope</code> parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.</p>
+<p>Fixing of <code>ymin</code> and <code>ymax</code> parameters is controled by <code>fix_ymin</code> and <code>fix_ymax</code> arguments when calling any fitting function in BindCurve. The <code>slope</code> parameter can be fixed by <code>fix_slope</code> argument (only available for <code>fit_50</code> function). All of these parameters are set to <code>False</code> by default, which means the parameter is fitted freely. When you change the <code>fix_ymin</code>, <code>fix_ymax</code> or <code>fix_slope</code> to any numerical value, the parameter will be fixed to the given value.</p>
+<div id="6030be1a" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 0. Maximum and slope are fitted freely.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_min<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_ymin<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 0 and maximum to 1, slope is fitted variably</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_min<span class="op">=</span><span class="dv">0</span>, fix_max<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_ymin<span class="op">=</span><span class="dv">0</span>, fix_ymax<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 0, maximum to 1 and slope to -1</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_min<span class="op">=</span><span class="dv">0</span>, fix_max<span class="op">=</span><span class="dv">1</span>, fix_slope<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_ymin<span class="op">=</span><span class="dv">0</span>, fix_ymax<span class="op">=</span><span class="dv">1</span>, fix_slope<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Fixing can also be useful when fitting Kd using the exact polynomial models. For example, if your competitive inhibition curve is not titrated all the way to the minimum asymptote, you can just fix the <code>min</code> parameter to the value of the lower asymptote, which you have determined previously from direct binding.</p>
-<div id="80ce6f1e" class="cell" data-execution_count="2">
+<p>Fixing can also be useful when fitting Kd using the exact polynomial models. For example, if your competitive inhibition curve is not titrated all the way to the minimum asymptote, you can just fix the <code>ymin</code> parameter to the value of the lower asymptote, which you have determined previously from direct binding.</p>
+<div id="d1b6bb58" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 20, maximum is fitted freely</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Kd_results <span class="op">=</span> bc.fit_Kd_competition(input_data, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, fix_min<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Kd_results <span class="op">=</span> bc.fit_Kd_competition(input_data, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, fix_ymin<span class="op">=</span><span class="dv">20</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 20 and maximum to 140</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>Kd_results <span class="op">=</span> bc.fit_Kd_competition(input_data, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, fix_min<span class="op">=</span><span class="dv">20</span>, fix_max<span class="op">=</span><span class="dv">140</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>Kd_results <span class="op">=</span> bc.fit_Kd_competition(input_data, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, fix_ymin<span class="op">=</span><span class="dv">20</span>, fix_ymax<span class="op">=</span><span class="dv">140</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -518,7 +531,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <code>min</code> and <code>max</code> parameters have different meaning for the logistic models and for the exact Kd models. In the logistic models, <code>min</code> and <code>max</code> will always correspont to the actual minimum and maximum of the curve, while for the exact Kd models these values define the asymptotes of the model, which might not be the same as the minimum and maximum of the observed curve.</p>
+<p>The <code>ymin</code> and <code>ymax</code> parameters have different meaning for the logistic models and for the exact Kd models. In the logistic models, <code>ymin</code> and <code>ymax</code> will always correspont to the actual minimum and maximum of the curve, while for the exact Kd models, these values define the asymptotes of the model which might not be the same as the minimum and maximum of the curve.</p>
 </div>
 </div>
 </section>

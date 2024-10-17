@@ -58,6 +58,7 @@ plt.show()
 
 
 
+
 ###
 # competitive binding
 ###
