@@ -10,28 +10,36 @@ website:
       - about.qmd
       - theory.qmd
 
+  page-footer: |
+    © 2024 | Created by <a href="https://quarto.org/">Quarto</a>.
+
+
+
+
+
   sidebar:
     style: "docked"
     search: true
     contents:
       - text: "Introduction"
         href: introduction.qmd
-      - section: "Basics"
-        href: basics-summary.qmd
+      - text: "Input format"
+        href: input_format.qmd
+      - text: "Models"
+        href: models.qmd
+      - text: "Symbols"
+        href: symbols.qmd
+      - text: "Theory"
+        href: theory.qmd        
+      - section: "Tutorials"
+        href: tutorials.qmd
         contents:
-          - index.qmd
-          - basics-knitr.qmd
-          - basics-jupyter.qmd
-      - section: "Layout"
-        contents:
-          - layout.qmd
-          - layout-knitr.qmd
-          - layout-jupyter.qmd
-      - section: advanced.qmd
-        contents:
-          - raw-code.qmd
-          - custom-theme.qmd
-      - acknowlegment.qmd
+          - text: "tutorial1"
+            href: tutorial1.qmd 
+          - text: "tutorial2"
+            href: tutorial2.qmd  
+
+
 
 
 
@@ -40,9 +48,7 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
-    number-sections: true
-
-
+    number-sections: false
 
 
 

@@ -152,15 +152,16 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
-<span class="menu-text">About</span></a>
+    <span class="nav-link">
+<span class="menu-text">about.qmd</span>
+    </span>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./theory.html"> 
+    <a class="nav-link active" href="./theory.html" aria-current="page"> 
 <span class="menu-text">Theory</span></a>
   </li>  
 </ul>
@@ -174,7 +175,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Models</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./models.html">Models</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -200,10 +201,34 @@ window.Quarto = {
  <span class="menu-text">Introduction</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Input format</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./models.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Models</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./symbols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Symbols</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Theory</span></a>
+  </div>
+</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./basics-summary.qmd" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Basics</span></a>
+            <a href="./tutorials.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tutorials</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -211,57 +236,17 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">BindCurve</span></a>
+  <a href="./tutorial1.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tutorial1</span></a>
   </div>
 </li>
           <li class="sidebar-item">
- <span class="menu-text">basics-knitr.qmd</span>
-  </li>
-          <li class="sidebar-item">
- <span class="menu-text">basics-jupyter.qmd</span>
-  </li>
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial2.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tutorial2</span></a>
+  </div>
+</li>
       </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Layout</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
- <span class="menu-text">layout.qmd</span>
-  </li>
-          <li class="sidebar-item">
- <span class="menu-text">layout-knitr.qmd</span>
-  </li>
-          <li class="sidebar-item">
- <span class="menu-text">layout-jupyter.qmd</span>
-  </li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">advanced.qmd</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
- <span class="menu-text">raw-code.qmd</span>
-  </li>
-          <li class="sidebar-item">
- <span class="menu-text">custom-theme.qmd</span>
-  </li>
-      </ul>
-  </li>
-        <li class="sidebar-item">
- <span class="menu-text">acknowlegment.qmd</span>
   </li>
     </ul>
     </div>
@@ -273,13 +258,13 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#direct-binding-models" id="toc-direct-binding-models" class="nav-link active" data-scroll-target="#direct-binding-models"><span class="header-section-number">0.1</span> Direct binding models</a></li>
-  <li><a href="#competitive-binding---logistic-models" id="toc-competitive-binding---logistic-models" class="nav-link" data-scroll-target="#competitive-binding---logistic-models"><span class="header-section-number">0.2</span> Competitive binding - logistic models</a></li>
-  <li><a href="#competitive-binding---exact-polynomial-models" id="toc-competitive-binding---exact-polynomial-models" class="nav-link" data-scroll-target="#competitive-binding---exact-polynomial-models"><span class="header-section-number">0.3</span> Competitive binding - exact polynomial models</a></li>
-  <li><a href="#ic50---kd-conversion-models" id="toc-ic50---kd-conversion-models" class="nav-link" data-scroll-target="#ic50---kd-conversion-models"><span class="header-section-number">0.4</span> IC50 -&gt; Kd conversion models</a></li>
-  <li><a href="#parameter-fixing" id="toc-parameter-fixing" class="nav-link" data-scroll-target="#parameter-fixing"><span class="header-section-number">1</span> Parameter fixing</a></li>
-  <li><a href="#uncertainties" id="toc-uncertainties" class="nav-link" data-scroll-target="#uncertainties"><span class="header-section-number">2</span> Uncertainties</a></li>
-  <li><a href="#goodness-of-fit" id="toc-goodness-of-fit" class="nav-link" data-scroll-target="#goodness-of-fit"><span class="header-section-number">3</span> Goodness of fit</a></li>
+  <li><a href="#direct-binding-models" id="toc-direct-binding-models" class="nav-link active" data-scroll-target="#direct-binding-models">Direct binding models</a></li>
+  <li><a href="#competitive-binding---logistic-models" id="toc-competitive-binding---logistic-models" class="nav-link" data-scroll-target="#competitive-binding---logistic-models">Competitive binding - logistic models</a></li>
+  <li><a href="#competitive-binding---exact-polynomial-models" id="toc-competitive-binding---exact-polynomial-models" class="nav-link" data-scroll-target="#competitive-binding---exact-polynomial-models">Competitive binding - exact polynomial models</a></li>
+  <li><a href="#ic50---kd-conversion-models" id="toc-ic50---kd-conversion-models" class="nav-link" data-scroll-target="#ic50---kd-conversion-models">IC50 -&gt; Kd conversion models</a></li>
+  <li><a href="#parameter-fixing" id="toc-parameter-fixing" class="nav-link" data-scroll-target="#parameter-fixing">Parameter fixing</a></li>
+  <li><a href="#uncertainties" id="toc-uncertainties" class="nav-link" data-scroll-target="#uncertainties">Uncertainties</a></li>
+  <li><a href="#goodness-of-fit" id="toc-goodness-of-fit" class="nav-link" data-scroll-target="#goodness-of-fit">Goodness of fit</a></li>
   </ul>
 </nav>
     </div>
@@ -306,8 +291,8 @@ window.Quarto = {
 
 
 <p>BindCurve offers several models:</p>
-<section id="direct-binding-models" class="level3" data-number="0.1">
-<h3 data-number="0.1" class="anchored" data-anchor-id="direct-binding-models"><span class="header-section-number">0.1</span> Direct binding models</h3>
+<section id="direct-binding-models" class="level3">
+<h3 class="anchored" data-anchor-id="direct-binding-models">Direct binding models</h3>
 <p>These models are calculated by the <code>fit_Kd_direct</code> function. It is assumed that <code>LsT</code> is fixed and <code>RT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed.</p>
 <table class="caption-top table">
 <colgroup>
@@ -351,8 +336,8 @@ window.Quarto = {
 </tbody>
 </table>
 </section>
-<section id="competitive-binding---logistic-models" class="level3" data-number="0.2">
-<h3 data-number="0.2" class="anchored" data-anchor-id="competitive-binding---logistic-models"><span class="header-section-number">0.2</span> Competitive binding - logistic models</h3>
+<section id="competitive-binding---logistic-models" class="level3">
+<h3 class="anchored" data-anchor-id="competitive-binding---logistic-models">Competitive binding - logistic models</h3>
 <p>These models are calculated by the <code>fit_50</code> function. You can use these models for any dose-response curves without knowing any concentrations in the system. Parameters <code>ymin</code>, <code>ymax</code> and <code>slope</code> could be fixed. If you fix <code>slope</code> to <code>-1</code> or <code>1</code>, the model will be reduced from a model with variable slope to a model with fixed slope.</p>
 <table class="caption-top table">
 <colgroup>
@@ -389,8 +374,8 @@ window.Quarto = {
 </tbody>
 </table>
 </section>
-<section id="competitive-binding---exact-polynomial-models" class="level3" data-number="0.3">
-<h3 data-number="0.3" class="anchored" data-anchor-id="competitive-binding---exact-polynomial-models"><span class="header-section-number">0.3</span> Competitive binding - exact polynomial models</h3>
+<section id="competitive-binding---exact-polynomial-models" class="level3">
+<h3 class="anchored" data-anchor-id="competitive-binding---exact-polynomial-models">Competitive binding - exact polynomial models</h3>
 <p>These models are calculated using the <code>fit_Kd_competition</code> function. It is assumed that <code>RT</code> and <code>LsT</code> are fixed and <code>LT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed. When fitting <code>comp_4st_specific</code> or <code>comp_4st_total</code>, it is recommended to fix the <code>ymin</code> parameter (minimal asymptote of the model).</p>
 <table class="caption-top table">
 <colgroup>
@@ -454,8 +439,8 @@ Warning
 </div>
 </div>
 </section>
-<section id="ic50---kd-conversion-models" class="level3" data-number="0.4">
-<h3 data-number="0.4" class="anchored" data-anchor-id="ic50---kd-conversion-models"><span class="header-section-number">0.4</span> IC50 -&gt; Kd conversion models</h3>
+<section id="ic50---kd-conversion-models" class="level3">
+<h3 class="anchored" data-anchor-id="ic50---kd-conversion-models">IC50 -&gt; Kd conversion models</h3>
 <p>These models are calculated using the <code>convert</code> function. No fitting is performed, only a single-point conversion of <code>IC50</code> values from provided dataframe to <code>Kd</code>.</p>
 <table class="caption-top table">
 <colgroup>
@@ -499,8 +484,8 @@ Warning
 </tbody>
 </table>
 </section>
-<section id="parameter-fixing" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="parameter-fixing"><span class="header-section-number">1</span> Parameter fixing</h2>
+<section id="parameter-fixing" class="level2">
+<h2 class="anchored" data-anchor-id="parameter-fixing">Parameter fixing</h2>
 <p>BindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the <code>ymin</code> and/or <code>ymax</code> parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix <code>ymin</code> to 0 and <code>ymax</code> to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The <code>fit_50</code> function also allows fixing the <code>slope</code> parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.</p>
 <p>Fixing of <code>ymin</code> and <code>ymax</code> parameters is controled by <code>fix_ymin</code> and <code>fix_ymax</code> arguments when calling any fitting function in BindCurve. The <code>slope</code> parameter can be fixed by <code>fix_slope</code> argument (only available for <code>fit_50</code> function). All of these parameters are set to <code>False</code> by default, which means the parameter is fitted freely. When you change the <code>fix_ymin</code>, <code>fix_ymax</code> or <code>fix_slope</code> to any numerical value, the parameter will be fixed to the given value.</p>
 <div id="6030be1a" class="cell" data-execution_count="1">
@@ -535,12 +520,12 @@ Note
 </div>
 </div>
 </section>
-<section id="uncertainties" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="uncertainties"><span class="header-section-number">2</span> Uncertainties</h2>
+<section id="uncertainties" class="level2">
+<h2 class="anchored" data-anchor-id="uncertainties">Uncertainties</h2>
 <p>BindCurve offers two kinds of uncertainty estimates for the fitted parameters, both obtained from the underlying LMFIT library. For every fit, standard error (SE) is outputted. Additionally, the calculation of 95% confidence intervals is enabled by default, but could be disabled by setting <code>ci=False</code>. The 95% confidence interval is outputted as <code>loCL</code> and <code>upCL</code>, which correspond to lower and upper confidence limits. Please note that the 95% confidence interval can only be calculated if more than one parameter is freely fitted. In case only one parameter is freely fitted, BindCurve will automatically set <code>ci=False</code> and only SE will be calculated.</p>
 </section>
-<section id="goodness-of-fit" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="goodness-of-fit"><span class="header-section-number">3</span> Goodness of fit</h2>
+<section id="goodness-of-fit" class="level2">
+<h2 class="anchored" data-anchor-id="goodness-of-fit">Goodness of fit</h2>
 <p>To quantify the goodness of fit, <span class="math inline">\(\chi^2\)</span> and <span class="math inline">\(R^2\)</span> metrics are outputted for every fit. Good fit is characterized by low value of <span class="math inline">\(\chi^2\)</span> and high value (close to 1) of <span class="math inline">\(R^2\)</span>.</p>
 
 
@@ -968,6 +953,19 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© 2024 | Created by <a href="https://quarto.org/">Quarto</a>.</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
 
 
 

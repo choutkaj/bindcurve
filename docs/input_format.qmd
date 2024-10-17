@@ -1,0 +1,14 @@
+## Input format
+
+
+BindCurve accepts the input data either from .csv file using the `load_csv` function, or from pandas dataframe using the `load_df` function. In both cases, the data should be formatted as follows: 
+
+- First row of the file should be a header. Names of columns do not matter, they will be standardized automatically.
+- First column must contain compound names (for each row).
+- Second column must contain concentration in any units of your choosing. This unit will be retained throughout the workflow. When loading the data, concentration can be scaled by the `c_scale` argument. Concentration of 0 will raise error.
+- Third to Nth columns are expected to contain your response values. There can be any number of replicates. The number of replicates can be different for each compound or for each concentration point.
+
+
+
+<br>
+![](images/input_format/input_format.svg){fig-alt="Competitive binding (three-state)." fig-align="center" width=100%}
