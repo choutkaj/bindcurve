@@ -28,13 +28,8 @@ print(input_data)
 IC50_results = bc.fit_50(input_data, model="IC50")
 print(IC50_results)
 
-# To use exact Kd models, first define experimental constants
-RT = 0.05             # Total concentration of the receptor
-LsT = 0.005           # Total concentration of the labeled ligand
-Kds = 0.0245          # Kd of the labeled ligand
-
 # Fit Kd from your data
-Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", RT=RT, LsT=LsT, Kds=Kds)
+Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", RT=0.05, LsT=0.005, Kds=0.0245)
 print(Kd_results)
 ```
 ### Plotting curves
