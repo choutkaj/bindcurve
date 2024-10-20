@@ -43,7 +43,7 @@ plt.figure(figsize=(6, 5))
 # Plot your curves from the IC50_results dataframe
 bc.plot(input_data, IC50_results)
 
-# Just use matplotlib to your desired settings and show the plot 
+# Just use matplotlib to set up show the plot 
 plt.xlabel("your x label")
 plt.ylabel("your y label")
 plt.xscale("log")
