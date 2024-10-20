@@ -1,0 +1,19 @@
+# Function reference {.doc .doc-index}
+
+## one section
+
+Functions to inspect docstrings.
+
+| | |
+| --- | --- |
+| [load_csv](load_csv.qmd#bindcurve.load_csv) | Loads and preprocesses data from csv file. |
+
+## another section
+
+another Functions to inspect docstrings.
+
+| | |
+| --- | --- |
+| [load_csv](load_csv.qmd#bindcurve.load_csv) | Loads and preprocesses data from csv file. |
+| [load_df](load_df.qmd#bindcurve.load_df) | Loads and preprocesses data from existing DataFrame. |
+| [fit_Kd_direct](fit_Kd_direct.qmd#bindcurve.fit_Kd_direct) | Function for fitting the "dir_simple" `dir_specific` and dir_total models. |

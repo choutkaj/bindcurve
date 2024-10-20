@@ -9,13 +9,13 @@ website:
         text: Home
       - about.qmd
       - theory.qmd
+    right:
+      - text: "GitHub"
+        href: https://github.com/choutkaj/bindcurve
+        icon: github
 
   page-footer: |
     © 2024 | Created by <a href="https://quarto.org/">Quarto</a>.
-
-
-
-
 
   sidebar:
     style: "docked"
@@ -27,19 +27,29 @@ website:
         href: input_format.qmd
       - text: "Models"
         href: models.qmd
-      - text: "Symbols"
-        href: symbols.qmd
-      - text: "Theory"
-        href: theory.qmd        
+      - section: "How to use"
+        contents:
+          - text: "Input format"
+            href: input_format.qmd 
       - section: "Tutorials"
         href: tutorials.qmd
         contents:
-          - text: "tutorial1"
-            href: tutorial1.qmd 
+          - text: "Basics"
+            href: tutorials/basics.ipynb 
           - text: "tutorial2"
-            href: tutorial2.qmd  
-
-
+            href: tutorials/tutorial2.ipynb
+      - section: "Theory"
+        contents:
+          - text: "Logistic models"
+            href: theory_logistic.qmd 
+          - text: "Exact Kd models"
+            href: theory_exact.qmd
+          - text: "IC50->Kd conversion"
+            href: theory_conversions.qmd
+      - text: "Symbols"
+        href: symbols.qmd
+      - text: "API reference"
+        href: ./reference/index.qmd
 
 
 
@@ -49,29 +59,28 @@ format:
     css: styles.css
     toc: true
     number-sections: false
-
-
-
+    
 
 
 
 
 
 quartodoc:
-  # the name used to import the package you want to create reference docs for
+  style: pkgdown
+  dir: reference
+  source_dir: ..
   package: bindcurve
-
-  # write sidebar data to this file
-  sidebar: _sidebar.yml
-
   sections:
-    - title: Some functions
+    - title: one section
       desc: Functions to inspect docstrings.
       contents:
-        # the functions being documented in the package.
-        # you can refer to anything: class methods, modules, etc..
         - load_csv
-        - preview
+    - title: another section
+      desc: another Functions to inspect docstrings.
+      contents:
+        - load_csv
+        - load_df
+        - fit_Kd_direct
 
 
 

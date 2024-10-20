@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>symbols – BindCurve</title>
+<title>IC50 -&gt; Kd conversion models – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -127,9 +127,8 @@ window.Quarto = {
     </span>
   </li>  
   <li class="nav-item">
-    <span class="nav-link">
-<span class="menu-text">theory.qmd</span>
-    </span>
+    <a class="nav-link active" href="./theory.html" aria-current="page"> 
+<span class="menu-text">Theory</span></a>
   </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
@@ -149,7 +148,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./symbols.html">Symbols</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory_logistic.html">Theory</a></li><li class="breadcrumb-item"><a href="./theory_conversions.html">IC50-&gt;Kd conversion</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -187,32 +186,27 @@ window.Quarto = {
  <span class="menu-text">Models</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./symbols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Symbols</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Theory</span></a>
+  </div>
+</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">How to use</span></a>
+            <a href="./tutorials.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tutorials</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Input format</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a href="./tutorials.qmd" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Tutorials</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./tutorials/basics.html" class="sidebar-item-text sidebar-link">
@@ -229,13 +223,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
  <span class="menu-text">Theory</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link">
@@ -250,7 +244,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_conversions.html" class="sidebar-item-text sidebar-link">
+  <a href="./theory_conversions.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">IC50-&gt;Kd conversion</span></a>
   </div>
 </li>
@@ -258,13 +252,7 @@ window.Quarto = {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./symbols.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Symbols</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./api.html" class="sidebar-item-text sidebar-link">
+  <a href="./api.qmd" class="sidebar-item-text sidebar-link">
  <span class="menu-text">API reference</span></a>
   </div>
 </li>
@@ -278,105 +266,107 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#symbols" id="toc-symbols" class="nav-link active" data-scroll-target="#symbols">Symbols</a></li>
+  <li><a href="#nikolovska-coleska" id="toc-nikolovska-coleska" class="nav-link active" data-scroll-target="#nikolovska-coleska">Nikolovska-Coleska</a></li>
+  <li><a href="#cheng-prusoff" id="toc-cheng-prusoff" class="nav-link" data-scroll-target="#cheng-prusoff">Cheng-Prusoff</a></li>
+  <li><a href="#cheng-prusoff-corrected" id="toc-cheng-prusoff-corrected" class="nav-link" data-scroll-target="#cheng-prusoff-corrected">Cheng-Prusoff Corrected</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory_logistic.html">Theory</a></li><li class="breadcrumb-item"><a href="./theory_conversions.html">IC50-&gt;Kd conversion</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">IC50 -&gt; Kd conversion models</h1>
+</div>
 
 
 
-<section id="symbols" class="level2">
-<h2 class="anchored" data-anchor-id="symbols">Symbols</h2>
-<p>BindCurve uses the following symbols:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 60%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Symbol</th>
-<th>Symbol in code</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\([R]_T\)</span></td>
-<td><code>RT</code></td>
-<td>Total concentration of receptor.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([R]\)</span></td>
-<td><code>R</code></td>
-<td>Concentration of free receptor.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([L^*]_T\)</span></td>
-<td><code>LsT</code></td>
-<td>Total concentration of labelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L^*]\)</span></td>
-<td><code>Ls</code></td>
-<td>Concentration of free labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([L]_T\)</span></td>
-<td><code>LT</code></td>
-<td>Total concentration of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L]\)</span></td>
-<td><code>L</code></td>
-<td>Concentration of free unlabelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RL^*]\)</span></td>
-<td><code>RLs</code></td>
-<td>Concentration of (receptor-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([RL]\)</span></td>
-<td><code>RL</code></td>
-<td>Concentration of (receptor-unlabelled ligand) complex.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RLL^*]\)</span></td>
-<td><code>RLLs</code></td>
-<td>Concentration of (receptor-unlabelled ligand-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_d^*\)</span></td>
-<td><code>Kds</code></td>
-<td>Dissociation constant of labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(K_d\)</span></td>
-<td><code>Kd</code></td>
-<td>Dissociation constant of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_{d3}\)</span></td>
-<td><code>Kd3</code></td>
-<td>The third dissociation constant in four-state models.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(N^*\)</span></td>
-<td><code>Ns</code></td>
-<td>Nonspecific binding parameter for the labeled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(N\)</span></td>
-<td><code>N</code></td>
-<td>Nonspecific binding parameter for the unlabeled ligand.</td>
-</tr>
-</tbody>
-</table>
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>What function to use: <code>convert</code></p>
+<p>These models are used for converting <span class="math inline">\(\text{IC}_{50}\)</span> to <span class="math inline">\(K_d\)</span> using more or less approximate formulas.</p>
+<section id="nikolovska-coleska" class="level3">
+<h3 class="anchored" data-anchor-id="nikolovska-coleska">Nikolovska-Coleska</h3>
+<p>Model name: <code>coleska</code><br>
+References: <a href="https://doi.org/10.1016/j.ab.2004.05.055">Nikolovska-Coleska 2004</a></p>
+<p>In the model of Nikolovska-Coleska, <span class="math inline">\(K_d\)</span> is calculated by the equation:</p>
+<p><span class="math display">\[
+K_d = \frac{[L_{50}]}{\left(\frac{[L_{50}^*] + [R_0]}{K_d^*}\right) + 1}  
+\]</span></p>
+<p>where <span class="math inline">\([L_{50}^*]\)</span> is the concentration of labeled ligand at 50% inhibition, <span class="math inline">\([L_{50}]\)</span> is the concentration of unlabeled ligand at 50% inhibition, <span class="math inline">\(K_d^*\)</span> is the dissociation constant of the labeled ligand, <span class="math inline">\(K_d\)</span> is the dissociation constant of the unlabeled ligand, and <span class="math inline">\([R_0]\)</span> is the concentration of receptor at 0% inhibition.</p>
+<p>Following the equations for conservation of mass, <span class="math inline">\([R_0]\)</span> could be expressed in a quadratic equation:<br>
+<span class="math display">\[
+[R_0]^2 + a[R_0] + b = 0  
+\]</span></p>
+<p>where the coefficients are calculated as:<br>
+<span class="math display">\[
+a = [L^*]_T + K_d^* - [R]_T  
+\]</span></p>
+<p><span class="math display">\[
+b = -K_d^* [R]_T  
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Please note that the coefficients of this quadratic equation are expressed incorrectly in <a href="https://doi.org/10.1016/j.ab.2004.05.055">Nikolovska-Coleska 2004</a>.</p>
+</div>
+</div>
+<p>The physical solution for <span class="math inline">\([R_0]\)</span> is then calculated by the quadratic formula:<br>
+<span class="math display">\[
+[R_0] = \frac{-a + \sqrt{a^2 - 4b}}{2}  
+\]</span></p>
+<p>The rest of the parameters are calculated as follows:<br>
+<span class="math display">\[
+[L_0^*] = \frac{[L^*]_T}{1 + \frac{[R_0]}{K_d^*}}  
+\]</span></p>
+<p><span class="math display">\[
+[RL_0^*] = \frac{[R]_T}{1 + \frac{K_d^*}{[L_0^*]}}  
+\]</span></p>
+<p><span class="math display">\[
+[RL_{50}^*] = \frac{[RL_0^*]}{2}  
+\]</span></p>
+<p><span class="math display">\[
+[L_{50}^*] = [L^*]_T - [RL_{50}^*]  
+\]</span></p>
+<p><span class="math display">\[
+[RL_{50}] = [R]_T + \frac{K_d^* [RL_{50}^*]}{[L_{50}^*]} + [RL_{50}^*]  
+\]</span></p>
+<p><span class="math display">\[
+[L_{50}] = IC_{50} - [RL_{50}]  
+\]</span></p>
+</section>
+<section id="cheng-prusoff" class="level3">
+<h3 class="anchored" data-anchor-id="cheng-prusoff">Cheng-Prusoff</h3>
+<p>Model name: <code>cheng_prusoff</code></p>
+<p><span class="math display">\[
+K_d = \frac{\text{IC}_{50}}{1 + \frac{[L^*]_T}{K_d^*}}  
+\]</span></p>
+</section>
+<section id="cheng-prusoff-corrected" class="level3">
+<h3 class="anchored" data-anchor-id="cheng-prusoff-corrected">Cheng-Prusoff Corrected</h3>
+<p>Model name: <code>cheng_prusoff_corr</code><br>
+References: <a href="https://doi.org/10.3109/10799898809049010">Munson 2008</a></p>
+<p><span class="math display">\[
+K_d = \frac{\text{IC}_{50}}{1 + \left(\frac{[L^*]_T(Y_0 + 2)}{2K_d^*(Y_0 + 1)}\right) + Y_0} + \frac{K_d^* Y_0}{Y_0 + 2}  
+\]</span></p>
 
 
 </section>

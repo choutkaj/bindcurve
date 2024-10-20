@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>symbols – BindCurve</title>
+<title>load_csv – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,25 +20,59 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -67,37 +101,8 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed">
@@ -107,7 +112,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">BindCurve</span>
     </a>
   </div>
@@ -118,7 +123,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -149,7 +154,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./symbols.html">Symbols</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -171,19 +176,19 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./introduction.qmd" class="sidebar-item-text sidebar-link">
+  <a href="../introduction.qmd" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Introduction</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
+  <a href="../input_format.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Input format</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./models.html" class="sidebar-item-text sidebar-link">
+  <a href="../models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Models</span></a>
   </div>
 </li>
@@ -198,7 +203,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
+  <a href="../input_format.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Input format</span></a>
   </div>
 </li>
@@ -206,7 +211,7 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./tutorials.qmd" class="sidebar-item-text sidebar-link">
+            <a href="../tutorials.qmd" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tutorials</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -215,13 +220,13 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/basics.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/basics.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Basics</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/tutorial2.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/tutorial2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tutorial2</span></a>
   </div>
 </li>
@@ -238,19 +243,19 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_logistic.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Logistic models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_exact.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_exact.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Exact Kd models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_conversions.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_conversions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">IC50-&gt;Kd conversion</span></a>
   </div>
 </li>
@@ -258,13 +263,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./symbols.html" class="sidebar-item-text sidebar-link active">
+  <a href="../symbols.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Symbols</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">API reference</span></a>
   </div>
 </li>
@@ -278,7 +283,11 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#symbols" id="toc-symbols" class="nav-link active" data-scroll-target="#symbols">Symbols</a></li>
+  <li><a href="#bindcurve.load_csv" id="toc-bindcurve.load_csv" class="nav-link active" data-scroll-target="#bindcurve.load_csv">load_csv</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -288,97 +297,69 @@ window.Quarto = {
 
 
 
-<section id="symbols" class="level2">
-<h2 class="anchored" data-anchor-id="symbols">Symbols</h2>
-<p>BindCurve uses the following symbols:</p>
+<section id="bindcurve.load_csv" class="level1">
+<h1>load_csv</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>load_csv(csvfile, c_scale<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Loads and preprocesses data from csv file.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 60%">
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 63%">
+<col style="width: 12%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Symbol</th>
-<th>Symbol in code</th>
-<th>Meaning</th>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\([R]_T\)</span></td>
-<td><code>RT</code></td>
-<td>Total concentration of receptor.</td>
+<td>csvfile</td>
+<td>str</td>
+<td>Path to the csv file.</td>
+<td><em>required</em></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\([R]\)</span></td>
-<td><code>R</code></td>
-<td>Concentration of free receptor.</td>
+<td>c_scale</td>
+<td>float or int</td>
+<td>Factor for scaling concentration. Used for unit conversion.</td>
+<td><code>1</code></td>
 </tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 15%">
+<col style="width: 73%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr class="odd">
-<td><span class="math inline">\([L^*]_T\)</span></td>
-<td><code>LsT</code></td>
-<td>Total concentration of labelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L^*]\)</span></td>
-<td><code>Ls</code></td>
-<td>Concentration of free labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([L]_T\)</span></td>
-<td><code>LT</code></td>
-<td>Total concentration of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L]\)</span></td>
-<td><code>L</code></td>
-<td>Concentration of free unlabelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RL^*]\)</span></td>
-<td><code>RLs</code></td>
-<td>Concentration of (receptor-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([RL]\)</span></td>
-<td><code>RL</code></td>
-<td>Concentration of (receptor-unlabelled ligand) complex.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RLL^*]\)</span></td>
-<td><code>RLLs</code></td>
-<td>Concentration of (receptor-unlabelled ligand-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_d^*\)</span></td>
-<td><code>Kds</code></td>
-<td>Dissociation constant of labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(K_d\)</span></td>
-<td><code>Kd</code></td>
-<td>Dissociation constant of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_{d3}\)</span></td>
-<td><code>Kd3</code></td>
-<td>The third dissociation constant in four-state models.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(N^*\)</span></td>
-<td><code>Ns</code></td>
-<td>Nonspecific binding parameter for the labeled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(N\)</span></td>
-<td><code>N</code></td>
-<td>Nonspecific binding parameter for the unlabeled ligand.</td>
+<td></td>
+<td>DataFrame</td>
+<td>Pandas DataFrame containing preprocessed input data.</td>
 </tr>
 </tbody>
 </table>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

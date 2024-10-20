@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import lmfit
-#import data
-#import models
 from bindcurve import data
 from bindcurve import models
 
@@ -70,7 +68,7 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
 
 
         # Setting parameters for the direct binding Kd models
-        if model in models.get_list_of_models("Kd_saturation"):
+        if model in models.get_list_of_models("Kd_direct"):
             # Experimental constants
             pars.add('LsT', value = LsT, vary=False)
             # Parameters to be fitted
@@ -104,6 +102,33 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
     
     
 def fit_50(input_df, model, compound_sel = False, fix_ymin = False, fix_ymax = False, fix_slope = False, ci=True, verbose = False):
+    """Function for fitting the `IC50` and `logIC50` models.
+    
+    Parameters
+    ----------
+    input_df : DataFrame
+        Pandas DataFrame containing the input data.
+    model : str
+        Name of the model. Options: `IC50`, `logIC50`
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    fix_ymin : float or int
+        Lower asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    fix_ymax : float or int
+        Upper asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    fix_slope : float or int
+        Slope of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    ci : bool
+        Whether to calculate 95% confidence intervals.
+    verbose : bool
+        If set to "True", more detailed output is printed. Intended mainly for troubleshooting.
+
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing the fit results.
+    """
+    
     print("Fitting", model, "...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
@@ -210,6 +235,35 @@ def fit_50(input_df, model, compound_sel = False, fix_ymin = False, fix_ymax = F
 
 
 def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_ymin = False, fix_ymax = False, ci=True, verbose = False):
+    """Function for fitting the `dir_simple`, `dir_specific` and `dir_total` models.
+    
+    Parameters
+    ----------
+    input_df : DataFrame
+        Pandas DataFrame containing the input data.
+    model : str
+        Name of the model. Options: `dir_simple`, `dir_specific`, `dir_total`
+    LsT : float or int
+        Total concentration of the labeled ligand.
+    Ns : float or int
+        Parameter for nonspecific binding of the labeled ligand (needed only for `dir_total` model).
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    fix_ymin : float or int
+        Lower asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    fix_ymax : float or int
+        Upper asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    ci : bool
+        Whether to calculate 95% confidence intervals.
+    verbose : bool
+        If set to "True", more detailed output is printed. Intended mainly for troubleshooting.
+
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing the fit results.
+    """
+    
     print("Fitting", model, "...")
     
     
@@ -335,6 +389,39 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_ymin 
 
 
 def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = False, fix_ymin = False, fix_ymax = False, ci=True, verbose = False):
+    """Function for fitting the `comp_3st_specific`, `comp_3st_total`, `comp_4st_specific` and `comp_4st_total` models.
+    
+    Parameters
+    ----------
+    input_df : DataFrame
+        Pandas DataFrame containing the input data.
+    model : str
+        Name of the model. Options: `comp_3st_specific`, `comp_3st_total`, `comp_4st_specific`, `comp_4st_total`
+    RT : float or int
+        Total concentration of the receptor.
+    LsT : float or int
+        Total concentration of the labeled ligand.
+    Kds : float or int
+        Dissociation constant of the labeled ligand.
+    N : float or int
+        Parameter for nonspecific binding of the unlabeled ligand (needed only for `comp_3st_total` and `comp_4st_total` models).
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    fix_ymin : float or int
+        Lower asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    fix_ymax : float or int
+        Upper asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely.
+    ci : bool
+        Whether to calculate 95% confidence intervals.
+    verbose : bool
+        If set to "True", more detailed output is printed. Intended mainly for troubleshooting.
+
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing the fit results.
+    """
+    
     print("Fitting", model, "...")
     
     # Initial checks
@@ -465,6 +552,35 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
 
 
 def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=False, ci=True, verbose=False):
+    """Function for converting IC50 to Kd. No fitting is performed. Available models are `coleska`, `cheng_prusoff` and `cheng_prusoff_corr`.
+    
+    Parameters
+    ----------
+    IC50_df : DataFrame
+        Pandas DataFrame containing the fitted IC50 values.
+    model : str
+        Name of the conversion model.
+    RT : float or int
+        Total concentration of the receptor.
+    LsT : float or int
+        Total concentration of the labeled ligand.
+    Kds : float or int
+        Dissociation constant of the labeled ligand.
+    y0 : float or int
+        Parameter used in the corrected Cheng-Prusoff model.
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    ci : bool
+        Whether to calculate 95% confidence intervals.
+    verbose : bool
+        If set to "True", more detailed output is printed. Intended mainly for troubleshooting.
+
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing the conversion results.
+    """
+    
     print("Converting IC50 to Kd using", model, "model...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds

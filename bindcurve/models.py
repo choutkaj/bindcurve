@@ -9,7 +9,7 @@ def get_list_of_models(kind):
     if kind == "Kd_competition":
         models = ["comp_3st_specific", "comp_3st_total", "comp_4st_specific", "comp_4st_total"]
         
-    if kind == "Kd_saturation":
+    if kind == "Kd_direct":
         models = ["dir_simple", "dir_specific", "dir_total"]
                 
     if kind == "conversion":

@@ -131,6 +131,13 @@ window.Quarto = {
 <span class="menu-text">Theory</span></a>
   </li>  
 </ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/choutkaj/bindcurve"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+</ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
 </div>
@@ -169,6 +176,12 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Input format</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Models</span></a>
   </div>
@@ -196,18 +209,53 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorial1.qmd" class="sidebar-item-text sidebar-link">
- <span class="menu-text">tutorial1</span></a>
+  <a href="./tutorials/basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basics</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorial2.qmd" class="sidebar-item-text sidebar-link">
+  <a href="./tutorials/tutorial2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tutorial2</span></a>
   </div>
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Theory</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Logistic models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory_exact.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exact Kd models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory_conversions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">IC50-&gt;Kd conversion</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">API reference</span></a>
+  </div>
+</li>
     </ul>
     </div>
 </nav>
@@ -218,18 +266,36 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#logistic-models" id="toc-logistic-models" class="nav-link active" data-scroll-target="#logistic-models">Logistic models</a></li>
+  <li><a href="#logistic-models" id="toc-logistic-models" class="nav-link active" data-scroll-target="#logistic-models">Logistic models</a>
+  <ul class="collapse">
+  <li><a href="#fitting-midpoint" id="toc-fitting-midpoint" class="nav-link" data-scroll-target="#fitting-midpoint">Fitting midpoint</a></li>
+  <li><a href="#fitting-midpoint-from-log-transformed-data" id="toc-fitting-midpoint-from-log-transformed-data" class="nav-link" data-scroll-target="#fitting-midpoint-from-log-transformed-data">Fitting midpoint from log-transformed data</a></li>
+  </ul></li>
   <li><a href="#exact-polynomial-models" id="toc-exact-polynomial-models" class="nav-link" data-scroll-target="#exact-polynomial-models">Exact polynomial models</a>
   <ul class="collapse">
-  <li><a href="#direct-binding" id="toc-direct-binding" class="nav-link" data-scroll-target="#direct-binding">Direct binding</a></li>
-  </ul></li>
-  <li><a href="#model---direct-binding-simple" id="toc-model---direct-binding-simple" class="nav-link" data-scroll-target="#model---direct-binding-simple">Model - Direct Binding, Simple</a>
+  <li><a href="#direct-binding" id="toc-direct-binding" class="nav-link" data-scroll-target="#direct-binding">Direct binding</a>
   <ul class="collapse">
-  <li><a href="#model-a" id="toc-model-a" class="nav-link" data-scroll-target="#model-a">Model A</a></li>
-  <li><a href="#model-b" id="toc-model-b" class="nav-link" data-scroll-target="#model-b">Model B</a></li>
+  <li><a href="#direct-binding---simplified" id="toc-direct-binding---simplified" class="nav-link" data-scroll-target="#direct-binding---simplified">Direct binding - simplified</a></li>
+  <li><a href="#direct-binding---specific" id="toc-direct-binding---specific" class="nav-link" data-scroll-target="#direct-binding---specific">Direct binding - specific</a></li>
+  <li><a href="#direct-binding---total" id="toc-direct-binding---total" class="nav-link" data-scroll-target="#direct-binding---total">Direct binding - total</a></li>
   </ul></li>
-  <li><a href="#model---direct-binding-specific" id="toc-model---direct-binding-specific" class="nav-link" data-scroll-target="#model---direct-binding-specific">Model - Direct Binding, Specific</a></li>
-  <li><a href="#model---direct-binding-specific-nonspecific" id="toc-model---direct-binding-specific-nonspecific" class="nav-link" data-scroll-target="#model---direct-binding-specific-nonspecific">Model - Direct Binding, Specific + Nonspecific</a></li>
+  <li><a href="#complete-competitive-binding-three-state-models" id="toc-complete-competitive-binding-three-state-models" class="nav-link" data-scroll-target="#complete-competitive-binding-three-state-models">Complete competitive binding (three-state models)</a>
+  <ul class="collapse">
+  <li><a href="#complete-competitive-binding---specific" id="toc-complete-competitive-binding---specific" class="nav-link" data-scroll-target="#complete-competitive-binding---specific">Complete competitive binding - specific</a></li>
+  <li><a href="#complete-competitive-binding---total" id="toc-complete-competitive-binding---total" class="nav-link" data-scroll-target="#complete-competitive-binding---total">Complete competitive binding - total</a></li>
+  </ul></li>
+  <li><a href="#incomplete-competitive-binding-four-state-models" id="toc-incomplete-competitive-binding-four-state-models" class="nav-link" data-scroll-target="#incomplete-competitive-binding-four-state-models">Incomplete competitive binding (four-state models)</a>
+  <ul class="collapse">
+  <li><a href="#incomplete-competitive-binding---specific" id="toc-incomplete-competitive-binding---specific" class="nav-link" data-scroll-target="#incomplete-competitive-binding---specific">Incomplete competitive binding - specific</a></li>
+  <li><a href="#incomplete-competitive-binding---total" id="toc-incomplete-competitive-binding---total" class="nav-link" data-scroll-target="#incomplete-competitive-binding---total">Incomplete competitive binding - total</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#ic50---kd-conversion-models" id="toc-ic50---kd-conversion-models" class="nav-link" data-scroll-target="#ic50---kd-conversion-models">IC50 -&gt; Kd conversion models</a>
+  <ul class="collapse">
+  <li><a href="#nikolovska-coleska" id="toc-nikolovska-coleska" class="nav-link" data-scroll-target="#nikolovska-coleska">Nikolovska-Coleska</a></li>
+  <li><a href="#cheng-prusoff" id="toc-cheng-prusoff" class="nav-link" data-scroll-target="#cheng-prusoff">Cheng-Prusoff</a></li>
+  <li><a href="#cheng-prusoff-corrected" id="toc-cheng-prusoff-corrected" class="nav-link" data-scroll-target="#cheng-prusoff-corrected">Cheng-Prusoff Corrected</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -255,14 +321,13 @@ window.Quarto = {
 </header>
 
 
-<p><span class="math inline">\([R]_T\)</span> <span class="math inline">\([R]\)</span></p>
-<p><span class="math inline">\([L^*]_T\)</span> <span class="math inline">\([L^*]\)</span></p>
-<p><span class="math inline">\([L]_T\)</span> <span class="math inline">\([L]\)</span></p>
-<p><span class="math inline">\([RL^*]\)</span> <span class="math inline">\([RL]\)</span> <span class="math inline">\([RLL^*]\)</span></p>
-<p><span class="math inline">\(K_d^*\)</span> <span class="math inline">\(K_d\)</span> <span class="math inline">\(K_{d3}\)</span></p>
-<section id="logistic-models" class="level2">
-<h2 class="anchored" data-anchor-id="logistic-models">Logistic models</h2>
+<section id="logistic-models" class="level1">
+<h1>Logistic models</h1>
+<p>What function to use: <code>fit_50</code></p>
 <p>Logistic models are implemented in the traditional sigmoid form. This model could be used broadly for any dose-response curve, where x corresponds to dose and y corresponds to response. In the context of BindCurve, x will commonly correspond to the total concentration of the titrated ligand. By fixing the slope in these models to a constant value (e.g.&nbsp;1 for activation and -1 for inhibition), this four-parameter model is reduced to a three-parameter model.</p>
+<section id="fitting-midpoint" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-midpoint">Fitting midpoint</h3>
+<p>Model name: <code>IC50</code></p>
 <p><span class="math inline">\(\text{IC}_{50}\)</span> is fitted using the following equation:</p>
 <p><span class="math display">\[
 y = ymin + (ymax - ymin) \frac{1}{1 + \left(\frac{\text{IC}_{50}}{x}\right)^{\text{slope}}}
@@ -271,6 +336,10 @@ y = ymin + (ymax - ymin) \frac{1}{1 + \left(\frac{\text{IC}_{50}}{x}\right)^{\te
 <p><span class="math display">\[
 x = [L]_T
 \]</span></p>
+</section>
+<section id="fitting-midpoint-from-log-transformed-data" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-midpoint-from-log-transformed-data">Fitting midpoint from log-transformed data</h3>
+<p>Model name: <code>logIC50</code></p>
 <p>Analogically, <span class="math inline">\(\text{logIC}_{50}\)</span> is fitted using:</p>
 <p><span class="math display">\[
 y = ymin + (ymax - ymin) \frac{1}{1 + 10^{\text{slope}(\text{logIC}_{50} - x)}}
@@ -279,19 +348,34 @@ y = ymin + (ymax - ymin) \frac{1}{1 + 10^{\text{slope}(\text{logIC}_{50} - x)}}
 <p><span class="math display">\[
 x = \log([L]_T)
 \]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Once you have <span class="math inline">\(\text{logIC}_{50}\)</span> value, it can easily be converted to <span class="math inline">\(\text{pIC}_{50}\)</span> by multiplying with -1.</p>
+</div>
+</div>
 </section>
-<section id="exact-polynomial-models" class="level2">
-<h2 class="anchored" data-anchor-id="exact-polynomial-models">Exact polynomial models</h2>
+</section>
+<section id="exact-polynomial-models" class="level1">
+<h1>Exact polynomial models</h1>
 <p>BindCurve implements several exact models that allow for direct fitting of <span class="math inline">\(K_d\)</span> from both direct and competitive binding experiments, given some crucial information about the system is known. These models are based on the assumption that the observed binding curve could be related to the bound fraction of the labeled ligand. This quantity is denoted as <span class="math inline">\(F_b^*\)</span> and is defined as:</p>
 <p><span class="math display">\[
 F_b^* = \frac{[RL^*]}{[L^*]_T}
 \]</span></p>
 <p>where <span class="math inline">\([RL^*]\)</span> is the concentration of the complex of receptor and labeled ligand, and <span class="math inline">\([L^*]_T\)</span> is the total concentration of the labeled ligand.</p>
-<section id="direct-binding" class="level3">
-<h3 class="anchored" data-anchor-id="direct-binding">Direct binding</h3>
+<section id="direct-binding" class="level2">
+<h2 class="anchored" data-anchor-id="direct-binding">Direct binding</h2>
+<p>What function to use: <code>fit_Kd_direct</code></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="images/direct.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:20.0%" alt="Direct binding."></p>
+<p><img src="images/direct_frame.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:30.0%" alt="Direct binding."></p>
 </figure>
 </div>
 <p>In direct binding, the system is composed of receptor <span class="math inline">\(R\)</span> and labeled ligand <span class="math inline">\(L^*\)</span> which form complex <span class="math inline">\(RL^*\)</span>. This binding equilibrium is described by a dissociation constant <span class="math inline">\(K_d^*\)</span>. For such a system, <span class="math inline">\(F_b^*\)</span> could be related to the concentration of free receptor <span class="math inline">\([R]\)</span> by the equation</p>
@@ -302,114 +386,329 @@ F_b^* = \frac{[RL^*]}{[L^*]_T} = \frac{[R]}{K_d^* + [R]}
 <p><span class="math display">\[
 y = ymin + (ymax - ymin) \frac{[R]}{K_d^* + [R]}
 \]</span></p>
+<section id="direct-binding---simplified" class="level3">
+<h3 class="anchored" data-anchor-id="direct-binding---simplified">Direct binding - simplified</h3>
+<p>Model name: <code>dir_simple</code></p>
+<p>In this simplified model, the concentration of the free receptor <span class="math inline">\([R]\)</span> is approximated by the total concentration of the receptor <span class="math inline">\([R]_T\)</span>. Thus, <span class="math inline">\([R]\)</span> is simply given as: <span class="math display">\[
+[R] = [R]_T
+\]</span></p>
+</section>
+<section id="direct-binding---specific" class="level3">
+<h3 class="anchored" data-anchor-id="direct-binding---specific">Direct binding - specific</h3>
+<p>Model name: <code>dir_specific</code></p>
+<p>To properly describe direct binding beyond the simplified approximation above, let us look at an exact model. The dissociation constant <span class="math inline">\(K_d^*\)</span> is defined as: <span class="math display">\[
+K_d^* = \frac{[R][L^*]}{[RL^*]}
+\]</span></p>
+<p>Conservation of mass requires that: <span class="math display">\[
+[L^* ]_T = [L^*] + [RL^*]
+\]</span> <span class="math display">\[
+[R]_T = [R] + [RL^*]
+\]</span></p>
+<p>where <span class="math inline">\([R]_T\)</span> is the total concentration of the receptor and <span class="math inline">\([L^*]\)</span> is the concentration of free labeled ligand. Thus, <span class="math inline">\([RL^*]\)</span> is calculated as: <span class="math display">\[
+[RL^*] = \frac{[R] [L^* ]_T}{K_d^* + [R]}
+\]</span></p>
+<p>From the equations above, <span class="math inline">\([R]\)</span> can be expressed in a quadratic equation: <span class="math display">\[
+[R]^2 + a[R] + b = 0
+\]</span></p>
+<p>where the coefficients are calculated as: <span class="math display">\[
+a = K_d^* + [L^*]_T - [R]_T
+\]</span> <span class="math display">\[
+b = -K_d^* [R]_T
+\]</span></p>
+<p>The physical solution for <span class="math inline">\([R]\)</span> is calculated as the positive root using the quadratic formula:</p>
+<p><span class="math display">\[
+[R] = \frac{-a + \sqrt{a^2 - 4b}}{2}
+\]</span></p>
+</section>
+<section id="direct-binding---total" class="level3">
+<h3 class="anchored" data-anchor-id="direct-binding---total">Direct binding - total</h3>
+<p>Model name: <code>dir_total</code></p>
+<p>Nonspecific binding (immobilization) of the labeled ligand <span class="math inline">\(L^*\)</span> can be modeled by introducing a dimensionless, non-negative parameter <span class="math inline">\(N^*\)</span>. In this case, the dissociation constant <span class="math inline">\(K_d^*\)</span> is defined in the same way as above: <span class="math display">\[
+K_d^* = \frac{[R][L^*]}{[RL^*]}
+\]</span></p>
+<p>Now, the conservation of mass requires that: <span class="math display">\[
+[L^* ]_T = [L^*] + [RL^*] + N^*[L^*]
+\]</span> <span class="math display">\[
+[R]_T = [R] + [RL^*]
+\]</span></p>
+<p>Thus, <span class="math inline">\([RL^*]\)</span> is calculated as: <span class="math display">\[
+[RL^*] = \frac{[R][L^*]_T}{K_d^*(1+N^*) + [R]}
+\]</span></p>
+<p>Again, <span class="math inline">\([R]\)</span> can be expressed in a quadratic equation: <span class="math display">\[
+[R]^2 + a[R] + b = 0
+\]</span></p>
+<p>where the coefficients are calculated as: <span class="math display">\[
+a = K_d^*(1+N^*) + [L^*]_T - [R]_T
+\]</span> <span class="math display">\[
+b = -K_d^*[R]_T(1+N^*)
+\]</span></p>
+<p>The physical solution for <span class="math inline">\([R]\)</span> is again calculated using the quadratic formula: <span class="math display">\[
+[R] = \frac{-a + \sqrt{a^2 - 4b}}{2}
+\]</span></p>
+<p>Clearly, the introduction of <span class="math inline">\(N^*\)</span> leads to a model where the dissociation constant <span class="math inline">\(K_d^*\)</span> is scaled by a factor of <span class="math inline">\((1+N^*)\)</span>. Thus, the total binding is modeled as specific binding defined by <span class="math inline">\(K_d^*\)</span> and a nonspecific binding scaling term depending on <span class="math inline">\(N^*\)</span>. For example, if we consider <span class="math inline">\(N^* = 0.5\)</span>, the resulting effective dissociation constant for total binding in this model would be <span class="math inline">\(1.5K_d^*\)</span> (total binding would be 150% of the specific binding). Finally, if <span class="math inline">\(N^* = 0\)</span> (there is no nonspecific binding), the model collapses to the case for specific binding only.</p>
+</section>
+</section>
+<section id="complete-competitive-binding-three-state-models" class="level2">
+<h2 class="anchored" data-anchor-id="complete-competitive-binding-three-state-models">Complete competitive binding (three-state models)</h2>
+<p>What function to use: <code>fit_Kd_competition</code></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="images/competitive_3st.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:30.0%" alt="Competitive binding (three-state)."></p>
+<p><img src="images/competitive_3st_frame.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:40.0%" alt="Competitive binding (three-state)."></p>
 </figure>
 </div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="images/competitive_4st.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:30.0%" alt="Competitive binding (four-state)."></p>
-</figure>
-</div>
-<p><span id="eq-equation"><span class="math display">\[
-E = mc^2
-\tag{1}\]</span></span></p>
-<p><span id="eq-black-scholes"><span class="math display">\[
-\frac{\partial \mathrm C}{ \partial \mathrm t } + \frac{1}{2}\sigma^{2} \mathrm S^{2}
-\frac{\partial^{2} \mathrm C}{\partial \mathrm C^2}
-  + \mathrm r \mathrm S \frac{\partial \mathrm C}{\partial \mathrm S}\ =
-  \mathrm r \mathrm C
-\tag{2}\]</span></span></p>
-</section>
-</section>
-<section id="model---direct-binding-simple" class="level2">
-<h2 class="anchored" data-anchor-id="model---direct-binding-simple">Model - Direct Binding, Simple</h2>
-<section id="model-a" class="level3">
-<h3 class="anchored" data-anchor-id="model-a">Model A</h3>
-</section>
-<section id="model-b" class="level3">
-<h3 class="anchored" data-anchor-id="model-b">Model B</h3>
-<p><span class="math display">\[[R] = [R]_T\]</span></p>
-</section>
-</section>
-<section id="model---direct-binding-specific" class="level2">
-<h2 class="anchored" data-anchor-id="model---direct-binding-specific">Model - Direct Binding, Specific</h2>
-<p>Dissociation constant is defined as</p>
+<p>In three-state models, the system is composed of receptor <span class="math inline">\(R\)</span>, labeled ligand <span class="math inline">\(L^*\)</span>, and unlabeled ligand <span class="math inline">\(L\)</span>. The formation of complex <span class="math inline">\(RL^*\)</span> is described by a dissociation constant <span class="math inline">\(K_d^*\)</span>, while the formation of complex <span class="math inline">\(RL\)</span> is described by a dissociation constant <span class="math inline">\(K_d\)</span>. For such a system, <span class="math inline">\(F_b^*\)</span> could be related to the concentration of free receptor <span class="math inline">\([R]\)</span> by the equation</p>
+<p><span class="math display">\[
+F_b^* = \frac{[RL^*]}{[L^*]_T} = \frac{[R]}{K_d + [R]}
+\]</span></p>
+<p>To allow for a proper description of the dependent variable, the general framework for competitive binding is defined as</p>
+<p><span class="math display">\[
+y = ymin + (ymax - ymin) \frac{[R]}{K_d + [R]}
+\]</span></p>
+<section id="complete-competitive-binding---specific" class="level3">
+<h3 class="anchored" data-anchor-id="complete-competitive-binding---specific">Complete competitive binding - specific</h3>
+<p>Model name: <code>comp_3st_specific</code><br>
+References: <a href="https://doi.org/10.1016/0014-5793(95)00062-E">Wang 1995</a>, <a href="https://doi.org/10.1021/bi048233g">Roehrl 2004</a></p>
+<p>Dissociation constants in the three-state model are defined as:</p>
 <p><span class="math display">\[
 K_d^* = \frac{[R][L^*]}{[RL^*]}
 \]</span></p>
-<p>Conservation of mass requires that</p>
-<p><span class="math display">\[ [L^* ]_T = [L^*] + [RL^*] \]</span></p>
-<p><span class="math display">\[ [R]_T = [R] + [RL^*] \]</span></p>
-<p>and thus</p>
-<p><span class="math display">\[ [RL^*] = \frac{[R][L^*]_T}{K_d^* + [R]} \]</span></p>
-<p>Quadratic Equation:</p>
-<p><span class="math display">\[ [R]^2 + a[R] + b = 0 \]</span></p>
-<p>where</p>
-<p><span class="math display">\[ a = K_d^* + [L^* ]_T - [R]_T \]</span></p>
-<p><span class="math display">\[ b = -K_d^* [R]_T \]</span></p>
-<p>Using the quadratic formula, the positive root is</p>
-<p><span class="math display">\[ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} \]</span></p>
-</section>
-<section id="model---direct-binding-specific-nonspecific" class="level2">
-<h2 class="anchored" data-anchor-id="model---direct-binding-specific-nonspecific">Model - Direct Binding, Specific + Nonspecific</h2>
-<p>Dissociation constant is defined as</p>
-<p><span class="math display">\[ K_d^* = \frac{[R][L^*]}{[RL^*]} \]</span></p>
-<p>Conservation of mass requires that</p>
-<p><span class="math display">\[ [L^* ]_T = [L^*] + [RL^*] + N^* [L^*] \]</span></p>
-<p><span class="math display">\[ [R]_T = [R] + [RL^*] \]</span></p>
-<p>and thus</p>
-<p><span class="math display">\[ [RL^*] = \frac{[R][L^*]_T}{K_d^* (1 + N^*) + [R]} \]</span></p>
-<p>Quadratic Equation:</p>
-<p><span class="math display">\[ [R]^2 + a[R] + b = 0 \]</span></p>
-<p>where</p>
-<p><span class="math display">\[ a = K_d^* (1 + N^*) + [L^* ]_T - [R]_T \]</span></p>
-<p><span class="math display">\[ b = -K_d^* [R]_T (1 + N^*) \]</span></p>
-<p>Using the quadratic formula, the positive root is</p>
-<p><span class="math display">\[ [R] = \frac{-a + \sqrt{a^2 - 4b}}{2} \]</span></p>
-<p>další pokusy:</p>
+<p><span class="math display">\[
+K_d = \frac{[R][L]}{[RL]}
+\]</span></p>
+<p>Conservation of mass requires that:</p>
+<p><span class="math display">\[
+[L^* ]_T = [L^*] + [RL^*]
+\]</span></p>
+<p><span class="math display">\[
+[L]_T = [L] + [RL]
+\]</span></p>
+<p><span class="math display">\[
+[R]_T = [R] + [RL^*] + [RL]
+\]</span></p>
+<p>Thus, the concentrations of the complexes are calculated as:</p>
+<p><span class="math display">\[
+[RL] = \frac{[R][L]_T}{K_d + [R]}
+\]</span></p>
+<p><span class="math display">\[
+[RL^*] = \frac{[R][L^*]_T}{K_d^* + [R]}
+\]</span></p>
+<p>From the above equations, <span class="math inline">\([R]\)</span> can be expressed in a cubic equation:</p>
+<p><span class="math display">\[
+[R]^3 + a[R]^2 + b[R] + c = 0
+\]</span></p>
+<p>Where the coefficients are calculated as:</p>
+<p><span class="math display">\[
+a = K_d^* + K_d + [L^*]_T + [L]_T - [R]_T
+\]</span></p>
+<p><span class="math display">\[
+b = K_d^*([L]_T - [R]_T) + K_d([L^*]_T - [R]_T) + K_d^* K_d
+\]</span></p>
+<p><span class="math display">\[
+c = - K_d^* K_d [R]_T
+\]</span></p>
+<p>The physical solution for <span class="math inline">\([R]\)</span> can be calculated analytically using the equation:</p>
 <p><span class="math display">\[
 [R] = -\frac{a}{3} + \frac{2}{3} \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right)
 \]</span></p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Day</th>
-<th>Temperature (°C)</th>
-<th>Precipitation (mm)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Mon</td>
-<td>20</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td>Tue</td>
-<td>22</td>
-<td>0</td>
-</tr>
-<tr class="odd">
-<td>Wed</td>
-<td>18</td>
-<td>12</td>
-</tr>
-<tr class="even">
-<td>Thu</td>
-<td>24</td>
-<td>0</td>
-</tr>
-<tr class="odd">
-<td>Fri</td>
-<td>19</td>
-<td>8</td>
-</tr>
-</tbody>
-</table>
+<p>The concentrations of both complexes are calculated as:</p>
+<p><span class="math display">\[
+[RL^*] = \frac{[L^*]_T \left(2 \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right) - a\right)}{3K_d^* + \left(2 \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right) - a\right)}
+\]</span></p>
+<p><span class="math display">\[
+[RL] = \frac{[L]_T \left(2 \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right) - a\right)}{3K_d + \left(2 \sqrt{(a^2 - 3b)} \cos\left(\frac{\theta}{3}\right) - a\right)}
+\]</span></p>
+<p>The angle <span class="math inline">\(\theta\)</span> is defined as:</p>
+<p><span class="math display">\[
+\theta = \arccos\left(\frac{-2a^3 + 9ab - 27c}{2 \sqrt{(a^2 - 3b)^3}}\right)
+\]</span></p>
+</section>
+<section id="complete-competitive-binding---total" class="level3">
+<h3 class="anchored" data-anchor-id="complete-competitive-binding---total">Complete competitive binding - total</h3>
+<p>Model name: <code>comp_3st_total</code><br>
+References: <a href="https://doi.org/10.1021/bi048233g">Roehrl 2004</a></p>
+<p>Nonspecific binding of the unlabeled ligand can be modeled by introducing a dimensionless, non-negative parameter <span class="math inline">\(N\)</span>. In such case, the dissociation constants <span class="math inline">\(K_d^*\)</span> and <span class="math inline">\(K_d\)</span> are defined the same way as above, and the conservation of mass now requires that:</p>
+<p><span class="math display">\[
+[L^* ]_T = [L^*] + [RL^*]
+\]</span></p>
+<p><span class="math display">\[
+[L]_T = [L] + [RL] + N[L]
+\]</span></p>
+<p><span class="math display">\[
+[R]_T = [R] + [RL^*] + [RL]
+\]</span></p>
+<p>From the above equations, <span class="math inline">\([R]\)</span> can again be expressed in a cubic equation:</p>
+<p><span class="math display">\[
+[R]^3 + a[R]^2 + b[R] + c = 0
+\]</span></p>
+<p>Where the coefficients are calculated as:</p>
+<p><span class="math display">\[
+a = K_d^* + (1+N)K_d + [L^* ]_T + [L]_T - [R]_T
+\]</span> <span class="math display">\[
+b = K_d^* ([L]_T - [R]_T) + (1+N)K_d ([L^* ]_T - [R]_T) + (1+N)K_d^* K_d
+\]</span> <span class="math display">\[
+c = -(1+N) K_d^* K_d [R]_T
+\]</span></p>
+<p>The physical solution for <span class="math inline">\([R]\)</span> can be calculated analytically using the same set of equations as above. Analogous to the direct binding case, the introduction of <span class="math inline">\(N\)</span> leads to a model where <span class="math inline">\(K_d\)</span> is scaled by a factor of <span class="math inline">\((1+N)\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In models of competitive binding, the nonspecific binding of the labeled ligand (<span class="math inline">\(N^*\)</span>) is neglected as it is assumed that labeled ligands with significant nonspecific immobilization would not be used for such experiments.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="incomplete-competitive-binding-four-state-models" class="level2">
+<h2 class="anchored" data-anchor-id="incomplete-competitive-binding-four-state-models">Incomplete competitive binding (four-state models)</h2>
+<p>What function to use: <code>fit_Kd_competition</code></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/competitive_4st_frame.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:40.0%" alt="Competitive binding (four-state)."></p>
+</figure>
+</div>
+<p>In four-state models, the system is also composed of receptor <span class="math inline">\(R\)</span>, labeled ligand <span class="math inline">\(L^*\)</span>, and unlabeled ligand <span class="math inline">\(L\)</span>. However, in addition to complexes <span class="math inline">\(RL^*\)</span> and <span class="math inline">\(RL\)</span>, a ternary complex <span class="math inline">\(RLL^*\)</span> is also considered. The dissociation constants <span class="math inline">\(K_d^*\)</span> and <span class="math inline">\(K_d\)</span> are defined as in the three-state model, and the formation of <span class="math inline">\(RLL^*\)</span> from <span class="math inline">\(RL\)</span> and <span class="math inline">\(L^*\)</span> is described by dissociation constant <span class="math inline">\(K_{d3}\)</span>. The constant <span class="math inline">\(K_{d4}\)</span> is not used in the model.<br>
+For the four-state models, <span class="math inline">\(F_b^*\)</span> and the general framework of the model stay the same as for three-state systems and is written as</p>
+<p><span class="math display">\[
+F_b^* = \frac{[RL^*]}{[L^*]_T} = \frac{[R]}{K_d + [R]}
+\]</span></p>
+<p><span class="math display">\[
+y = ymin + (ymax - ymin) \frac{[R]}{K_d + [R]}
+\]</span></p>
+<section id="incomplete-competitive-binding---specific" class="level3">
+<h3 class="anchored" data-anchor-id="incomplete-competitive-binding---specific">Incomplete competitive binding - specific</h3>
+<p>Model name: <code>comp_4st_specific</code><br>
+References: <a href="https://doi.org/10.1021/bi048233g">Roehrl 2004</a></p>
+<p>Dissociation constants in the four-state model are defined as:</p>
+<p><span class="math display">\[
+K_d^* = \frac{[R][L^*]}{[RL^*]}  
+\]</span></p>
+<p><span class="math display">\[
+K_d = \frac{[R][L]}{[RL]}  
+\]</span></p>
+<p><span class="math display">\[
+K_{d3} = \frac{[RL][L^*]}{[RLL^*]}  
+\]</span></p>
+<p><span class="math display">\[
+K_{d4} = \frac{[RL^*][L]}{[RLL^*]} \quad \text{(not used)}  
+\]</span></p>
+<p>Conservation of mass requires that:<br>
+<span class="math display">\[
+[L^*]_T = [L^*] + [RL^*] + [RLL^*]  
+\]</span></p>
+<p><span class="math display">\[
+[L]_T = [L] + [RL] + [RLL^*]  
+\]</span></p>
+<p><span class="math display">\[
+[R]_T = [R] + [RL^*] + [RL] + [RLL^*]  
+\]</span></p>
+<p>Thus, concentrations of the complexes are calculated as:<br>
+<span class="math display">\[
+[RL^*] = \frac{[R]([L^*_T] - [RLL^*])}{K_d^* + [R]} \quad ???  
+\]</span></p>
+<p><span class="math display">\[
+[RL] = \frac{[R]([L_T] - [RLL^*])}{K_d + [R]} \quad ???  
+\]</span></p>
+<p><span class="math display">\[
+[RLL^*] = \frac{[RL]([L^*_T] - [RL^*])}{K_{d3} + [RL]} \quad ???  
+\]</span></p>
+<p>From the above equations, <span class="math inline">\([R]\)</span> can be expressed in a quintic equation:<br>
+<span class="math display">\[
+a[R]^5 + b[R]^4 + c[R]^3 + d[R]^2 + e[R] + f = 0  
+\]</span></p>
+<p>The coefficients <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, <span class="math inline">\(c\)</span>, <span class="math inline">\(d\)</span>, <span class="math inline">\(e\)</span>, and <span class="math inline">\(f\)</span> are quite lengthy and can be found in the source code. There is no analytical solution to the quintic equation, but it can be solved numerically.</p>
+</section>
+<section id="incomplete-competitive-binding---total" class="level3">
+<h3 class="anchored" data-anchor-id="incomplete-competitive-binding---total">Incomplete competitive binding - total</h3>
+<p>Model name: <code>comp_4st_total</code><br>
+References: <a href="https://doi.org/10.1021/bi048233g">Roehrl 2004</a></p>
+<p>In analogy to the other models, total binding in the <code>comp_4st_total</code> model is modeled by scaling <span class="math inline">\(K_d\)</span> by a factor of <span class="math inline">\((1 + N)\)</span>.</p>
+</section>
+</section>
+</section>
+<section id="ic50---kd-conversion-models" class="level1">
+<h1>IC50 -&gt; Kd conversion models</h1>
+<p>What function to use: <code>convert</code></p>
+<p>These models are used for converting <span class="math inline">\(\text{IC}_{50}\)</span> to <span class="math inline">\(K_d\)</span> using more or less approximate formulas.</p>
+<section id="nikolovska-coleska" class="level3">
+<h3 class="anchored" data-anchor-id="nikolovska-coleska">Nikolovska-Coleska</h3>
+<p>Model name: <code>coleska</code><br>
+References: <a href="https://doi.org/10.1016/j.ab.2004.05.055">Nikolovska-Coleska 2004</a></p>
+<p>In the model of Nikolovska-Coleska, <span class="math inline">\(K_d\)</span> is calculated by the equation:</p>
+<p><span class="math display">\[
+K_d = \frac{[L_{50}]}{\left(\frac{[L_{50}^*] + [R_0]}{K_d^*}\right) + 1}  
+\]</span></p>
+<p>where <span class="math inline">\([L_{50}^*]\)</span> is the concentration of labeled ligand at 50% inhibition, <span class="math inline">\([L_{50}]\)</span> is the concentration of unlabeled ligand at 50% inhibition, <span class="math inline">\(K_d^*\)</span> is the dissociation constant of the labeled ligand, <span class="math inline">\(K_d\)</span> is the dissociation constant of the unlabeled ligand, and <span class="math inline">\([R_0]\)</span> is the concentration of receptor at 0% inhibition.</p>
+<p>Following the equations for conservation of mass, <span class="math inline">\([R_0]\)</span> could be expressed in a quadratic equation:<br>
+<span class="math display">\[
+[R_0]^2 + a[R_0] + b = 0  
+\]</span></p>
+<p>where the coefficients are calculated as:<br>
+<span class="math display">\[
+a = [L^*]_T + K_d^* - [R]_T  
+\]</span></p>
+<p><span class="math display">\[
+b = -K_d^* [R]_T  
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Please note that the coefficients of this quadratic equation are expressed incorrectly in <a href="https://doi.org/10.1016/j.ab.2004.05.055">Nikolovska-Coleska 2004</a>.</p>
+</div>
+</div>
+<p>The physical solution for <span class="math inline">\([R_0]\)</span> is then calculated by the quadratic formula:<br>
+<span class="math display">\[
+[R_0] = \frac{-a + \sqrt{a^2 - 4b}}{2}  
+\]</span></p>
+<p>The rest of the parameters are calculated as follows:<br>
+<span class="math display">\[
+[L_0^*] = \frac{[L^*]_T}{1 + \frac{[R_0]}{K_d^*}}  
+\]</span></p>
+<p><span class="math display">\[
+[RL_0^*] = \frac{[R]_T}{1 + \frac{K_d^*}{[L_0^*]}}  
+\]</span></p>
+<p><span class="math display">\[
+[RL_{50}^*] = \frac{[RL_0^*]}{2}  
+\]</span></p>
+<p><span class="math display">\[
+[L_{50}^*] = [L^*]_T - [RL_{50}^*]  
+\]</span></p>
+<p><span class="math display">\[
+[RL_{50}] = [R]_T + \frac{K_d^* [RL_{50}^*]}{[L_{50}^*]} + [RL_{50}^*]  
+\]</span></p>
+<p><span class="math display">\[
+[L_{50}] = IC_{50} - [RL_{50}]  
+\]</span></p>
+</section>
+<section id="cheng-prusoff" class="level3">
+<h3 class="anchored" data-anchor-id="cheng-prusoff">Cheng-Prusoff</h3>
+<p>Model name: <code>cheng_prusoff</code></p>
+<p><span class="math display">\[
+K_d = \frac{\text{IC}_{50}}{1 + \frac{[L^*]_T}{K_d^*}}  
+\]</span></p>
+</section>
+<section id="cheng-prusoff-corrected" class="level3">
+<h3 class="anchored" data-anchor-id="cheng-prusoff-corrected">Cheng-Prusoff Corrected</h3>
+<p>Model name: <code>cheng_prusoff_corr</code><br>
+References: <a href="https://doi.org/10.3109/10799898809049010">Munson 2008</a></p>
+<p><span class="math display">\[
+K_d = \frac{\text{IC}_{50}}{1 + \left(\frac{[L^*]_T(Y_0 + 2)}{2K_d^*(Y_0 + 1)}\right) + Y_0} + \frac{K_d^* Y_0}{Y_0 + 2}  
+\]</span></p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -834,6 +1133,19 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© 2024 | Created by <a href="https://quarto.org/">Quarto</a>.</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
 
 
 

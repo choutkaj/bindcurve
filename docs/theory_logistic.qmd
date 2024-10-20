@@ -1,0 +1,45 @@
+---
+title: "Logistic models"
+---
+
+
+What function to use: `fit_50`
+
+Logistic models are implemented in the traditional sigmoid form. This model could be used broadly for any dose-response curve, where x corresponds to dose and y corresponds to response. In the context of BindCurve, x will commonly correspond to the total concentration of the titrated ligand. By fixing the slope in these models to a constant value (e.g. 1 for activation and -1 for inhibition), this four-parameter model is reduced to a three-parameter model.
+
+### Fitting midpoint
+
+Model name: `IC50`  
+
+$\text{IC}_{50}$ is fitted using the following equation:
+
+$$
+y = ymin + (ymax - ymin) \frac{1}{1 + \left(\frac{\text{IC}_{50}}{x}\right)^{\text{slope}}}
+$$
+
+where x is the dose, usually the total concentration of the titrated ligand
+
+$$
+x = [L]_T
+$$
+
+
+### Fitting midpoint from log-transformed data
+
+Model name: `logIC50` 
+
+Analogically, $\text{logIC}_{50}$ is fitted using:
+
+$$
+y = ymin + (ymax - ymin) \frac{1}{1 + 10^{\text{slope}(\text{logIC}_{50} - x)}}
+$$
+
+where x is log transformed dose
+
+$$
+x = \log([L]_T)
+$$
+
+::: {.callout-note}
+Once you have $\text{logIC}_{50}$ value, it can easily be converted to $\text{pIC}_{50}$ by multiplying with -1.
+:::

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>symbols – BindCurve</title>
+<title>Logistic models – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -149,7 +149,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./symbols.html">Symbols</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory_logistic.html">Theory</a></li><li class="breadcrumb-item"><a href="./theory_logistic.html">Logistic models</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -238,7 +238,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link">
+  <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Logistic models</span></a>
   </div>
 </li>
@@ -258,13 +258,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./symbols.html" class="sidebar-item-text sidebar-link active">
+  <a href="./symbols.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Symbols</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api.html" class="sidebar-item-text sidebar-link">
+  <a href="./api.qmd" class="sidebar-item-text sidebar-link">
  <span class="menu-text">API reference</span></a>
   </div>
 </li>
@@ -278,105 +278,71 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#symbols" id="toc-symbols" class="nav-link active" data-scroll-target="#symbols">Symbols</a></li>
+  <li><a href="#fitting-midpoint" id="toc-fitting-midpoint" class="nav-link active" data-scroll-target="#fitting-midpoint">Fitting midpoint</a></li>
+  <li><a href="#fitting-midpoint-from-log-transformed-data" id="toc-fitting-midpoint-from-log-transformed-data" class="nav-link" data-scroll-target="#fitting-midpoint-from-log-transformed-data">Fitting midpoint from log-transformed data</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory_logistic.html">Theory</a></li><li class="breadcrumb-item"><a href="./theory_logistic.html">Logistic models</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Logistic models</h1>
+</div>
 
 
 
-<section id="symbols" class="level2">
-<h2 class="anchored" data-anchor-id="symbols">Symbols</h2>
-<p>BindCurve uses the following symbols:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 60%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Symbol</th>
-<th>Symbol in code</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\([R]_T\)</span></td>
-<td><code>RT</code></td>
-<td>Total concentration of receptor.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([R]\)</span></td>
-<td><code>R</code></td>
-<td>Concentration of free receptor.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([L^*]_T\)</span></td>
-<td><code>LsT</code></td>
-<td>Total concentration of labelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L^*]\)</span></td>
-<td><code>Ls</code></td>
-<td>Concentration of free labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([L]_T\)</span></td>
-<td><code>LT</code></td>
-<td>Total concentration of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([L]\)</span></td>
-<td><code>L</code></td>
-<td>Concentration of free unlabelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RL^*]\)</span></td>
-<td><code>RLs</code></td>
-<td>Concentration of (receptor-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\([RL]\)</span></td>
-<td><code>RL</code></td>
-<td>Concentration of (receptor-unlabelled ligand) complex.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\([RLL^*]\)</span></td>
-<td><code>RLLs</code></td>
-<td>Concentration of (receptor-unlabelled ligand-labelled ligand) complex.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_d^*\)</span></td>
-<td><code>Kds</code></td>
-<td>Dissociation constant of labelled ligand.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(K_d\)</span></td>
-<td><code>Kd</code></td>
-<td>Dissociation constant of unlabelled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(K_{d3}\)</span></td>
-<td><code>Kd3</code></td>
-<td>The third dissociation constant in four-state models.</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(N^*\)</span></td>
-<td><code>Ns</code></td>
-<td>Nonspecific binding parameter for the labeled ligand.</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(N\)</span></td>
-<td><code>N</code></td>
-<td>Nonspecific binding parameter for the unlabeled ligand.</td>
-</tr>
-</tbody>
-</table>
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>What function to use: <code>fit_50</code></p>
+<p>Logistic models are implemented in the traditional sigmoid form. This model could be used broadly for any dose-response curve, where x corresponds to dose and y corresponds to response. In the context of BindCurve, x will commonly correspond to the total concentration of the titrated ligand. By fixing the slope in these models to a constant value (e.g.&nbsp;1 for activation and -1 for inhibition), this four-parameter model is reduced to a three-parameter model.</p>
+<section id="fitting-midpoint" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-midpoint">Fitting midpoint</h3>
+<p>Model name: <code>IC50</code></p>
+<p><span class="math inline">\(\text{IC}_{50}\)</span> is fitted using the following equation:</p>
+<p><span class="math display">\[
+y = ymin + (ymax - ymin) \frac{1}{1 + \left(\frac{\text{IC}_{50}}{x}\right)^{\text{slope}}}
+\]</span></p>
+<p>where x is the dose, usually the total concentration of the titrated ligand</p>
+<p><span class="math display">\[
+x = [L]_T
+\]</span></p>
+</section>
+<section id="fitting-midpoint-from-log-transformed-data" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-midpoint-from-log-transformed-data">Fitting midpoint from log-transformed data</h3>
+<p>Model name: <code>logIC50</code></p>
+<p>Analogically, <span class="math inline">\(\text{logIC}_{50}\)</span> is fitted using:</p>
+<p><span class="math display">\[
+y = ymin + (ymax - ymin) \frac{1}{1 + 10^{\text{slope}(\text{logIC}_{50} - x)}}
+\]</span></p>
+<p>where x is log transformed dose</p>
+<p><span class="math display">\[
+x = \log([L]_T)
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Once you have <span class="math inline">\(\text{logIC}_{50}\)</span> value, it can easily be converted to <span class="math inline">\(\text{pIC}_{50}\)</span> by multiplying with -1.</p>
+</div>
+</div>
 
 
 </section>

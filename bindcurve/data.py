@@ -3,41 +3,25 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import lmfit
-# import models
 from bindcurve import models
 
 
 def load_csv(csvfile, c_scale=1):
-    """Loads data from csv file. The file must contain data in correct format accepted by bindcurve 
-    (first column: compound name, second column: concentration, third to Nth columns: response data).
-
-    :param csvfile: Path to the csv file.
-    :type csvfile: str
-
-    :param c_scale: Scales concentration by a provided factor. Used for unit conversion at input., defaults to 1
-    :type c_scale: int or float, optional
-
+    """Loads and preprocesses data from csv file.
     
-    :return: Pandas DataFrame containing all input data needed for further calculations in bindcurve.
-    :rtype: Dataframe
+    Parameters
+    ----------
+    csvfile : str
+        Path to the csv file.
+    c_scale : float or int, optional
+        Factor for scaling concentration. Used for unit conversion.
     
-    
-    
-    
-    
-    Args:
-        param1 (int): The first parameter.
-        param2 (str): The second parameter.
-        
-    Raises:
-        error: eror
-
-    Returns:
-        bool: The return value. True for success, False otherwise.
-        bool: another return
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing preprocessed input data.
     """
-    
-    
+
     print("Loading data from", csvfile)
     
     # Loading input .csv file to pandas
@@ -62,6 +46,21 @@ def load_csv(csvfile, c_scale=1):
 
 
 def load_df(df, c_scale=1):
+    """Loads and preprocesses data from existing DataFrame.
+    
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame object with data.
+    c_scale : float or int, optional
+        Factor for scaling concentration. Used for unit conversion.
+    
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing preprocessed input data.
+    """
+    
     print("Loading data from", df)
     
     # Renaming columns to standard names
@@ -203,7 +202,57 @@ def plot(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
          custom_labels=False,
          single_label=False,
          no_labels=False):
+    """Plots one or more curves into an initiated matplotlib plot.
     
+    Parameters
+    ----------
+    input_df : DataFrame
+        Pandas DataFrame containing the input data.
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    xmin : float or int
+        Manually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.
+    xmax : float or int
+        Manually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.
+    marker : str
+        Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).
+    markersize : float or int
+        Marker size.
+    linewidth : float or int
+        Line width of the curve.
+    linestyle : str
+        Line style of the curve.
+    show_medians : bool
+        Whether to show concentration median values.
+    show_all_data : bool
+        Whether to show all concentration points.
+    show_errorbars : bool
+        Whether to show errorbars.
+    errorbars_kind : str
+        What should be shown as errorbars, options are "SD" or "SEM".
+    errorbar_linewidth : float or int
+        Line width of the errorbars. 
+    errorbar_capsize : float or int
+        Size of the errorbar caps (upper and lower points of the bars).
+    cmap : str
+        What cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).
+    cmap_min : float or int
+        Minimum point of the cmap to use. Between 0 and 1.
+    cmap_max : float or int
+        Maximum point of the cmap to use. Between 0 and 1.
+    custom_colors : list
+        If you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.
+    single_color : str
+        Provide single color to color all ploted curves.
+    custom_labels : list
+        If you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.
+    single_label : str
+        Provide single label for all ploted curves.
+    no_labels : bool
+        If you do not want any labels, set this to true.
+    """    
 
     # In compound selection is provided, than use it, otherwise plot all compounds
     if compound_sel == False:
@@ -332,6 +381,81 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
          sharey=True,
          hspace=0.3,
          wspace=0.3):
+    """Plots a grid of binding curves.
+    
+    Parameters
+    ----------
+    input_df : DataFrame
+        Pandas DataFrame containing the input data.
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    xmin : float or int
+        Manually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.
+    xmax : float or int
+        Manually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve. 
+    marker : str
+        Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).
+    markersize : float or int
+        Marker size.
+    linewidth : float or int
+        Line width of the curve.
+    linestyle : str
+        Line style of the curve.
+    show_medians : bool
+        Whether to show concentration median values.
+    show_all_data : bool
+        Whether to show all concentration points.
+    show_errorbars : bool
+        Whether to show errorbars.
+    errorbars_kind : str
+        What should be shown as errorbars, options are "SD" or "SEM".
+    errorbar_linewidth : float or int
+        Line width of the errorbars. 
+    errorbar_capsize : float or int
+        Size of the errorbar caps (upper and lower points of the bars).
+    cmap : str
+        What cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).
+    cmap_min : float or int
+        Minimum point of the cmap to use. Between 0 and 1.
+    cmap_max : float or int
+        Maximum point of the cmap to use. Between 0 and 1.
+    custom_colors : list
+        If you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.
+    single_color : str
+        Provide single color to color all ploted curves.
+    custom_labels : list
+        If you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.
+    single_label : str
+        Provide single label for all ploted curves.
+    no_labels : bool
+        If you do not want any labels, set this to true.
+    x_logscale : bool
+        If set to True, the x axis will be plotted on a log scale.
+    show_legend : bool
+        Whether to show legend in each subplot.
+    show_title : bool
+        Whether to show names of the compounds in the title for each sunplot.
+    figsize : tuple
+        Tuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.
+    n_cols : int
+        Number of columns to plot. Number of rows is then determined automatically.
+    x_label : str
+        Axis label for the x axis.
+    y_label : str
+        Axis label for the y axis.
+    show_inner_ticklabels : bool
+        Whether to show ticklabels on the inner axes of the grid. 
+    sharex : bool
+        Whether to share (lock) the scales on the x axes for all subplots in the grid.
+    sharey : bool
+        Whether to share (lock) the scales on the y axes for all subplots in the grid.
+    hspace : float or int
+        Horizontal space between subplots.
+    wspace : float or int
+        Horizontal space between subplots.
+    """
     
 
     # In compound selection is provided, than use it, otherwise plot all compounds
@@ -370,7 +494,6 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
     gs = fig.add_gridspec(n_rows, n_cols, hspace=hspace, wspace=wspace)
     axes = gs.subplots(sharex=sharex, sharey=sharey)
 
-    
     # Flatten the 2D axes array to iterate over it
     axes = axes.flatten()
 
@@ -381,7 +504,6 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
         fig.delaxes(axes[-i])  # Remove axes from the figure
 
 
-    
     # Iterate through compounds and plot them in matplotlib    
     for i, compound in enumerate(compounds):
         
@@ -454,8 +576,7 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
         if show_inner_ticklabels == True:
             ax.xaxis.set_tick_params(labelbottom=True)      # Put back x ticklabels 
             ax.yaxis.set_tick_params(labelbottom=True)      # Put back y ticklabels 
-    
-    
+
     
     plt.tight_layout()
     plt.show()
@@ -467,6 +588,25 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
 
    
 def plot_asymptotes(results_df, compound_sel=False, lower=True, upper=True, color="black", linewidth=1, linestyle="--"):
+    """Plots lower and/or upper asymptote of the model as a horizontal line.
+    
+    Parameters
+    ----------
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    lower : bool
+        Whether to plot the lower asymptote.
+    upper : bool    
+        Whether to plot the upper asymptote.  
+    color : str
+        Color for plotting the asymptotes. Any matplotlib syntax will be accepted.
+    linewidth : floar or int
+        Line width.
+    linestyle : str
+        Line style.
+    """
 
     # If compound selection is provided, than use it, otherwise plot all compounds
     if compound_sel == False:
@@ -489,7 +629,32 @@ def plot_asymptotes(results_df, compound_sel=False, lower=True, upper=True, colo
 
 
 def plot_traces(results_df, value, compound_sel=False, kind="full", vtrace=True, htrace=True, color="black", linewidth=1, linestyle="--", label=None):
-
+    """Plots traces that will indicate a specific value on the curve.
+    
+    Parameters
+    ----------
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    value : str
+        What value to use for plotting the traces. This should be one of the column names in results_df. Usually "IC50", "Kd" or "Kds".
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    kind : str
+        What kind of trace should be plotted. Options are "full" or "partial".
+    vtrace : bool
+        Whether to plot the vertical trace.
+    htrace : bool
+        Whether to plot the horizontal trace.
+    color : str
+        Color for plotting the traces. Any matplotlib syntax will be accepted.
+    linewidth : float or int
+        Line width.
+    linestyle : str
+        Line style.
+    label : str
+        Label that will be used for the traces.
+    """
+    
     # If compound selection is provided, than use it, otherwise plot all compounds
     if compound_sel == False:
         compounds = results_df["compound"].unique()
@@ -532,7 +697,38 @@ def plot_traces(results_df, value, compound_sel=False, kind="full", vtrace=True,
 
 
 def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, color="black", label=None, show_annot=True, pre_text="", post_text="", decimals=2, xoffset=50, yoffset=0):
-        
+    """Plots a marker that will indicate a specific value on the curve, possibly with text annotation.
+    
+    Parameters
+    ----------
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    value : str
+        What value to plot. This should be one of the column names in results_df. Usually "IC50", "Kd" or "Kds".
+    compound_sel : list
+        List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.
+    marker : str
+        Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).
+    markersize : float or int
+        Marker size.
+    color : str
+        Color of the marker. Any matplotlib syntax will be accepted.
+    label : str
+        Label for the marker to show in legend.
+    show_annot : bool
+        Whether to show text annotation.
+    pre_text : str
+        Text to apear before the numerical annotation.
+    post_text : str
+        Text to apear after the numerical annotation.
+    decimals : int
+        Number of decimals to use for the numerical annotation.
+    xoffset : float or int
+        Offset of the annotation on x axis.
+    yoffset : float or int
+        Offset of the annotation on y axis.
+    """
+            
     # If compound selection is provided, than use it, otherwise plot all compounds
     if compound_sel == False:
         compounds = results_df["compound"].unique()
@@ -570,7 +766,21 @@ def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, 
 
 
 
-def report(results_df, decimals=2, p=False):
+def report(results_df, decimals=2):
+    """Provides the fit results as a formatted report.
+    
+    Parameters
+    ----------
+    results_df : DataFrame
+        Pandas DataFrame containing the fit results.
+    decimals : int
+        Number of decimals to use.
+    
+    Returns
+    -------
+    DataFrame
+        Pandas DataFrame containing the report.
+    """
     
     compounds = results_df["compound"].unique()
 
