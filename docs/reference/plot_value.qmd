@@ -1,0 +1,39 @@
+# plot_value { #bindcurve.plot_value }
+
+```python
+plot_value(
+    results_df
+    value
+    compound_sel=False
+    marker='o'
+    markersize=5
+    color='black'
+    label=None
+    show_annot=True
+    pre_text=''
+    post_text=''
+    decimals=2
+    xoffset=50
+    yoffset=0
+)
+```
+
+Plots a marker to indicate a specific value on the curve, optionally with text annotation.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type         | Description                                                                                                    | Default    |
+|--------------|--------------|----------------------------------------------------------------------------------------------------------------|------------|
+| results_df   | DataFrame    | Pandas DataFrame containing the fit results.                                                                   | _required_ |
+| value        | str          | What value to plot. This should be one of the column names in results_df. Usually "IC50", "Kd" or "Kds".       | _required_ |
+| compound_sel | list         | List of compounds to execute the function on. If set to False, all compounds from the results_df will be used. | `False`    |
+| marker       | str          | Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).       | `'o'`      |
+| markersize   | float or int | Marker size.                                                                                                   | `5`        |
+| color        | str          | Color of the marker. Any matplotlib syntax will be accepted.                                                   | `'black'`  |
+| label        | str          | Label for the marker to show in legend.                                                                        | `None`     |
+| show_annot   | bool         | Whether to show text annotation.                                                                               | `True`     |
+| pre_text     | str          | Text to apear before the numerical annotation.                                                                 | `''`       |
+| post_text    | str          | Text to apear after the numerical annotation.                                                                  | `''`       |
+| decimals     | int          | Number of decimals to use for the numerical annotation.                                                        | `2`        |
+| xoffset      | float or int | Offset of the annotation on x axis.                                                                            | `50`       |
+| yoffset      | float or int | Offset of the annotation on y axis.                                                                            | `0`        |

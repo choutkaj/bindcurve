@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 import lmfit
 from bindcurve import models
 
@@ -629,7 +628,7 @@ def plot_asymptotes(results_df, compound_sel=False, lower=True, upper=True, colo
 
 
 def plot_traces(results_df, value, compound_sel=False, kind="full", vtrace=True, htrace=True, color="black", linewidth=1, linestyle="--", label=None):
-    """Plots traces that will indicate a specific value on the curve.
+    """Plots traces to indicate a specific value on the curve.
     
     Parameters
     ----------
@@ -697,7 +696,7 @@ def plot_traces(results_df, value, compound_sel=False, kind="full", vtrace=True,
 
 
 def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, color="black", label=None, show_annot=True, pre_text="", post_text="", decimals=2, xoffset=50, yoffset=0):
-    """Plots a marker that will indicate a specific value on the curve, possibly with text annotation.
+    """Plots a marker to indicate a specific value on the curve, optionally with text annotation.
     
     Parameters
     ----------
@@ -767,7 +766,7 @@ def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, 
 
 
 def report(results_df, decimals=2):
-    """Provides the fit results as a formatted report.
+    """Provides the results as a formatted report.
     
     Parameters
     ----------

@@ -251,8 +251,9 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#function-reference" id="toc-function-reference" class="nav-link active" data-scroll-target="#function-reference">Function reference</a>
   <ul class="collapse">
-  <li><a href="#one-section" id="toc-one-section" class="nav-link" data-scroll-target="#one-section">one section</a></li>
-  <li><a href="#another-section" id="toc-another-section" class="nav-link" data-scroll-target="#another-section">another section</a></li>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a></li>
+  <li><a href="#fitting-conversions" id="toc-fitting-conversions" class="nav-link" data-scroll-target="#fitting-conversions">Fitting &amp; conversions</a></li>
+  <li><a href="#plotting" id="toc-plotting" class="nav-link" data-scroll-target="#plotting">Plotting</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -265,21 +266,8 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="function-reference" class="level1 doc doc-index">
 <h1 class="doc doc-index">Function reference</h1>
-<section id="one-section" class="level2">
-<h2 class="anchored" data-anchor-id="one-section">one section</h2>
-<p>Functions to inspect docstrings.</p>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td><a href="../reference/load_csv.html#bindcurve.load_csv">load_csv</a></td>
-<td>Loads and preprocesses data from csv file.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="another-section" class="level2">
-<h2 class="anchored" data-anchor-id="another-section">another section</h2>
-<p>another Functions to inspect docstrings.</p>
+<section id="loading-data" class="level2">
+<h2 class="anchored" data-anchor-id="loading-data">Loading data</h2>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
@@ -290,9 +278,59 @@ ul.task-list li input[type="checkbox"] {
 <td><a href="../reference/load_df.html#bindcurve.load_df">load_df</a></td>
 <td>Loads and preprocesses data from existing DataFrame.</td>
 </tr>
+</tbody>
+</table>
+</section>
+<section id="fitting-conversions" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-conversions">Fitting &amp; conversions</h2>
+<table class="caption-top table">
+<tbody>
 <tr class="odd">
+<td><a href="../reference/fit_50.html#bindcurve.fit_50">fit_50</a></td>
+<td>Function for fitting the <code>IC50</code> and <code>logIC50</code> models.</td>
+</tr>
+<tr class="even">
 <td><a href="../reference/fit_Kd_direct.html#bindcurve.fit_Kd_direct">fit_Kd_direct</a></td>
-<td>Function for fitting the “dir_simple” <code>dir_specific</code> and dir_total models.</td>
+<td>Function for fitting the <code>dir_simple</code>, <code>dir_specific</code> and <code>dir_total</code> models.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/fit_Kd_competition.html#bindcurve.fit_Kd_competition">fit_Kd_competition</a></td>
+<td>Function for fitting the <code>comp_3st_specific</code>, <code>comp_3st_total</code>, <code>comp_4st_specific</code> and <code>comp_4st_total</code> models.</td>
+</tr>
+<tr class="even">
+<td><a href="../reference/convert.html#bindcurve.convert">convert</a></td>
+<td>Function for converting IC50 to Kd using <code>coleska</code>, <code>cheng_prusoff</code> and <code>cheng_prusoff_corr</code> models.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/report.html#bindcurve.report">report</a></td>
+<td>Provides the results as a formatted report.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plotting" class="level2">
+<h2 class="anchored" data-anchor-id="plotting">Plotting</h2>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../reference/plot.html#bindcurve.plot">plot</a></td>
+<td>Plots one or more curves into an initiated matplotlib plot.</td>
+</tr>
+<tr class="even">
+<td><a href="../reference/plot_grid.html#bindcurve.plot_grid">plot_grid</a></td>
+<td>Plots a grid of binding curves.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/plot_asymptotes.html#bindcurve.plot_asymptotes">plot_asymptotes</a></td>
+<td>Plots lower and/or upper asymptote of the model as a horizontal line.</td>
+</tr>
+<tr class="even">
+<td><a href="../reference/plot_traces.html#bindcurve.plot_traces">plot_traces</a></td>
+<td>Plots traces to indicate a specific value on the curve.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/plot_value.html#bindcurve.plot_value">plot_value</a></td>
+<td>Plots a marker to indicate a specific value on the curve, optionally with text annotation.</td>
 </tr>
 </tbody>
 </table>

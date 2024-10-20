@@ -1,0 +1,83 @@
+# plot_grid { #bindcurve.plot_grid }
+
+```python
+plot_grid(
+    input_df
+    results_df
+    compound_sel=False
+    xmin=False
+    xmax=False
+    marker='o'
+    markersize=5
+    linewidth=1
+    linestyle='-'
+    show_medians=True
+    show_all_data=False
+    show_errorbars=True
+    errorbars_kind='SD'
+    errorbar_linewidth=1
+    errorbar_capsize=3
+    cmap='tab10'
+    cmap_min=0
+    cmap_max=1
+    custom_colors=False
+    single_color=False
+    custom_labels=False
+    single_label=False
+    no_labels=False
+    x_logscale=True
+    show_legend=False
+    show_title=True
+    figsize=(7, 5)
+    n_cols=3
+    x_label='dose'
+    y_label='response'
+    show_inner_ticklabels=False
+    sharex=True
+    sharey=True
+    hspace=0.3
+    wspace=0.3
+)
+```
+
+Plots a grid of binding curves.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                  | Type         | Description                                                                                                                                            | Default      |
+|-----------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
+| input_df              | DataFrame    | Pandas DataFrame containing the input data.                                                                                                            | _required_   |
+| results_df            | DataFrame    | Pandas DataFrame containing the fit results.                                                                                                           | _required_   |
+| compound_sel          | list         | List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.                                         | `False`      |
+| xmin                  | float or int | Manually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.                          | `False`      |
+| xmax                  | float or int | Manually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.                          | `False`      |
+| marker                | str          | Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).                                               | `'o'`        |
+| markersize            | float or int | Marker size.                                                                                                                                           | `5`          |
+| linewidth             | float or int | Line width of the curve.                                                                                                                               | `1`          |
+| linestyle             | str          | Line style of the curve.                                                                                                                               | `'-'`        |
+| show_medians          | bool         | Whether to show concentration median values.                                                                                                           | `True`       |
+| show_all_data         | bool         | Whether to show all concentration points.                                                                                                              | `False`      |
+| show_errorbars        | bool         | Whether to show errorbars.                                                                                                                             | `True`       |
+| errorbars_kind        | str          | What should be shown as errorbars, options are "SD" or "SEM".                                                                                          | `'SD'`       |
+| errorbar_linewidth    | float or int | Line width of the errorbars.                                                                                                                           | `1`          |
+| errorbar_capsize      | float or int | Size of the errorbar caps (upper and lower points of the bars).                                                                                        | `3`          |
+| cmap                  | str          | What cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html). | `'tab10'`    |
+| cmap_min              | float or int | Minimum point of the cmap to use. Between 0 and 1.                                                                                                     | `0`          |
+| cmap_max              | float or int | Maximum point of the cmap to use. Between 0 and 1.                                                                                                     | `1`          |
+| custom_colors         | list         | If you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.                        | `False`      |
+| single_color          | str          | Provide single color to color all ploted curves.                                                                                                       | `False`      |
+| custom_labels         | list         | If you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.                        | `False`      |
+| single_label          | str          | Provide single label for all ploted curves.                                                                                                            | `False`      |
+| no_labels             | bool         | If you do not want any labels, set this to true.                                                                                                       | `False`      |
+| x_logscale            | bool         | If set to True, the x axis will be plotted on a log scale.                                                                                             | `True`       |
+| show_legend           | bool         | Whether to show legend in each subplot.                                                                                                                | `False`      |
+| show_title            | bool         | Whether to show names of the compounds in the title for each sunplot.                                                                                  | `True`       |
+| figsize               | tuple        | Tuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.                                                           | `(7, 5)`     |
+| n_cols                | int          | Number of columns to plot. Number of rows is then determined automatically.                                                                            | `3`          |
+| x_label               | str          | Axis label for the x axis.                                                                                                                             | `'dose'`     |
+| y_label               | str          | Axis label for the y axis.                                                                                                                             | `'response'` |
+| show_inner_ticklabels | bool         | Whether to show ticklabels on the inner axes of the grid.                                                                                              | `False`      |
+| sharex                | bool         | Whether to share (lock) the scales on the x axes for all subplots in the grid.                                                                         | `True`       |
+| sharey                | bool         | Whether to share (lock) the scales on the y axes for all subplots in the grid.                                                                         | `True`       |
+| hspace                | float or int | Horizontal space between subplots.                                                                                                                     | `0.3`        |
+| wspace                | float or int | Horizontal space between subplots.                                                                                                                     | `0.3`        |

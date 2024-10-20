@@ -1,0 +1,27 @@
+# plot_asymptotes { #bindcurve.plot_asymptotes }
+
+```python
+plot_asymptotes(
+    results_df
+    compound_sel=False
+    lower=True
+    upper=True
+    color='black'
+    linewidth=1
+    linestyle='--'
+)
+```
+
+Plots lower and/or upper asymptote of the model as a horizontal line.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type         | Description                                                                                                    | Default    |
+|--------------|--------------|----------------------------------------------------------------------------------------------------------------|------------|
+| results_df   | DataFrame    | Pandas DataFrame containing the fit results.                                                                   | _required_ |
+| compound_sel | list         | List of compounds to execute the function on. If set to False, all compounds from the results_df will be used. | `False`    |
+| lower        | bool         | Whether to plot the lower asymptote.                                                                           | `True`     |
+| upper        | bool         | Whether to plot the upper asymptote.                                                                           | `True`     |
+| color        | str          | Color for plotting the asymptotes. Any matplotlib syntax will be accepted.                                     | `'black'`  |
+| linewidth    | floar or int | Line width.                                                                                                    | `1`        |
+| linestyle    | str          | Line style.                                                                                                    | `'--'`     |

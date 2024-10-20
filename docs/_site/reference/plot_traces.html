@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>fit_kd_direct – BindCurve</title>
+<title>plot_traces – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -283,10 +283,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#bindcurve.fit_Kd_direct" id="toc-bindcurve.fit_Kd_direct" class="nav-link active" data-scroll-target="#bindcurve.fit_Kd_direct">fit_Kd_direct</a>
+  <li><a href="#bindcurve.plot_traces" id="toc-bindcurve.plot_traces" class="nav-link active" data-scroll-target="#bindcurve.plot_traces">plot_traces</a>
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -297,27 +296,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="bindcurve.fit_Kd_direct" class="level1">
-<h1>fit_Kd_direct</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fit_Kd_direct(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    input_df</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    model</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    LsT</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    Ns<span class="op">=</span><span class="va">None</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    compound_sel<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    fix_ymin<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    fix_ymax<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    ci<span class="op">=</span><span class="va">True</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Function for fitting the <code>dir_simple</code>, <code>dir_specific</code> and <code>dir_total</code> models.</p>
+<section id="bindcurve.plot_traces" class="level1">
+<h1>plot_traces</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>plot_traces(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    results_df</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    value</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    compound_sel<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">'full'</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    vtrace<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    htrace<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">'black'</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    linewidth<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">'--'</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="va">None</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Plots traces to indicate a specific value on the curve.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 9%">
-<col style="width: 73%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 76%">
 <col style="width: 7%">
 </colgroup>
 <thead>
@@ -330,28 +330,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>input_df</td>
+<td>results_df</td>
 <td>DataFrame</td>
-<td>Pandas DataFrame containing the input data.</td>
+<td>Pandas DataFrame containing the fit results.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>model</td>
+<td>value</td>
 <td>str</td>
-<td>Name of the model. Options: <code>dir_simple</code>, <code>dir_specific</code>, <code>dir_total</code></td>
+<td>What value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.</td>
 <td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>LsT</td>
-<td>float or int</td>
-<td>Total concentration of the labeled ligand.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>Ns</td>
-<td>float or int</td>
-<td>Parameter for nonspecific binding of the labeled ligand (needed only for <code>dir_total</code> model).</td>
-<td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>compound_sel</td>
@@ -360,47 +348,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>False</code></td>
 </tr>
 <tr class="even">
-<td>fix_ymin</td>
-<td>float or int</td>
-<td>Lower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.</td>
-<td><code>False</code></td>
+<td>kind</td>
+<td>str</td>
+<td>What kind of trace should be plotted. Options are “full” or “partial”.</td>
+<td><code>'full'</code></td>
 </tr>
 <tr class="odd">
-<td>fix_ymax</td>
-<td>float or int</td>
-<td>Upper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.</td>
-<td><code>False</code></td>
+<td>vtrace</td>
+<td>bool</td>
+<td>Whether to plot the vertical trace.</td>
+<td><code>True</code></td>
 </tr>
 <tr class="even">
-<td>ci</td>
+<td>htrace</td>
 <td>bool</td>
-<td>Whether to calculate 95% confidence intervals.</td>
+<td>Whether to plot the horizontal trace.</td>
 <td><code>True</code></td>
 </tr>
 <tr class="odd">
-<td>verbose</td>
-<td>bool</td>
-<td>If set to “True”, more detailed output is printed. Intended mainly for troubleshooting.</td>
-<td><code>False</code></td>
+<td>color</td>
+<td>str</td>
+<td>Color for plotting the traces. Any matplotlib syntax will be accepted.</td>
+<td><code>'black'</code></td>
 </tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
+<tr class="even">
+<td>linewidth</td>
+<td>float or int</td>
+<td>Line width.</td>
+<td><code>1</code></td>
 </tr>
-</thead>
-<tbody>
 <tr class="odd">
-<td></td>
-<td>DataFrame</td>
-<td>Pandas DataFrame containing the fit results.</td>
+<td>linestyle</td>
+<td>str</td>
+<td>Line style.</td>
+<td><code>'--'</code></td>
+</tr>
+<tr class="even">
+<td>label</td>
+<td>str</td>
+<td>Label that will be used for the traces.</td>
+<td><code>None</code></td>
 </tr>
 </tbody>
 </table>

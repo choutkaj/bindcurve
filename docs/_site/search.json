@@ -401,7 +401,7 @@
     "href": "reference/index.html",
     "title": "Function reference",
     "section": "",
-    "text": "Functions to inspect docstrings.\n\n\n\nload_csv\nLoads and preprocesses data from csv file.\n\n\n\n\n\n\nanother Functions to inspect docstrings.\n\n\n\nload_csv\nLoads and preprocesses data from csv file.\n\n\nload_df\nLoads and preprocesses data from existing DataFrame.\n\n\nfit_Kd_direct\nFunction for fitting the “dir_simple” dir_specific and dir_total models.",
+    "text": "load_csv\nLoads and preprocesses data from csv file.\n\n\nload_df\nLoads and preprocesses data from existing DataFrame.\n\n\n\n\n\n\n\n\n\nfit_50\nFunction for fitting the IC50 and logIC50 models.\n\n\nfit_Kd_direct\nFunction for fitting the dir_simple, dir_specific and dir_total models.\n\n\nfit_Kd_competition\nFunction for fitting the comp_3st_specific, comp_3st_total, comp_4st_specific and comp_4st_total models.\n\n\nconvert\nFunction for converting IC50 to Kd using coleska, cheng_prusoff and cheng_prusoff_corr models.\n\n\nreport\nProvides the results as a formatted report.\n\n\n\n\n\n\n\n\n\nplot\nPlots one or more curves into an initiated matplotlib plot.\n\n\nplot_grid\nPlots a grid of binding curves.\n\n\nplot_asymptotes\nPlots lower and/or upper asymptote of the model as a horizontal line.\n\n\nplot_traces\nPlots traces to indicate a specific value on the curve.\n\n\nplot_value\nPlots a marker to indicate a specific value on the curve, optionally with text annotation.",
     "crumbs": [
       "Home",
       "API reference"
@@ -532,14 +532,14 @@
     "href": "reference/fit_Kd_direct.html",
     "title": "fit_Kd_direct",
     "section": "",
-    "text": "fit_Kd_direct(\n    input_df\n    model\n    LsT\n    Ns=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the “dir_simple” dir_specific and dir_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nrequired\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+    "text": "fit_Kd_direct(\n    input_df\n    model\n    LsT\n    Ns=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the dir_simple, dir_specific and dir_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
     "objectID": "reference/fit_Kd_direct.html#parameters",
     "href": "reference/fit_Kd_direct.html#parameters",
     "title": "fit_Kd_direct",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nrequired\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
   },
   {
     "objectID": "reference/fit_Kd_direct.html#returns",
@@ -547,5 +547,192 @@
     "title": "fit_Kd_direct",
     "section": "",
     "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/index.html#loading-data",
+    "href": "reference/index.html#loading-data",
+    "title": "Function reference",
+    "section": "",
+    "text": "load_csv\nLoads and preprocesses data from csv file.\n\n\nload_df\nLoads and preprocesses data from existing DataFrame.",
+    "crumbs": [
+      "Home",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#fitting-conversions",
+    "href": "reference/index.html#fitting-conversions",
+    "title": "Function reference",
+    "section": "",
+    "text": "fit_50\nFunction for fitting the IC50 and logIC50 models.\n\n\nfit_Kd_direct\nFunction for fitting the dir_simple, dir_specific and dir_total models.\n\n\nfit_Kd_competition\nFunction for fitting the comp_3st_specific, comp_3st_total, comp_4st_specific and comp_4st_total models.\n\n\nconvert\nFunction for converting IC50 to Kd using coleska, cheng_prusoff and cheng_prusoff_corr models.\n\n\nreport\nProvides the results as a formatted report.",
+    "crumbs": [
+      "Home",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#plotting",
+    "href": "reference/index.html#plotting",
+    "title": "Function reference",
+    "section": "",
+    "text": "plot\nPlots one or more curves into an initiated matplotlib plot.\n\n\nplot_grid\nPlots a grid of binding curves.\n\n\nplot_asymptotes\nPlots lower and/or upper asymptote of the model as a horizontal line.\n\n\nplot_traces\nPlots traces to indicate a specific value on the curve.\n\n\nplot_value\nPlots a marker to indicate a specific value on the curve, optionally with text annotation.",
+    "crumbs": [
+      "Home",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "reference/plot_asymptotes.html",
+    "href": "reference/plot_asymptotes.html",
+    "title": "plot_asymptotes",
+    "section": "",
+    "text": "plot_asymptotes(\n    results_df\n    compound_sel=False\n    lower=True\n    upper=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n)\nPlots lower and/or upper asymptote of the model as a horizontal line.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
+  },
+  {
+    "objectID": "reference/plot_asymptotes.html#parameters",
+    "href": "reference/plot_asymptotes.html#parameters",
+    "title": "plot_asymptotes",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
+  },
+  {
+    "objectID": "reference/fit_50.html",
+    "href": "reference/fit_50.html",
+    "title": "fit_50",
+    "section": "",
+    "text": "fit_50(\n    input_df\n    model\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    fix_slope=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the IC50 and logIC50 models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/fit_50.html#parameters",
+    "href": "reference/fit_50.html#parameters",
+    "title": "fit_50",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+  },
+  {
+    "objectID": "reference/fit_50.html#returns",
+    "href": "reference/fit_50.html#returns",
+    "title": "fit_50",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/plot_traces.html",
+    "href": "reference/plot_traces.html",
+    "title": "plot_traces",
+    "section": "",
+    "text": "plot_traces(\n    results_df\n    value\n    compound_sel=False\n    kind='full'\n    vtrace=True\n    htrace=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n    label=None\n)\nPlots traces to indicate a specific value on the curve.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
+  },
+  {
+    "objectID": "reference/plot_traces.html#parameters",
+    "href": "reference/plot_traces.html#parameters",
+    "title": "plot_traces",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html",
+    "href": "reference/fit_Kd_competition.html",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "fit_Kd_competition(\n    input_df\n    model\n    RT\n    LsT\n    Kds\n    N=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the comp_3st_specific, comp_3st_total, comp_4st_specific and comp_4st_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html#parameters",
+    "href": "reference/fit_Kd_competition.html#parameters",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html#returns",
+    "href": "reference/fit_Kd_competition.html#returns",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/report.html",
+    "href": "reference/report.html",
+    "title": "report",
+    "section": "",
+    "text": "report(results_df, decimals=2)\nProvides the results as a formatted report.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+  },
+  {
+    "objectID": "reference/report.html#parameters",
+    "href": "reference/report.html#parameters",
+    "title": "report",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2"
+  },
+  {
+    "objectID": "reference/report.html#returns",
+    "href": "reference/report.html#returns",
+    "title": "report",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+  },
+  {
+    "objectID": "reference/plot.html",
+    "href": "reference/plot.html",
+    "title": "plot",
+    "section": "",
+    "text": "plot(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n)\nPlots one or more curves into an initiated matplotlib plot.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
+  },
+  {
+    "objectID": "reference/plot.html#parameters",
+    "href": "reference/plot.html#parameters",
+    "title": "plot",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
+  },
+  {
+    "objectID": "reference/plot_value.html",
+    "href": "reference/plot_value.html",
+    "title": "plot_value",
+    "section": "",
+    "text": "plot_value(\n    results_df\n    value\n    compound_sel=False\n    marker='o'\n    markersize=5\n    color='black'\n    label=None\n    show_annot=True\n    pre_text=''\n    post_text=''\n    decimals=2\n    xoffset=50\n    yoffset=0\n)\nPlots a marker to indicate a specific value on the curve, optionally with text annotation.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
+  },
+  {
+    "objectID": "reference/plot_value.html#parameters",
+    "href": "reference/plot_value.html#parameters",
+    "title": "plot_value",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
+  },
+  {
+    "objectID": "reference/convert.html",
+    "href": "reference/convert.html",
+    "title": "convert",
+    "section": "",
+    "text": "convert(\n    IC50_df\n    model\n    RT=None\n    LsT=None\n    Kds=None\n    y0=None\n    compound_sel=False\n    ci=True\n    verbose=False\n)\nFunction for converting IC50 to Kd using coleska, cheng_prusoff and cheng_prusoff_corr models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
+  },
+  {
+    "objectID": "reference/convert.html#parameters",
+    "href": "reference/convert.html#parameters",
+    "title": "convert",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+  },
+  {
+    "objectID": "reference/convert.html#returns",
+    "href": "reference/convert.html#returns",
+    "title": "convert",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
+  },
+  {
+    "objectID": "reference/plot_grid.html",
+    "href": "reference/plot_grid.html",
+    "title": "plot_grid",
+    "section": "",
+    "text": "plot_grid(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n    x_logscale=True\n    show_legend=False\n    show_title=True\n    figsize=(7, 5)\n    n_cols=3\n    x_label='dose'\n    y_label='response'\n    show_inner_ticklabels=False\n    sharex=True\n    sharey=True\n    hspace=0.3\n    wspace=0.3\n)\nPlots a grid of binding curves.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
+  },
+  {
+    "objectID": "reference/plot_grid.html#parameters",
+    "href": "reference/plot_grid.html#parameters",
+    "title": "plot_grid",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
   }
 ]

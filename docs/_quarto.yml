@@ -52,7 +52,6 @@ website:
         href: ./reference/index.qmd
 
 
-
 format:
   html:
     theme: cosmo
@@ -62,25 +61,34 @@ format:
     
 
 
-
-
-
 quartodoc:
   style: pkgdown
   dir: reference
   source_dir: ..
   package: bindcurve
   sections:
-    - title: one section
-      desc: Functions to inspect docstrings.
-      contents:
-        - load_csv
-    - title: another section
-      desc: another Functions to inspect docstrings.
+    - title: Loading data
       contents:
         - load_csv
         - load_df
+    - title: Fitting & conversions
+      contents:
+        - fit_50
         - fit_Kd_direct
+        - fit_Kd_competition
+        - convert
+        - report
+    - title: Plotting
+      contents:
+        - plot
+        - plot_grid
+        - plot_asymptotes
+        - plot_traces
+        - plot_value
+
+
+
+
 
 
 
