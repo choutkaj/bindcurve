@@ -70,3 +70,4 @@ The `bindcurve` documentation can be found at https://choutkaj.github.io/bindcur
 
 ## License
 
+`bindcurve` is published under the MIT license. 
