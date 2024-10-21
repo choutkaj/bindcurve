@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: bindcurve
+Version: 0.1.0a1
+Summary: A Python package for fitting and plotting of binding curves.
+Author: choutkaj
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: lmfit
