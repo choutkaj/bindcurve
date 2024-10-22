@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>fit_kd_competition – BindCurve</title>
+<title>Plotting system components – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -121,22 +121,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="../index.html"> 
-<span class="menu-text">Home</span></a>
-  </li>  
-  <li class="nav-item">
-    <span class="nav-link">
-<span class="menu-text">about.qmd</span>
-    </span>
-  </li>  
-  <li class="nav-item">
-    <span class="nav-link">
-<span class="menu-text">theory.qmd</span>
-    </span>
-  </li>  
-</ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
     <a class="nav-link" href="https://github.com/choutkaj/bindcurve"> <i class="bi bi-github" role="img">
@@ -154,7 +138,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/basics.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorials/plotting_components.html">Plotting system components</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -174,24 +158,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../introduction.qmd" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Introduction</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../input_format.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Input format</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../models.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Models</span></a>
-  </div>
-</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
@@ -203,15 +169,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../getting_started.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting started</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../input_format.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Input format</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Models</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../tutorials.qmd" class="sidebar-item-text sidebar-link">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
  <span class="menu-text">Tutorials</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -226,8 +204,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../tutorials/tutorial2.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">tutorial2</span></a>
+  <a href="../tutorials/Kd_models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exact Kd models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorials/plotting_components.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Plotting system components</span></a>
   </div>
 </li>
       </ul>
@@ -283,144 +267,131 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#bindcurve.fit_Kd_competition" id="toc-bindcurve.fit_Kd_competition" class="nav-link active" data-scroll-target="#bindcurve.fit_Kd_competition">fit_Kd_competition</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  </ul></li>
+  <li><a href="#direct-binding" id="toc-direct-binding" class="nav-link active" data-scroll-target="#direct-binding">Direct binding</a></li>
+  <li><a href="#competitive-binding" id="toc-competitive-binding" class="nav-link" data-scroll-target="#competitive-binding">Competitive binding</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/basics.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorials/plotting_components.html">Plotting system components</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Plotting system components</h1>
+</div>
 
 
 
-<section id="bindcurve.fit_Kd_competition" class="level1">
-<h1>fit_Kd_competition</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fit_Kd_competition(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    input_df</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    model</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    RT</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    LsT</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    Kds</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    N<span class="op">=</span><span class="va">None</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    compound_sel<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    fix_ymin<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    fix_ymax<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    ci<span class="op">=</span><span class="va">True</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">False</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Function for fitting the <code>comp_3st_specific</code>, <code>comp_3st_total</code>, <code>comp_4st_specific</code> and <code>comp_4st_total</code> models.</p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 75%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>input_df</td>
-<td>DataFrame</td>
-<td>Pandas DataFrame containing the input data.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>model</td>
-<td>str</td>
-<td>Name of the model. Options: <code>comp_3st_specific</code>, <code>comp_3st_total</code>, <code>comp_4st_specific</code>, <code>comp_4st_total</code></td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>RT</td>
-<td>float or int</td>
-<td>Total concentration of the receptor.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>LsT</td>
-<td>float or int</td>
-<td>Total concentration of the labeled ligand.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>Kds</td>
-<td>float or int</td>
-<td>Dissociation constant of the labeled ligand.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>N</td>
-<td>float or int</td>
-<td>Parameter for nonspecific binding of the unlabeled ligand (needed only for <code>comp_3st_total</code> and <code>comp_4st_total</code> models).</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>compound_sel</td>
-<td>list</td>
-<td>List of compounds to execute the function on. If set to False, all compounds will be used.</td>
-<td><code>False</code></td>
-</tr>
-<tr class="even">
-<td>fix_ymin</td>
-<td>float or int</td>
-<td>Lower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.</td>
-<td><code>False</code></td>
-</tr>
-<tr class="odd">
-<td>fix_ymax</td>
-<td>float or int</td>
-<td>Upper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.</td>
-<td><code>False</code></td>
-</tr>
-<tr class="even">
-<td>ci</td>
-<td>bool</td>
-<td>Whether to calculate 95% confidence intervals.</td>
-<td><code>True</code></td>
-</tr>
-<tr class="odd">
-<td>verbose</td>
-<td>bool</td>
-<td>If set to “True”, more detailed output is printed. Intended mainly for troubleshooting.</td>
-<td><code>False</code></td>
-</tr>
-</tbody>
-</table>
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In this tutorial, we will use the exact Kd models to plot concentrations of all components of the system.</p>
+<div id="3c4cb32e-0e81-4417-af9a-1d6569d20263" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bindcurve <span class="im">as</span> bc</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="direct-binding" class="level2">
+<h2 class="anchored" data-anchor-id="direct-binding">Direct binding</h2>
+<p>In direct binding, it is assumed that a receptor is titrated to a constant concentration of labeled ligand. In other words, <code>RT</code> is titrated while <code>LsT</code> does not change. Thus, we can treat <code>RT</code> as the independent variable, <code>LsT</code> as a constant, and all other components of the system (<code>R</code>, <code>RLs</code>, <code>Ls</code>) as dependent variables. Here, we will use the <code>dir_specific</code> model to plot the situation. You can play around with the values of <code>LsT</code> and <code>Kds</code> to see how the predicted equilibrium in the system changes.</p>
+<div id="26b9f3b0-1f10-4ff5-8437-ee50428a6f17" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define minimum and maximum</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ymin <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ymax <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Define experimental constants</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>LsT <span class="op">=</span> <span class="dv">10</span>       <span class="co"># Total concentration of labeled ligand</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>Kds <span class="op">=</span> <span class="dv">1</span>        <span class="co"># Kd of labeled ligand</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Get a range of values for the titrated component</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>RT <span class="op">=</span> np.logspace(np.log10(<span class="fl">0.001</span>), np.log10(<span class="dv">10000</span>), <span class="dv">1000</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Call the model and get concentrations of the system components</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>model, R, RLs, Ls <span class="op">=</span> bc.dir_specific(RT, ymin, ymax, LsT, Kds)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot LsT as horizontal line (it is constant during experiment)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>plt.axhline(y <span class="op">=</span> LsT, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"LsT (total conc. of labeled ligand)"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot concentrations of the system components</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>plt.plot(RT, R, label<span class="op">=</span><span class="st">"R (free receptor)"</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>plt.plot(RT, RLs, label<span class="op">=</span><span class="st">"RLs (complex)"</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>plt.plot(RT, Ls, label<span class="op">=</span><span class="st">"Ls (free labeled ligand)"</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up and show the plot</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"dir_specific"</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"RT (total conc. of receptor)"</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Component concentration"</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">"log"</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">"log"</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="plotting_components_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>DataFrame</td>
-<td>Pandas DataFrame containing the fit results.</td>
-</tr>
-</tbody>
-</table>
+<section id="competitive-binding" class="level2">
+<h2 class="anchored" data-anchor-id="competitive-binding">Competitive binding</h2>
+<p>In competitive binding, it is assumed that the unlabeled ligand is titrated to a constant concentration of receptor and labeled ligand. In other words, <code>LT</code> is titrated while <code>RT</code> and <code>LsT</code> do not change. Thus, we can treat <code>LT</code> as the independent variable, <code>RT</code> and <code>LsT</code> as constants, and all other components of the system (<code>R</code>, <code>RLs</code>, <code>RL</code>, <code>Ls</code>, <code>L</code>) as dependent variables. Here, we will use the <code>comp_3st_specific</code> model to plot the situation. You can play around with the values of <code>RT</code>, <code>LsT</code>, <code>Kds</code> and <code>Kd</code> to see how the predicted equilibrium in the system changes.</p>
+<div id="19dde16c-9ba0-4163-8707-858f8fc55b50" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define minimum and maximum</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ymin <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ymax <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Define experimental constants</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>RT <span class="op">=</span> <span class="dv">5</span>         <span class="co"># Total concentration of receptor</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>LsT <span class="op">=</span> <span class="dv">10</span>       <span class="co"># Total concentration of labeled ligand</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Kds <span class="op">=</span> <span class="dv">1</span>        <span class="co"># Kd of labeled ligand</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>Kd <span class="op">=</span> <span class="dv">1</span>         <span class="co"># Kd of unlabeled ligand</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Get a range of values for the titrated component</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>LT <span class="op">=</span> np.logspace(np.log10(<span class="fl">0.001</span>), np.log10(<span class="dv">10000</span>), <span class="dv">1000</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Call the model and get concentrations of the system components</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>model, R, RLs, RL, Ls, L <span class="op">=</span> bc.comp_3st_specific(LT, ymin, ymax, RT, LsT, Kds, Kd)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot LsT as horizontal line (it is constant during experiment)</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>plt.axhline(y <span class="op">=</span> RT, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"grey"</span>, label<span class="op">=</span><span class="st">"RT (total conc. of receptor"</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>plt.axhline(y <span class="op">=</span> LsT, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"LsT (total conc. of labeled ligand)"</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot concentrations of the system components</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>plt.plot(LT, R, label<span class="op">=</span><span class="st">"R (free receptor)"</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>plt.plot(LT, RLs, label<span class="op">=</span><span class="st">"RLs (complex of labeled ligand)"</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>plt.plot(LT, RL, label<span class="op">=</span><span class="st">"RL (complex of unlabeled ligand)"</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>plt.plot(LT, Ls, label<span class="op">=</span><span class="st">"Ls (free labeled ligand)"</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>plt.plot(LT, L, label<span class="op">=</span><span class="st">"L (free unlabeled ligand)"</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up and show the plot</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"comp_3st_specific"</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"LT (total conc. of unlabeled ligand)"</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Component concentration"</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">"log"</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">"log"</span>)</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>plt.legend(fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="plotting_components_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

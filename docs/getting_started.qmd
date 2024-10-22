@@ -1,0 +1,57 @@
+---
+title: "Getting started with BindCurve"
+---
+
+## Installation
+`bindcurve` is installed from pip using
+
+```python
+pip install bindcurve
+```
+
+If you want to upgrade to the latest version, use
+
+```python
+pip install --upgrade bindcurve
+```
+
+## Basic usage
+`bindcurve` contains functions that are executed directly on Pandas DataFrames, which are used to store the data. The following example demonstrates the most basic usage. See the tutorials for more instructions and examples.
+
+### Fitting
+```python
+# Import bindcurve
+import bindcurve as bc
+
+# Load data from csv file
+input_data = bc.load_csv("path/to/your/file.csv")
+
+# This DataFrame will now contain preprocessed input data
+print(input_data)
+
+# Fit IC50 from your data
+IC50_results = bc.fit_50(input_data, model="IC50")
+print(IC50_results)
+
+# Fit Kd from your data
+Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", RT=0.05, LsT=0.005, Kds=0.0245)
+print(Kd_results)
+```
+### Plotting curves
+```python
+# Import matplotlib
+import matplotlib.pyplot as plt
+
+# Initiate the plot
+plt.figure(figsize=(6, 5))
+
+# Plot your curves from the IC50_results dataframe
+bc.plot(input_data, IC50_results)
+
+# Just use matplotlib to set up and show the plot 
+plt.xlabel("your x label")
+plt.ylabel("your y label")
+plt.xscale("log")
+plt.legend()
+plt.show()
+```

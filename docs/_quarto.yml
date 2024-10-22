@@ -4,11 +4,7 @@ project:
 website:
   title: "BindCurve"
   navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
-      - theory.qmd
+
     right:
       - text: "GitHub"
         href: https://github.com/choutkaj/bindcurve
@@ -21,24 +17,26 @@ website:
     style: "docked"
     search: true
     contents:
-      - text: "Introduction"
-        href: introduction.qmd
-      - text: "Input format"
-        href: input_format.qmd
-      - text: "Models"
-        href: models.qmd
-      - section: "How to use"
+
+      - section: "**How to use**"
         contents:
+          - text: "Getting started"
+            href: getting_started.qmd
           - text: "Input format"
-            href: input_format.qmd 
-      - section: "Tutorials"
-        href: tutorials.qmd
+            href: input_format.qmd
+          - text: "Models"
+            href: models.qmd
+
+      - section: "**Tutorials**"
         contents:
           - text: "Basics"
             href: tutorials/basics.ipynb 
-          - text: "tutorial2"
-            href: tutorials/tutorial2.ipynb
-      - section: "Theory"
+          - text: "Exact Kd models"
+            href: tutorials/Kd_models.ipynb 
+          - text: "Plotting system components"
+            href: tutorials/plotting_components.ipynb
+
+      - section: "**Theory**"
         contents:
           - text: "Logistic models"
             href: theory_logistic.qmd 
@@ -46,9 +44,9 @@ website:
             href: theory_exact.qmd
           - text: "IC50->Kd conversion"
             href: theory_conversions.qmd
-      - text: "Symbols"
+      - text: "**Symbols**"
         href: symbols.qmd
-      - text: "API reference"
+      - text: "**API reference**"
         href: ./reference/index.qmd
 
 
