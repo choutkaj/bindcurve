@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Models – BindCurve</title>
+<title>plot_grid – BindCurve</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,22 +57,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -101,37 +101,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed">
@@ -141,7 +112,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">BindCurve</span>
     </a>
   </div>
@@ -167,7 +138,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./getting_started.html"><strong>How to use</strong></a></li><li class="breadcrumb-item"><a href="./models.html">Models</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -198,19 +169,19 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./getting_started.html" class="sidebar-item-text sidebar-link">
+  <a href="../getting_started.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Getting started</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./input_format.html" class="sidebar-item-text sidebar-link">
+  <a href="../input_format.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Input format</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./models.html" class="sidebar-item-text sidebar-link active">
+  <a href="../models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Models</span></a>
   </div>
 </li>
@@ -227,19 +198,19 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/basics.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/basics.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Basics</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/Kd_models.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/Kd_models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Exact Kd models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/plotting_components.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/plotting_components.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Plotting system components</span></a>
   </div>
 </li>
@@ -256,19 +227,19 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_logistic.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_logistic.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Logistic models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_exact.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_exact.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Exact Kd models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory_conversions.html" class="sidebar-item-text sidebar-link">
+  <a href="../theory_conversions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">IC50-&gt;Kd conversion</span></a>
   </div>
 </li>
@@ -276,13 +247,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./symbols.html" class="sidebar-item-text sidebar-link">
+  <a href="../symbols.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><strong>Symbols</strong></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./reference/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><strong>API reference</strong></span></a>
   </div>
 </li>
@@ -296,267 +267,292 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#logistic-models" id="toc-logistic-models" class="nav-link active" data-scroll-target="#logistic-models">Logistic models</a></li>
-  <li><a href="#direct-binding" id="toc-direct-binding" class="nav-link" data-scroll-target="#direct-binding">Direct binding</a></li>
-  <li><a href="#competitive-binding" id="toc-competitive-binding" class="nav-link" data-scroll-target="#competitive-binding">Competitive binding</a></li>
-  <li><a href="#ic50---kd-conversion-models" id="toc-ic50---kd-conversion-models" class="nav-link" data-scroll-target="#ic50---kd-conversion-models">IC50 -&gt; Kd conversion models</a></li>
-  <li><a href="#parameter-fixing" id="toc-parameter-fixing" class="nav-link" data-scroll-target="#parameter-fixing">Parameter fixing</a></li>
-  <li><a href="#uncertainties" id="toc-uncertainties" class="nav-link" data-scroll-target="#uncertainties">Uncertainties</a></li>
-  <li><a href="#goodness-of-fit" id="toc-goodness-of-fit" class="nav-link" data-scroll-target="#goodness-of-fit">Goodness of fit</a></li>
+  <li><a href="#bindcurve.plot_grid" id="toc-bindcurve.plot_grid" class="nav-link active" data-scroll-target="#bindcurve.plot_grid">plot_grid</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./getting_started.html"><strong>How to use</strong></a></li><li class="breadcrumb-item"><a href="./models.html">Models</a></li></ol></nav>
-<div class="quarto-title">
-<h1 class="title">Models</h1>
-</div>
 
 
 
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
-<section id="logistic-models" class="level3">
-<h3 class="anchored" data-anchor-id="logistic-models">Logistic models</h3>
-<p>These models are calculated by the <code>fit_50</code> function. You can use these models for any dose-response curves without knowing any concentrations in the system. Parameters <code>ymin</code>, <code>ymax</code> and <code>slope</code> could be fixed. If you fix <code>slope</code> to <code>-1</code> (for inhibition) or <code>1</code> (for activation), the model will be reduced from a model with variable slope to a model with fixed slope.</p>
+<section id="bindcurve.plot_grid" class="level1">
+<h1>plot_grid</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>plot_grid(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    input_df</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    results_df</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    compound_sel<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    xmin<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    xmax<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    marker<span class="op">=</span><span class="st">'o'</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    markersize<span class="op">=</span><span class="dv">5</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    linewidth<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">'-'</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    show_medians<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    show_all_data<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    show_errorbars<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    errorbars_kind<span class="op">=</span><span class="st">'SD'</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    errorbar_linewidth<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    errorbar_capsize<span class="op">=</span><span class="dv">3</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'tab10'</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    cmap_min<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    cmap_max<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    custom_colors<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    single_color<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    custom_labels<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    single_label<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    no_labels<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    x_logscale<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    show_legend<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    show_title<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    n_cols<span class="op">=</span><span class="dv">3</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    x_label<span class="op">=</span><span class="st">'dose'</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    y_label<span class="op">=</span><span class="st">'response'</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    show_inner_ticklabels<span class="op">=</span><span class="va">False</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    sharey<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    hspace<span class="op">=</span><span class="fl">0.3</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    wspace<span class="op">=</span><span class="fl">0.3</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Plots a grid of binding curves.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 25%">
-<col style="width: 13%">
-<col style="width: 18%">
-<col style="width: 24%">
+<col style="width: 11%">
+<col style="width: 6%">
+<col style="width: 74%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Model name</th>
+<th>Name</th>
+<th>Type</th>
 <th>Description</th>
-<th>Complexity</th>
-<th>Input parameters</th>
-<th>Fitted parameters</th>
+<th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>IC50</code></td>
-<td>Fits midpoint from c</td>
-<td>logistic</td>
-<td>-</td>
-<td><code>ymin</code>, <code>ymax</code>, <code>slope</code>, <code>IC50</code></td>
+<td>input_df</td>
+<td>DataFrame</td>
+<td>Pandas DataFrame containing the input data.</td>
+<td><em>required</em></td>
 </tr>
 <tr class="even">
-<td><code>logIC50</code></td>
-<td>Fits midpoint from log(c)</td>
-<td>logistic</td>
-<td>-</td>
-<td><code>ymin</code>, <code>ymax</code>, <code>slope</code>, <code>logIC50</code></td>
+<td>results_df</td>
+<td>DataFrame</td>
+<td>Pandas DataFrame containing the fit results.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>compound_sel</td>
+<td>list</td>
+<td>List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>xmin</td>
+<td>float or int</td>
+<td>Manually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>xmax</td>
+<td>float or int</td>
+<td>Manually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>marker</td>
+<td>str</td>
+<td>Marker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).</td>
+<td><code>'o'</code></td>
+</tr>
+<tr class="odd">
+<td>markersize</td>
+<td>float or int</td>
+<td>Marker size.</td>
+<td><code>5</code></td>
+</tr>
+<tr class="even">
+<td>linewidth</td>
+<td>float or int</td>
+<td>Line width of the curve.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>linestyle</td>
+<td>str</td>
+<td>Line style of the curve.</td>
+<td><code>'-'</code></td>
+</tr>
+<tr class="even">
+<td>show_medians</td>
+<td>bool</td>
+<td>Whether to show concentration median values.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>show_all_data</td>
+<td>bool</td>
+<td>Whether to show all concentration points.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>show_errorbars</td>
+<td>bool</td>
+<td>Whether to show errorbars.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>errorbars_kind</td>
+<td>str</td>
+<td>What should be shown as errorbars, options are “SD” or “SEM”.</td>
+<td><code>'SD'</code></td>
+</tr>
+<tr class="even">
+<td>errorbar_linewidth</td>
+<td>float or int</td>
+<td>Line width of the errorbars.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>errorbar_capsize</td>
+<td>float or int</td>
+<td>Size of the errorbar caps (upper and lower points of the bars).</td>
+<td><code>3</code></td>
+</tr>
+<tr class="even">
+<td>cmap</td>
+<td>str</td>
+<td>What cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).</td>
+<td><code>'tab10'</code></td>
+</tr>
+<tr class="odd">
+<td>cmap_min</td>
+<td>float or int</td>
+<td>Minimum point of the cmap to use. Between 0 and 1.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td>cmap_max</td>
+<td>float or int</td>
+<td>Maximum point of the cmap to use. Between 0 and 1.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>custom_colors</td>
+<td>list</td>
+<td>If you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>single_color</td>
+<td>str</td>
+<td>Provide single color to color all ploted curves.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>custom_labels</td>
+<td>list</td>
+<td>If you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>single_label</td>
+<td>str</td>
+<td>Provide single label for all ploted curves.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>no_labels</td>
+<td>bool</td>
+<td>If you do not want any labels, set this to true.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>x_logscale</td>
+<td>bool</td>
+<td>If set to True, the x axis will be plotted on a log scale.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>show_legend</td>
+<td>bool</td>
+<td>Whether to show legend in each subplot.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>show_title</td>
+<td>bool</td>
+<td>Whether to show names of the compounds in the title for each sunplot.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>figsize</td>
+<td>tuple</td>
+<td>Tuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.</td>
+<td><code>(7, 5)</code></td>
+</tr>
+<tr class="even">
+<td>n_cols</td>
+<td>int</td>
+<td>Number of columns to plot. Number of rows is then determined automatically.</td>
+<td><code>3</code></td>
+</tr>
+<tr class="odd">
+<td>x_label</td>
+<td>str</td>
+<td>Axis label for the x axis.</td>
+<td><code>'dose'</code></td>
+</tr>
+<tr class="even">
+<td>y_label</td>
+<td>str</td>
+<td>Axis label for the y axis.</td>
+<td><code>'response'</code></td>
+</tr>
+<tr class="odd">
+<td>show_inner_ticklabels</td>
+<td>bool</td>
+<td>Whether to show ticklabels on the inner axes of the grid.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>sharex</td>
+<td>bool</td>
+<td>Whether to share (lock) the scales on the x axes for all subplots in the grid.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>sharey</td>
+<td>bool</td>
+<td>Whether to share (lock) the scales on the y axes for all subplots in the grid.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td>hspace</td>
+<td>float or int</td>
+<td>Horizontal space between subplots.</td>
+<td><code>0.3</code></td>
+</tr>
+<tr class="odd">
+<td>wspace</td>
+<td>float or int</td>
+<td>Horizontal space between subplots.</td>
+<td><code>0.3</code></td>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="direct-binding" class="level3">
-<h3 class="anchored" data-anchor-id="direct-binding">Direct binding</h3>
-<p>These models are calculated by the <code>fit_Kd_direct</code> function. It is assumed that <code>LsT</code> is fixed and <code>RT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 18%">
-<col style="width: 25%">
-<col style="width: 13%">
-<col style="width: 18%">
-<col style="width: 24%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Model name</th>
-<th>Description</th>
-<th>Complexity</th>
-<th>Input parameters</th>
-<th>Fitted parameters</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dir_simple</code></td>
-<td>Simplified direct binding</td>
-<td><span class="math inline">\([R] = [R]_T\)</span></td>
-<td>-</td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
-</tr>
-<tr class="even">
-<td><code>dir_specific</code></td>
-<td>Specific direct binding</td>
-<td>quadratic</td>
-<td><code>LsT</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
-</tr>
-<tr class="odd">
-<td><code>dir_total</code></td>
-<td>Total direct binding</td>
-<td>quadratic</td>
-<td><code>LsT</code>, <code>Ns</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kds</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="competitive-binding" class="level3">
-<h3 class="anchored" data-anchor-id="competitive-binding">Competitive binding</h3>
-<p>These models are calculated using the <code>fit_Kd_competition</code> function. It is assumed that <code>RT</code> and <code>LsT</code> are fixed and <code>LT</code> is titrated. Parameters <code>ymin</code> and <code>ymax</code> could be fixed. When fitting <code>comp_4st_specific</code> or <code>comp_4st_total</code>, it is recommended to fix the <code>ymin</code> parameter (minimal asymptote of the model).</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 18%">
-<col style="width: 25%">
-<col style="width: 13%">
-<col style="width: 18%">
-<col style="width: 24%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Model name</th>
-<th>Description</th>
-<th>Complexity</th>
-<th>Input parameters</th>
-<th>Fitted parameters</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>comp_3st_specific</code></td>
-<td>Three-state, specific</td>
-<td>cubic</td>
-<td><code>RT</code>, <code>LsT</code>, <code>Kds</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code></td>
-</tr>
-<tr class="even">
-<td><code>comp_3st_total</code></td>
-<td>Three-state, total</td>
-<td>cubic</td>
-<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>N</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code></td>
-</tr>
-<tr class="odd">
-<td><code>comp_4st_specific</code></td>
-<td>Four-state, specific binding</td>
-<td>quintic</td>
-<td><code>RT</code>, <code>LsT</code>, <code>Kds</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code>, <code>Kd3</code></td>
-</tr>
-<tr class="even">
-<td><code>comp_4st_total</code></td>
-<td>Four-state, total binding</td>
-<td>quintic</td>
-<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>N</code></td>
-<td><code>ymin</code>, <code>ymax</code>, <code>Kd</code>, <code>Kd3</code></td>
-</tr>
-</tbody>
-</table>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Warning
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The quintic models <code>comp_4st_specific</code> and <code>comp_4st_total</code> are solved numerically. Choosing the physical root is not always straightforward. The current implementation might give unphysical results in some situations, for example in strongly cooperative regimes.</p>
-</div>
-</div>
-</section>
-<section id="ic50---kd-conversion-models" class="level3">
-<h3 class="anchored" data-anchor-id="ic50---kd-conversion-models">IC50 -&gt; Kd conversion models</h3>
-<p>These models are calculated using the <code>convert</code> function. No fitting is performed, only a single-point conversion of <code>IC50</code> values from provided dataframe to <code>Kd</code>.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 18%">
-<col style="width: 25%">
-<col style="width: 13%">
-<col style="width: 18%">
-<col style="width: 24%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Model name</th>
-<th>Description</th>
-<th>Complexity</th>
-<th>Input parameters</th>
-<th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>cheng_prusoff</code></td>
-<td>Cheng-Prusoff</td>
-<td>-</td>
-<td><code>LsT</code>, <code>Kds</code>, <code>IC50</code></td>
-<td><code>Kd</code></td>
-</tr>
-<tr class="even">
-<td><code>cheng_prusoff_corr</code></td>
-<td>Corrected Cheng-Prusoff</td>
-<td>-</td>
-<td><code>LsT</code>, <code>Kds</code>, <code>y0</code>, <code>IC50</code></td>
-<td><code>Kd</code></td>
-</tr>
-<tr class="odd">
-<td><code>coleska</code></td>
-<td>Nikolovska-Coleska</td>
-<td>quadratic</td>
-<td><code>RT</code>, <code>LsT</code>, <code>Kds</code>, <code>IC50</code></td>
-<td><code>Kd</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="parameter-fixing" class="level2">
-<h2 class="anchored" data-anchor-id="parameter-fixing">Parameter fixing</h2>
-<p>BindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the <code>ymin</code> and/or <code>ymax</code> parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix <code>ymin</code> to 0 and <code>ymax</code> to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The <code>fit_50</code> function also allows fixing the <code>slope</code> parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.</p>
-<p>Fixing of <code>ymin</code> and <code>ymax</code> parameters is controled by <code>fix_ymin</code> and <code>fix_ymax</code> arguments when calling any fitting function in BindCurve. The <code>slope</code> parameter can be fixed by <code>fix_slope</code> argument (only available for <code>fit_50</code> function). All of these parameters are set to <code>False</code> by default, which means the parameter is fitted freely. When you change the <code>fix_ymin</code>, <code>fix_ymax</code> or <code>fix_slope</code> to any numerical value, the parameter will be fixed to the given value.</p>
-<div id="e4c0b244" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 0, maximum to 1 and slope to -1</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>IC50_results <span class="op">=</span> bc.fit_50(input_data, model<span class="op">=</span><span class="st">"IC50"</span>, fix_ymin<span class="op">=</span><span class="dv">0</span>, fix_ymax<span class="op">=</span><span class="dv">1</span>, fix_slope<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Fixing can also be useful when fitting Kd using the exact polynomial models. For example, if your competitive inhibition curve is not titrated all the way to the minimum asymptote, you can just fix the <code>ymin</code> parameter to the value of the lower asymptote, which you have determined previously from direct binding.</p>
-<div id="70754803" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This will fix minimum to 20, maximum is fitted freely</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Kd_results <span class="op">=</span> bc.fit_Kd_competition(input_data, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, fix_ymin<span class="op">=</span><span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The <code>ymin</code> and <code>ymax</code> parameters have different meaning for the logistic models and for the exact Kd models. In the logistic models, <code>ymin</code> and <code>ymax</code> will always correspont to the actual minimum and maximum of the curve. In the exact Kd models, <code>ymin</code> and <code>ymax</code> define the asymptotes of the model which is often not be the same as the minimum and maximum of the curve.</p>
-</div>
-</div>
-</section>
-<section id="uncertainties" class="level2">
-<h2 class="anchored" data-anchor-id="uncertainties">Uncertainties</h2>
-<p>BindCurve offers two kinds of uncertainty estimates for the fitted parameters, both obtained from the underlying LMFIT library. For every fit, standard error (SE) is outputted. Additionally, the calculation of 95% confidence intervals is enabled by default, but could be disabled by setting <code>ci=False</code>. The 95% confidence interval is outputted as <code>loCL</code> and <code>upCL</code>, which correspond to lower and upper confidence limits. Please note that the 95% confidence interval can only be calculated if more than one parameter is freely fitted. In case only one parameter is freely fitted, BindCurve will automatically set <code>ci=False</code> and only SE will be calculated.</p>
-</section>
-<section id="goodness-of-fit" class="level2">
-<h2 class="anchored" data-anchor-id="goodness-of-fit">Goodness of fit</h2>
-<p>To quantify the goodness of fit, <span class="math inline">\(\chi^2\)</span> and <span class="math inline">\(R^2\)</span> metrics are outputted for every fit. Good fit is characterized by low value of <span class="math inline">\(\chi^2\)</span> and high value (close to 1) of <span class="math inline">\(R^2\)</span>.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
