@@ -1,5 +1,7 @@
 project:
   type: website
+  output-dir: rendered
+
 
 website:
   title: "BindCurve"
