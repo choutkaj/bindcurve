@@ -1,12 +1,5 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Welcome to BindCurve",
-    "section": "",
-    "text": "This website contains documentation for bindcurve - a lightweight Python package that allows fitting and plotting of binding curves. It contains logistic model for fitting IC50 or logIC50, and also exact polynomial models for fitting Kd from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic models. Additionally, IC50 values can be converted to Kd using conversion models.\nbindcurve is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in formatted output.\n\n\n\n\n\n\nWarning\n\n\n\nbindcurve is currently in Alpha version. Changes to API might happen momentarily without notice. If you encounter bugs, please report them on GitHub."
-  },
-  {
     "objectID": "getting_started.html",
     "href": "getting_started.html",
     "title": "Getting started with BindCurve",
@@ -50,110 +43,116 @@
     "text": "Python API will be added here."
   },
   {
-    "objectID": "theory_conversions.html",
-    "href": "theory_conversions.html",
-    "title": "IC50 -> Kd conversion models",
+    "objectID": "reference/plot_grid.html",
+    "href": "reference/plot_grid.html",
+    "title": "plot_grid",
     "section": "",
-    "text": "What function to use: convert\nThese models are used for converting \\(\\text{IC}_{50}\\) to \\(K_d\\) using more or less approximate formulas.\n\nNikolovska-Coleska\nModel name: coleska\nReferences: Nikolovska-Coleska 2004\nIn the model of Nikolovska-Coleska, \\(K_d\\) is calculated by the equation:\n\\[\nK_d = \\frac{[L_{50}]}{\\left(\\frac{[L_{50}^*] + [R_0]}{K_d^*}\\right) + 1}  \n\\]\nwhere \\([L_{50}^*]\\) is the concentration of labeled ligand at 50% inhibition, \\([L_{50}]\\) is the concentration of unlabeled ligand at 50% inhibition, \\(K_d^*\\) is the dissociation constant of the labeled ligand, \\(K_d\\) is the dissociation constant of the unlabeled ligand, and \\([R_0]\\) is the concentration of receptor at 0% inhibition.\nFollowing the equations for conservation of mass, \\([R_0]\\) could be expressed in a quadratic equation:\n\\[\n[R_0]^2 + a[R_0] + b = 0  \n\\]\nwhere the coefficients are calculated as:\n\\[\na = [L^*]_T + K_d^* - [R]_T  \n\\]\n\\[\nb = -K_d^* [R]_T  \n\\]\n\nThe physical solution for \\([R_0]\\) is then calculated by the quadratic formula:\n\\[\n[R_0] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}  \n\\]\nThe rest of the parameters are calculated as follows:\n\\[\n[L_0^*] = \\frac{[L^*]_T}{1 + \\frac{[R_0]}{K_d^*}}  \n\\]\n\\[\n[RL_0^*] = \\frac{[R]_T}{1 + \\frac{K_d^*}{[L_0^*]}}  \n\\]\n\\[\n[RL_{50}^*] = \\frac{[RL_0^*]}{2}  \n\\]\n\\[\n[L_{50}^*] = [L^*]_T - [RL_{50}^*]  \n\\]\n\\[\n[RL_{50}] = [R]_T + \\frac{K_d^* [RL_{50}^*]}{[L_{50}^*]} + [RL_{50}^*]  \n\\]\n\\[\n[L_{50}] = IC_{50} - [RL_{50}]  \n\\]\n\n\nCheng-Prusoff\nModel name: cheng_prusoff\n\\[\nK_d = \\frac{\\text{IC}_{50}}{1 + \\frac{[L^*]_T}{K_d^*}}  \n\\]\n\n\nCheng-Prusoff Corrected\nModel name: cheng_prusoff_corr\nReferences: Munson 2008\n\\[\nK_d = \\frac{\\text{IC}_{50}}{1 + \\left(\\frac{[L^*]_T(Y_0 + 2)}{2K_d^*(Y_0 + 1)}\\right) + Y_0} + \\frac{K_d^* Y_0}{Y_0 + 2}  \n\\]",
-    "crumbs": [
-      "GitHub",
-      "**Theory**",
-      "IC50->Kd conversion"
-    ]
+    "text": "plot_grid(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n    x_logscale=True\n    show_legend=False\n    show_title=True\n    figsize=(7, 5)\n    n_cols=3\n    x_label='dose'\n    y_label='response'\n    show_inner_ticklabels=False\n    sharex=True\n    sharey=True\n    hspace=0.3\n    wspace=0.3\n)\nPlots a grid of binding curves.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
   },
   {
-    "objectID": "symbols.html",
-    "href": "symbols.html",
-    "title": "BindCurve",
+    "objectID": "reference/plot_grid.html#parameters",
+    "href": "reference/plot_grid.html#parameters",
+    "title": "plot_grid",
     "section": "",
-    "text": "BindCurve uses the following symbols:\n\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\\(N^*\\)\nNs\nNonspecific binding parameter for the labeled ligand.\n\n\n\\(N\\)\nN\nNonspecific binding parameter for the unlabeled ligand.",
-    "crumbs": [
-      "GitHub",
-      "**Symbols**"
-    ]
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
   },
   {
-    "objectID": "symbols.html#symbols",
-    "href": "symbols.html#symbols",
-    "title": "BindCurve",
+    "objectID": "reference/load_csv.html",
+    "href": "reference/load_csv.html",
+    "title": "load_csv",
     "section": "",
-    "text": "BindCurve uses the following symbols:\n\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\\(N^*\\)\nNs\nNonspecific binding parameter for the labeled ligand.\n\n\n\\(N\\)\nN\nNonspecific binding parameter for the unlabeled ligand.",
-    "crumbs": [
-      "GitHub",
-      "**Symbols**"
-    ]
+    "text": "load_csv(csvfile, c_scale=1)\nLoads and preprocesses data from csv file.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncsvfile\nstr\nPath to the csv file.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
   },
   {
-    "objectID": "input_format.html",
-    "href": "input_format.html",
-    "title": "BindCurve",
+    "objectID": "reference/load_csv.html#parameters",
+    "href": "reference/load_csv.html#parameters",
+    "title": "load_csv",
     "section": "",
-    "text": "BindCurve accepts the input data either from .csv file using the load_csv function, or from pandas dataframe using the load_df function. In both cases, the data should be formatted as follows:\n\nFirst row of the file should be a header. Names of columns do not matter, they will be standardized automatically.\nFirst column must contain compound names (for each row).\nSecond column must contain concentration in any units of your choosing. This unit will be retained throughout the workflow. When loading the data, concentration can be scaled by the c_scale argument. Concentration of 0 will raise error.\nThird to Nth columns are expected to contain your response values. There can be any number of replicates. The number of replicates can be different for each compound or for each concentration point.",
-    "crumbs": [
-      "GitHub",
-      "**How to use**",
-      "Input format"
-    ]
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ncsvfile\nstr\nPath to the csv file.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1"
   },
   {
-    "objectID": "input_format.html#input-format",
-    "href": "input_format.html#input-format",
-    "title": "BindCurve",
+    "objectID": "reference/load_csv.html#returns",
+    "href": "reference/load_csv.html#returns",
+    "title": "load_csv",
     "section": "",
-    "text": "BindCurve accepts the input data either from .csv file using the load_csv function, or from pandas dataframe using the load_df function. In both cases, the data should be formatted as follows:\n\nFirst row of the file should be a header. Names of columns do not matter, they will be standardized automatically.\nFirst column must contain compound names (for each row).\nSecond column must contain concentration in any units of your choosing. This unit will be retained throughout the workflow. When loading the data, concentration can be scaled by the c_scale argument. Concentration of 0 will raise error.\nThird to Nth columns are expected to contain your response values. There can be any number of replicates. The number of replicates can be different for each compound or for each concentration point.",
-    "crumbs": [
-      "GitHub",
-      "**How to use**",
-      "Input format"
-    ]
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
   },
   {
-    "objectID": "theory_exact.html",
-    "href": "theory_exact.html",
-    "title": "Exact Kd models",
+    "objectID": "reference/fit_Kd_direct.html",
+    "href": "reference/fit_Kd_direct.html",
+    "title": "fit_Kd_direct",
     "section": "",
-    "text": "BindCurve implements several exact models that allow for direct fitting of \\(K_d\\) from both direct and competitive binding experiments, given some crucial informations about the system are known. These models are based on the assumption that the observed binding curve could be related to the bound fraction of the labeled ligand. This quantity is denoted as \\(F_b^*\\) and is defined as:\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T}\n\\]\nwhere \\([RL^*]\\) is the concentration of the complex of receptor and labeled ligand, and \\([L^*]_T\\) is the total concentration of the labeled ligand.",
-    "crumbs": [
-      "GitHub",
-      "**Theory**",
-      "Exact Kd models"
-    ]
+    "text": "fit_Kd_direct(\n    input_df\n    model\n    LsT\n    Ns=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the dir_simple, dir_specific and dir_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
-    "objectID": "theory_exact.html#direct-binding",
-    "href": "theory_exact.html#direct-binding",
-    "title": "Exact Kd models",
-    "section": "Direct binding",
-    "text": "Direct binding\nWhat function to use: fit_Kd_direct\n\n\n\n\n\nIn direct binding, the system is composed of receptor \\(R\\) and labeled ligand \\(L^*\\) which form complex \\(RL^*\\). This binding equilibrium is described by a dissociation constant \\(K_d^*\\). For such a system, \\(F_b^*\\) could be related to the concentration of free receptor \\([R]\\) by the equation\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d^* + [R]}\n\\]\nTo allow for a proper description of the dependent variable, the general framework for direct binding is defined as\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d^* + [R]}\n\\]\n\nDirect binding - simplified\nModel name: dir_simple\nIn this simplified model, the concentration of the free receptor \\([R]\\) is approximated by the total concentration of the receptor \\([R]_T\\). Thus, \\([R]\\) is simply given as: \\[\n[R] = [R]_T\n\\]\n\n\nDirect binding - specific\nModel name: dir_specific\nTo properly describe direct binding beyond the simplified approximation above, let us look at an exact model. The dissociation constant \\(K_d^*\\) is defined as: \\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\nConservation of mass requires that: \\[\n[L^* ]_T = [L^*] + [RL^*]\n\\] \\[\n[R]_T = [R] + [RL^*]\n\\]\nwhere \\([R]_T\\) is the total concentration of the receptor and \\([L^*]\\) is the concentration of free labeled ligand. Thus, \\([RL^*]\\) is calculated as: \\[\n[RL^*] = \\frac{[R] [L^* ]_T}{K_d^* + [R]}\n\\]\nFrom the equations above, \\([R]\\) can be expressed in a quadratic equation: \\[\n[R]^2 + a[R] + b = 0\n\\]\nwhere the coefficients are calculated as: \\[\na = K_d^* + [L^*]_T - [R]_T\n\\] \\[\nb = -K_d^* [R]_T\n\\]\nThe physical solution for \\([R]\\) is calculated as the positive root using the quadratic formula:\n\\[\n[R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}\n\\]\n\n\nDirect binding - total\nModel name: dir_total\nNonspecific binding (immobilization) of the labeled ligand \\(L^*\\) can be modeled by introducing a dimensionless, non-negative parameter \\(N^*\\). In this case, the dissociation constant \\(K_d^*\\) is defined in the same way as above: \\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\nNow, the conservation of mass requires that: \\[\n[L^* ]_T = [L^*] + [RL^*] + N^*[L^*]\n\\] \\[\n[R]_T = [R] + [RL^*]\n\\]\nThus, \\([RL^*]\\) is calculated as: \\[\n[RL^*] = \\frac{[R][L^*]_T}{K_d^*(1+N^*) + [R]}\n\\]\nAgain, \\([R]\\) can be expressed in a quadratic equation: \\[\n[R]^2 + a[R] + b = 0\n\\]\nwhere the coefficients are calculated as: \\[\na = K_d^*(1+N^*) + [L^*]_T - [R]_T\n\\] \\[\nb = -K_d^*[R]_T(1+N^*)\n\\]\nThe physical solution for \\([R]\\) is again calculated using the quadratic formula: \\[\n[R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}\n\\]\nClearly, the introduction of \\(N^*\\) leads to a model where the dissociation constant \\(K_d^*\\) is scaled by a factor of \\((1+N^*)\\). Thus, the total binding is modeled as specific binding defined by \\(K_d^*\\) and a nonspecific binding scaling term depending on \\(N^*\\). For example, if we consider \\(N^* = 0.5\\), the resulting effective dissociation constant for total binding in this model would be \\(1.5K_d^*\\) (total binding would be 150% of the specific binding). Finally, if \\(N^* = 0\\) (there is no nonspecific binding), the model collapses to the case for specific binding only.",
-    "crumbs": [
-      "GitHub",
-      "**Theory**",
-      "Exact Kd models"
-    ]
+    "objectID": "reference/fit_Kd_direct.html#parameters",
+    "href": "reference/fit_Kd_direct.html#parameters",
+    "title": "fit_Kd_direct",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
   },
   {
-    "objectID": "theory_exact.html#complete-competitive-binding-three-state-models",
-    "href": "theory_exact.html#complete-competitive-binding-three-state-models",
-    "title": "Exact Kd models",
-    "section": "Complete competitive binding (three-state models)",
-    "text": "Complete competitive binding (three-state models)\nWhat function to use: fit_Kd_competition\n\n\n\n\n\nIn three-state models, the system is composed of receptor \\(R\\), labeled ligand \\(L^*\\), and unlabeled ligand \\(L\\). The formation of complex \\(RL^*\\) is described by a dissociation constant \\(K_d^*\\), while the formation of complex \\(RL\\) is described by a dissociation constant \\(K_d\\). For such a system, \\(F_b^*\\) could be related to the concentration of free receptor \\([R]\\) by the equation\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d + [R]}\n\\]\nTo allow for a proper description of the dependent variable, the general framework for competitive binding is defined as\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d + [R]}\n\\]\n\nComplete competitive binding - specific\nModel name: comp_3st_specific\nReferences: Wang 1995, Roehrl 2004\nDissociation constants in the three-state model are defined as:\n\\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\n\\[\nK_d = \\frac{[R][L]}{[RL]}\n\\]\nConservation of mass requires that:\n\\[\n[L^* ]_T = [L^*] + [RL^*]\n\\]\n\\[\n[L]_T = [L] + [RL]\n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL]\n\\]\nThus, the concentrations of the complexes are calculated as:\n\\[\n[RL] = \\frac{[R][L]_T}{K_d + [R]}\n\\]\n\\[\n[RL^*] = \\frac{[R][L^*]_T}{K_d^* + [R]}\n\\]\nFrom the above equations, \\([R]\\) can be expressed in a cubic equation:\n\\[\n[R]^3 + a[R]^2 + b[R] + c = 0\n\\]\nWhere the coefficients are calculated as:\n\\[\na = K_d^* + K_d + [L^*]_T + [L]_T - [R]_T\n\\]\n\\[\nb = K_d^*([L]_T - [R]_T) + K_d([L^*]_T - [R]_T) + K_d^* K_d\n\\]\n\\[\nc = - K_d^* K_d [R]_T\n\\]\nThe physical solution for \\([R]\\) can be calculated analytically using the equation:\n\\[\n[R] = -\\frac{a}{3} + \\frac{2}{3} \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right)\n\\]\nThe concentrations of both complexes are calculated as:\n\\[\n[RL^*] = \\frac{[L^*]_T \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}{3K_d^* + \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}\n\\]\n\\[\n[RL] = \\frac{[L]_T \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}{3K_d + \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}\n\\]\nThe angle \\(\\theta\\) is defined as:\n\\[\n\\theta = \\arccos\\left(\\frac{-2a^3 + 9ab - 27c}{2 \\sqrt{(a^2 - 3b)^3}}\\right)\n\\]\n\n\nComplete competitive binding - total\nModel name: comp_3st_total\nReferences: Roehrl 2004\nNonspecific binding of the unlabeled ligand can be modeled by introducing a dimensionless, non-negative parameter \\(N\\). In such case, the dissociation constants \\(K_d^*\\) and \\(K_d\\) are defined the same way as above, and the conservation of mass now requires that:\n\\[\n[L^* ]_T = [L^*] + [RL^*]\n\\]\n\\[\n[L]_T = [L] + [RL] + N[L]\n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL]\n\\]\nFrom the above equations, \\([R]\\) can again be expressed in a cubic equation:\n\\[\n[R]^3 + a[R]^2 + b[R] + c = 0\n\\]\nWhere the coefficients are calculated as:\n\\[\na = K_d^* + (1+N)K_d + [L^* ]_T + [L]_T - [R]_T\n\\] \\[\nb = K_d^* ([L]_T - [R]_T) + (1+N)K_d ([L^* ]_T - [R]_T) + (1+N)K_d^* K_d\n\\] \\[\nc = -(1+N) K_d^* K_d [R]_T\n\\]\nThe physical solution for \\([R]\\) can be calculated analytically using the same set of equations as above. Analogous to the direct binding case, the introduction of \\(N\\) leads to a model where \\(K_d\\) is scaled by a factor of \\((1+N)\\).\n\n\n\n\n\n\nNote\n\n\n\nIn models of competitive binding, the nonspecific binding of the labeled ligand (\\(N^*\\)) is neglected as it is assumed that labeled ligands with significant nonspecific immobilization would not be used for such experiments.",
-    "crumbs": [
-      "GitHub",
-      "**Theory**",
-      "Exact Kd models"
-    ]
+    "objectID": "reference/fit_Kd_direct.html#returns",
+    "href": "reference/fit_Kd_direct.html#returns",
+    "title": "fit_Kd_direct",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
-    "objectID": "theory_exact.html#incomplete-competitive-binding-four-state-models",
-    "href": "theory_exact.html#incomplete-competitive-binding-four-state-models",
-    "title": "Exact Kd models",
-    "section": "Incomplete competitive binding (four-state models)",
-    "text": "Incomplete competitive binding (four-state models)\nWhat function to use: fit_Kd_competition\n\n\n\n\n\nIn four-state models, the system is also composed of receptor \\(R\\), labeled ligand \\(L^*\\), and unlabeled ligand \\(L\\). However, in addition to complexes \\(RL^*\\) and \\(RL\\), a ternary complex \\(RLL^*\\) is also considered. The dissociation constants \\(K_d^*\\) and \\(K_d\\) are defined as in the three-state model, and the formation of \\(RLL^*\\) from \\(RL\\) and \\(L^*\\) is described by dissociation constant \\(K_{d3}\\). The constant \\(K_{d4}\\) is not used in the model.\nFor the four-state models, \\(F_b^*\\) and the general framework of the model stay the same as for three-state systems and is written as\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d + [R]}\n\\]\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d + [R]}\n\\]\n\nIncomplete competitive binding - specific\nModel name: comp_4st_specific\nReferences: Roehrl 2004\nDissociation constants in the four-state model are defined as:\n\\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}  \n\\]\n\\[\nK_d = \\frac{[R][L]}{[RL]}  \n\\]\n\\[\nK_{d3} = \\frac{[RL][L^*]}{[RLL^*]}  \n\\]\n\\[\nK_{d4} = \\frac{[RL^*][L]}{[RLL^*]} \\quad \\text{(not used)}  \n\\]\nConservation of mass requires that:\n\\[\n[L^*]_T = [L^*] + [RL^*] + [RLL^*]  \n\\]\n\\[\n[L]_T = [L] + [RL] + [RLL^*]  \n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL] + [RLL^*]  \n\\]\nThus, concentrations of the complexes are calculated as:\n\\[\n[RL^*] = \\frac{[R]([L^*_T] - [RLL^*])}{K_d^* + [R]} \\quad\n\\]\n\\[\n[RL] = \\frac{[R]([L_T] - [RLL^*])}{K_d + [R]} \\quad  \n\\]\n\\[\n[RLL^*] = \\frac{[RL]([L^*_T] - [RL^*])}{K_{d3} + [RL]} \\quad  \n\\]\nFrom the above equations, \\([R]\\) can be expressed in a quintic equation:\n\\[\na[R]^5 + b[R]^4 + c[R]^3 + d[R]^2 + e[R] + f = 0  \n\\]\nThe coefficients \\(a\\), \\(b\\), \\(c\\), \\(d\\), \\(e\\), and \\(f\\) are quite lengthy and can be found in the source code. There is no analytical solution to the quintic equation, but it can be solved numerically.\n\n\nIncomplete competitive binding - total\nModel name: comp_4st_total\nReferences: Roehrl 2004\nIn analogy to the other models, total binding in the comp_4st_total model is modeled by scaling \\(K_d\\) by a factor of \\((1 + N)\\).",
-    "crumbs": [
-      "GitHub",
-      "**Theory**",
-      "Exact Kd models"
-    ]
+    "objectID": "reference/plot_traces.html",
+    "href": "reference/plot_traces.html",
+    "title": "plot_traces",
+    "section": "",
+    "text": "plot_traces(\n    results_df\n    value\n    compound_sel=False\n    kind='full'\n    vtrace=True\n    htrace=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n    label=None\n)\nPlots traces to indicate a specific value on the curve.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
+  },
+  {
+    "objectID": "reference/plot_traces.html#parameters",
+    "href": "reference/plot_traces.html#parameters",
+    "title": "plot_traces",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
+  },
+  {
+    "objectID": "reference/load_df.html",
+    "href": "reference/load_df.html",
+    "title": "load_df",
+    "section": "",
+    "text": "load_df(df, c_scale=1)\nLoads and preprocesses data from existing DataFrame.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndf\nDataFrame\nDataFrame object with data.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
+  },
+  {
+    "objectID": "reference/load_df.html#parameters",
+    "href": "reference/load_df.html#parameters",
+    "title": "load_df",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndf\nDataFrame\nDataFrame object with data.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1"
+  },
+  {
+    "objectID": "reference/load_df.html#returns",
+    "href": "reference/load_df.html#returns",
+    "title": "load_df",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html",
+    "href": "reference/fit_Kd_competition.html",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "fit_Kd_competition(\n    input_df\n    model\n    RT\n    LsT\n    Kds\n    N=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the comp_3st_specific, comp_3st_total, comp_4st_specific and comp_4st_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html#parameters",
+    "href": "reference/fit_Kd_competition.html#parameters",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+  },
+  {
+    "objectID": "reference/fit_Kd_competition.html#returns",
+    "href": "reference/fit_Kd_competition.html#returns",
+    "title": "fit_Kd_competition",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
     "objectID": "models.html",
@@ -204,86 +203,296 @@
     ]
   },
   {
-    "objectID": "theory_logistic.html",
-    "href": "theory_logistic.html",
-    "title": "Logistic models",
+    "objectID": "tutorials/basics.html",
+    "href": "tutorials/basics.html",
+    "title": "Basics of BindCurve",
     "section": "",
-    "text": "What function to use: fit_50\nLogistic models are implemented in the traditional sigmoid form. This model could be used broadly for any dose-response curve, where x corresponds to dose and y corresponds to response. In the context of BindCurve, x will commonly correspond to the total concentration of the titrated ligand. By fixing the slope in these models to a constant value (e.g. 1 for activation and -1 for inhibition), this four-parameter model is reduced to a three-parameter model.\n\nFitting midpoint\nModel name: IC50\n\\(\\text{IC}_{50}\\) is fitted using the following equation:\n\\[\ny = ymin + (ymax - ymin) \\frac{1}{1 + \\left(\\frac{\\text{IC}_{50}}{x}\\right)^{\\text{slope}}}\n\\]\nwhere x is the dose, usually the total concentration of the titrated ligand\n\\[\nx = [L]_T\n\\]\n\n\nFitting midpoint from log-transformed data\nModel name: logIC50\nAnalogically, \\(\\text{logIC}_{50}\\) is fitted using:\n\\[\ny = ymin + (ymax - ymin) \\frac{1}{1 + 10^{\\text{slope}(\\text{logIC}_{50} - x)}}\n\\]\nwhere x is log transformed dose\n\\[\nx = \\log([L]_T)\n\\]\n\n\n\n\n\n\nNote\n\n\n\nOnce you have \\(\\text{logIC}_{50}\\) value, it can easily be converted to \\(\\text{pIC}_{50}\\) by multiplying with -1.",
+    "text": "In this tutorial, we will go through the very basics of bindcurve. We will fit IC50 for six compounds and plot the results. This will demonstrate the most minimalistic workflow you can do to get your results quickly and easily. For clarity, we will mostly use default settings. There is much more you can do, please see more advanced tutorials for more detailed overview of the available options and settings.",
     "crumbs": [
       "GitHub",
-      "**Theory**",
-      "Logistic models"
+      "**Tutorials**",
+      "Basics"
     ]
   },
   {
-    "objectID": "reference/plot_asymptotes.html",
-    "href": "reference/plot_asymptotes.html",
-    "title": "plot_asymptotes",
-    "section": "",
-    "text": "plot_asymptotes(\n    results_df\n    compound_sel=False\n    lower=True\n    upper=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n)\nPlots lower and/or upper asymptote of the model as a horizontal line.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
+    "objectID": "tutorials/basics.html#preparations",
+    "href": "tutorials/basics.html#preparations",
+    "title": "Basics of BindCurve",
+    "section": "Preparations",
+    "text": "Preparations\nFirst, let’s start by importing bindcurve. We will use bc as alias to help with clarity. Also, we will import pandas and matplotlib because we will need it. Don’t worry, all dependencies have been installed automatically when installing bindcurve.\n\nimport bindcurve as bc\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\nThe following settings adjust the decimals and display width for pandas. This is just for display purposes, all numbers will still be stored with many decimal places.\n\npd.set_option(\"display.precision\", 2)\npd.set_option('display.width', 200)",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Basics"
+    ]
   },
   {
-    "objectID": "reference/plot_asymptotes.html#parameters",
-    "href": "reference/plot_asymptotes.html#parameters",
-    "title": "plot_asymptotes",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
+    "objectID": "tutorials/basics.html#load-the-data",
+    "href": "tutorials/basics.html#load-the-data",
+    "title": "Basics of BindCurve",
+    "section": "Load the data",
+    "text": "Load the data\nWith all preparations taken care of, let’s load our data from csv file. You can find this data on GitHub in the folder /docs/tutorials/examples/competitive.csv. As you can see, the loaded data have been preprocessed and now newly contain log-transformed concentrations (log c) as well as number of replicates (n_reps) and median values with SD snd SEM metrics for each concentration point.\n\ninput_data = bc.load_csv(\"examples/competitive.csv\")\n\nprint(input_data)\n\nLoading data from examples/competitive.csv\n   compound        c  log c  n_reps   r1   r2   r3   r4   r5   r6  median    SD   SEM\n0     comp1  2000.00   3.30       6   28   26   29   27   27   25    27.0  1.41  0.58\n1     comp1  1000.00   3.00       6   30   28   30   28   32   32    30.0  1.79  0.73\n2     comp1   250.00   2.40       6   37   40   37   41   42   38    39.0  2.14  0.87\n3     comp1    60.00   1.78       6   60   58   54   58   53   57    57.5  2.66  1.09\n4     comp1    15.00   1.18       6   82   84   78   85   84   85    84.0  2.68  1.10\n5     comp1     4.00   0.60       6   94   88   91   97   95  100    94.5  4.26  1.74\n6     comp1     1.00   0.00       6   97   98   96  102  103  106   100.0  3.93  1.61\n7     comp1     0.25  -0.60       6  100  100  101  106  106  108   103.5  3.56  1.45\n8     comp1     0.06  -1.22       6  100  101  102   97  109  109   101.5  4.94  2.02\n9     comp2  2000.00   3.30       6   27   29   31   26   27   30    28.0  1.97  0.80\n10    comp2  1000.00   3.00       6   24   28   26   25   29   30    27.0  2.37  0.97\n11    comp2   250.00   2.40       6   32   33   30   28   30   30    30.0  1.76  0.72\n12    comp2    60.00   1.78       6   31   33   39   38   41   34    36.0  3.90  1.59\n13    comp2    15.00   1.18       6   53   55   61   62   53   57    56.0  3.92  1.60\n14    comp2     4.00   0.60       6   82   78   82   75   86   87    82.0  4.59  1.87\n15    comp2     1.00   0.00       6   91   88   86   96   97  100    93.5  5.51  2.25\n16    comp2     0.25  -0.60       6   97   99   95  102  100  100    99.5  2.48  1.01\n17    comp2     0.06  -1.22       6  100   98   94  105  102  109   101.0  5.28  2.16\n18    comp3  2000.00   3.30       6   25   25   20   24   22   20    23.0  2.34  0.95\n19    comp3  1000.00   3.00       6   24   26   23   25   26   21    24.5  1.94  0.79\n20    comp3   250.00   2.40       6   21   26   25   25   25   24    25.0  1.75  0.71\n21    comp3    60.00   1.78       6   27   27   30   27   24   29    27.0  2.07  0.84\n22    comp3    15.00   1.18       6   31   34   35   33   36   37    34.5  2.16  0.88\n23    comp3     4.00   0.60       6   49   47   44   54   58   60    51.5  6.36  2.59\n24    comp3     1.00   0.00       6   71   78   75   80   86   84    79.0  5.59  2.28\n25    comp3     0.25  -0.60       6   84   91   87   98   97  102    94.0  6.97  2.85\n26    comp3     0.06  -1.22       6   97   98  101  107  111  103   102.0  5.38  2.20\n27    comp4  2000.00   3.30       6   25   24   22   22   23   25    23.5  1.38  0.56\n28    comp4  1000.00   3.00       6   26   25   24   22   23   27    24.5  1.87  0.76\n29    comp4   250.00   2.40       6   27   29   25   25   21   25    25.0  2.66  1.09\n30    comp4    60.00   1.78       6   27   24   29   35   30   33    29.5  3.98  1.63\n31    comp4    15.00   1.18       6   34   38   40   48   43   51    41.5  6.35  2.59\n32    comp4     4.00   0.60       6   53   54   59   67   63   65    61.0  5.81  2.37\n33    comp4     1.00   0.00       6   85   88   86   95   93   99    90.5  5.55  2.27\n34    comp4     0.25  -0.60       6   98   93   96  105  105  105   101.5  5.35  2.19\n35    comp4     0.06  -1.22       6  100   97  102  104  106  106   103.0  3.56  1.45\n36    comp5  2000.00   3.30       6   25   26   32   26   27   27    26.5  2.48  1.01\n37    comp5  1000.00   3.00       6   26   27   33   27   21   33    27.0  4.58  1.87\n38    comp5   250.00   2.40       6   30   32   32   40   33   40    32.5  4.37  1.78\n39    comp5    60.00   1.78       6   52   50   48   54   50   57    51.0  3.25  1.33\n40    comp5    15.00   1.18       6   73   77   77   78   80   79    77.5  2.42  0.99\n41    comp5     4.00   0.60       6   92   90   88   91   96  100    91.5  4.40  1.80\n42    comp5     1.00   0.00       6   92   92   91  104  104  101    96.5  6.31  2.58\n43    comp5     0.25  -0.60       6   94   99   96  100  107  105    99.5  5.04  2.06\n44    comp5     0.06  -1.22       6   95   96   99  102  109  108   100.5  5.96  2.43\n45    comp6  2000.00   3.30       6   22   23   24   24   21   25    23.5  1.47  0.60\n46    comp6  1000.00   3.00       6   23   24   25   24   20   27    24.0  2.32  0.95\n47    comp6   250.00   2.40       6   26   27   33   27   21   33    27.0  4.58  1.87\n48    comp6    60.00   1.78       6   30   32   32   40   33   40    32.5  4.37  1.78\n49    comp6    15.00   1.18       6   52   50   48   54   50   57    51.0  3.25  1.33\n50    comp6     4.00   0.60       6   73   77   77   78   80   79    77.5  2.42  0.99\n51    comp6     1.00   0.00       6   92   90   88   91   96   98    91.5  3.78  1.54\n52    comp6     0.25  -0.60       6   95   94   94  104  104  101    98.0  4.89  1.99\n53    comp6     0.06  -1.22       6   94   99   96  100  107  105    99.5  5.04  2.06\n\n\nWe can also get the list of compounds in our data and print the number of them.\n\ncompounds = input_data[\"compound\"].unique()\nprint(\"Detected compounds:\", compounds)\nprint(\"No. of detected compounds:\", len(compounds))\n\nDetected compounds: ['comp1' 'comp2' 'comp3' 'comp4' 'comp5' 'comp6']\nNo. of detected compounds: 6",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Basics"
+    ]
   },
   {
-    "objectID": "reference/fit_50.html",
-    "href": "reference/fit_50.html",
-    "title": "fit_50",
-    "section": "",
-    "text": "fit_50(\n    input_df\n    model\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    fix_slope=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the IC50 and logIC50 models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+    "objectID": "tutorials/basics.html#fitting-the-model",
+    "href": "tutorials/basics.html#fitting-the-model",
+    "title": "Basics of BindCurve",
+    "section": "Fitting the model",
+    "text": "Fitting the model\nFinally, we can fit a logistic model into our data. We will do that by using the fit_50 function and we will pass the DataFrame with the input data, and the model name, as the arguments for this function. The function will output a new Dataframe containing the results. The results contain the following information:\n\nn_points: number of datapoints that were used for fitting\nIC50: value of IC50\nloCL: lower confidence limit of the 95% confidence interval\nupCL: upper confidence limit of the 95% confidence interval\nSE: standard error\nmodel: name of the model that was used\nymin: lower asymptote of the model\nymax: upper asymptote of the model\nslope: slope of the model\nChi^2: estimate of \\(\\chi^2\\) (the lower the better)\nR^2: estimate of \\(R^2\\) (the closer to 1 the better)\n\n\nIC50_results = bc.fit_50(input_data, model=\"IC50\")\nprint(IC50_results)\n\nFitting IC50 ...\n  compound  n_points   IC50   loCL   upCL    SE model   ymin    ymax  slope    Chi^2   R^2\n0    comp1        54  41.89  35.65  49.82  3.37  IC50  25.45  103.37  -0.91   522.48  0.99\n1    comp2        54  10.28   8.74  12.06  0.80  IC50  27.32  100.41  -1.06   693.80  0.99\n2    comp3        54   2.13   1.67   2.63  0.23  IC50  23.30  104.77  -0.93   894.91  0.98\n3    comp4        54   3.77   3.11   4.55  0.36  IC50  24.42  104.83  -1.02  1024.47  0.98\n4    comp5        54  32.47  26.70  39.81  3.15  IC50  25.76  100.77  -1.00   929.11  0.98\n5    comp6        54   8.97   7.62  10.54  0.71  IC50  23.52  100.92  -0.97   663.17  0.99\n\n\nWe can also get the results as a formatted report using the report function. This will provide a convenient report in two formats: - mean (95% confidence interval) - mean ± SE\nThe last line will copy the report into your clipboard, you can then paste the results by CTRL+V anywhere you want.\n\nIC50_report = bc.report(IC50_results, decimals=1)\nprint(IC50_report)\nIC50_report.to_clipboard(excel=True, sep=\",\")\n\n  compound      Mean (95% CI)   Mean ± SE\n0    comp1  41.9 (35.7, 49.8)  41.9 ± 3.4\n1    comp2   10.3 (8.7, 12.1)  10.3 ± 0.8\n2    comp3     2.1 (1.7, 2.6)   2.1 ± 0.2\n3    comp4     3.8 (3.1, 4.5)   3.8 ± 0.4\n4    comp5  32.5 (26.7, 39.8)  32.5 ± 3.1\n5    comp6    9.0 (7.6, 10.5)   9.0 ± 0.7",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Basics"
+    ]
   },
   {
-    "objectID": "reference/fit_50.html#parameters",
-    "href": "reference/fit_50.html#parameters",
-    "title": "fit_50",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+    "objectID": "tutorials/basics.html#plotting-the-curves",
+    "href": "tutorials/basics.html#plotting-the-curves",
+    "title": "Basics of BindCurve",
+    "section": "Plotting the curves",
+    "text": "Plotting the curves\nPlotting is done using the matplotlib library. We will initiate the plot in a standard way, then we will use the plot function to actually pass the curves into the plot. Then we will use common matplotlib settings to set up title, axis labels, and set x axis to log scale. This way you have a lot of flexibility in designing your plot.\n\nplt.figure(figsize=(5, 4))\n\nbc.plot(input_data, IC50_results)\n\nplt.title(\"Title of my plot\")\nplt.xlabel(\"Concentration\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\n\n# Uncomment the below line if you want to save your plot as png\n#plt.savefig(\"my_plot.png\", dpi=300) \n\nplt.show()\n\n\n\n\n\n\n\n\nWe can also plot just a selected compounds using the compound_sel argument. The selection is supplied as a list of compound names. We will also show all the datapoints instead of onyl medians using show_all_data=True and show_medians=False arguments. We will also hide the errorbars by using show_errorbars=False. Let’s also make the markers smaller to get better clarity, we will accomplish that by markersize=3.\n\nplt.figure(figsize=(5, 4))\n\nbc.plot(input_data, \n        IC50_results, \n        compound_sel=[\"comp3\", \"comp6\"], \n        show_all_data=True, \n        show_medians=False, \n        show_errorbars=False, \n        markersize=3)\n\nplt.title(\"Plotting selection\")\nplt.xlabel(\"Concentration\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\nplt.show()\n\n\n\n\n\n\n\n\nFinally, you can also plot the compounds on a grid using the plot_grid function. To do this, you don’t initiate the matplotlib plot prior to using the bindcurve function as in tha case of the plot function. Instead, everything is executed by a single line of code. You have to supply all the settings as arguments into the plot_grid function.\n\nbc.plot_grid(input_data, IC50_results, n_cols=3, figsize=(10,6))",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Basics"
+    ]
   },
   {
-    "objectID": "reference/fit_50.html#returns",
-    "href": "reference/fit_50.html#returns",
-    "title": "fit_50",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Welcome to BindCurve",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+    "text": "This website contains documentation for bindcurve - a lightweight Python package that allows fitting and plotting of binding curves. It contains logistic model for fitting IC50 or logIC50, and also exact polynomial models for fitting Kd from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic models. Additionally, IC50 values can be converted to Kd using conversion models.\nbindcurve is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in formatted output.\n\n\n\n\n\n\nWarning\n\n\n\nbindcurve is currently in Alpha version. Changes to API might happen momentarily without notice. If you encounter bugs, please report them on GitHub."
   },
   {
-    "objectID": "reference/convert.html",
-    "href": "reference/convert.html",
-    "title": "convert",
+    "objectID": "theory_exact.html",
+    "href": "theory_exact.html",
+    "title": "Exact Kd models",
     "section": "",
-    "text": "convert(\n    IC50_df\n    model\n    RT=None\n    LsT=None\n    Kds=None\n    y0=None\n    compound_sel=False\n    ci=True\n    verbose=False\n)\nFunction for converting IC50 to Kd using coleska, cheng_prusoff and cheng_prusoff_corr models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
+    "text": "BindCurve implements several exact models that allow for direct fitting of \\(K_d\\) from both direct and competitive binding experiments, given some crucial informations about the system are known. These models are based on the assumption that the observed binding curve could be related to the bound fraction of the labeled ligand. This quantity is denoted as \\(F_b^*\\) and is defined as:\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T}\n\\]\nwhere \\([RL^*]\\) is the concentration of the complex of receptor and labeled ligand, and \\([L^*]_T\\) is the total concentration of the labeled ligand.",
+    "crumbs": [
+      "GitHub",
+      "**Theory**",
+      "Exact Kd models"
+    ]
   },
   {
-    "objectID": "reference/convert.html#parameters",
-    "href": "reference/convert.html#parameters",
-    "title": "convert",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+    "objectID": "theory_exact.html#direct-binding",
+    "href": "theory_exact.html#direct-binding",
+    "title": "Exact Kd models",
+    "section": "Direct binding",
+    "text": "Direct binding\nWhat function to use: fit_Kd_direct\n\n\n\n\n\nIn direct binding, the system is composed of receptor \\(R\\) and labeled ligand \\(L^*\\) which form complex \\(RL^*\\). This binding equilibrium is described by a dissociation constant \\(K_d^*\\). For such a system, \\(F_b^*\\) could be related to the concentration of free receptor \\([R]\\) by the equation\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d^* + [R]}\n\\]\nTo allow for a proper description of the dependent variable, the general framework for direct binding is defined as\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d^* + [R]}\n\\]\n\nDirect binding - simplified\nModel name: dir_simple\nIn this simplified model, the concentration of the free receptor \\([R]\\) is approximated by the total concentration of the receptor \\([R]_T\\). Thus, \\([R]\\) is simply given as: \\[\n[R] = [R]_T\n\\]\n\n\nDirect binding - specific\nModel name: dir_specific\nTo properly describe direct binding beyond the simplified approximation above, let us look at an exact model. The dissociation constant \\(K_d^*\\) is defined as: \\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\nConservation of mass requires that: \\[\n[L^* ]_T = [L^*] + [RL^*]\n\\] \\[\n[R]_T = [R] + [RL^*]\n\\]\nwhere \\([R]_T\\) is the total concentration of the receptor and \\([L^*]\\) is the concentration of free labeled ligand. Thus, \\([RL^*]\\) is calculated as: \\[\n[RL^*] = \\frac{[R] [L^* ]_T}{K_d^* + [R]}\n\\]\nFrom the equations above, \\([R]\\) can be expressed in a quadratic equation: \\[\n[R]^2 + a[R] + b = 0\n\\]\nwhere the coefficients are calculated as: \\[\na = K_d^* + [L^*]_T - [R]_T\n\\] \\[\nb = -K_d^* [R]_T\n\\]\nThe physical solution for \\([R]\\) is calculated as the positive root using the quadratic formula:\n\\[\n[R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}\n\\]\n\n\nDirect binding - total\nModel name: dir_total\nNonspecific binding (immobilization) of the labeled ligand \\(L^*\\) can be modeled by introducing a dimensionless, non-negative parameter \\(N^*\\). In this case, the dissociation constant \\(K_d^*\\) is defined in the same way as above: \\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\nNow, the conservation of mass requires that: \\[\n[L^* ]_T = [L^*] + [RL^*] + N^*[L^*]\n\\] \\[\n[R]_T = [R] + [RL^*]\n\\]\nThus, \\([RL^*]\\) is calculated as: \\[\n[RL^*] = \\frac{[R][L^*]_T}{K_d^*(1+N^*) + [R]}\n\\]\nAgain, \\([R]\\) can be expressed in a quadratic equation: \\[\n[R]^2 + a[R] + b = 0\n\\]\nwhere the coefficients are calculated as: \\[\na = K_d^*(1+N^*) + [L^*]_T - [R]_T\n\\] \\[\nb = -K_d^*[R]_T(1+N^*)\n\\]\nThe physical solution for \\([R]\\) is again calculated using the quadratic formula: \\[\n[R] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}\n\\]\nClearly, the introduction of \\(N^*\\) leads to a model where the dissociation constant \\(K_d^*\\) is scaled by a factor of \\((1+N^*)\\). Thus, the total binding is modeled as specific binding defined by \\(K_d^*\\) and a nonspecific binding scaling term depending on \\(N^*\\). For example, if we consider \\(N^* = 0.5\\), the resulting effective dissociation constant for total binding in this model would be \\(1.5K_d^*\\) (total binding would be 150% of the specific binding). Finally, if \\(N^* = 0\\) (there is no nonspecific binding), the model collapses to the case for specific binding only.",
+    "crumbs": [
+      "GitHub",
+      "**Theory**",
+      "Exact Kd models"
+    ]
   },
   {
-    "objectID": "reference/convert.html#returns",
-    "href": "reference/convert.html#returns",
-    "title": "convert",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
+    "objectID": "theory_exact.html#complete-competitive-binding-three-state-models",
+    "href": "theory_exact.html#complete-competitive-binding-three-state-models",
+    "title": "Exact Kd models",
+    "section": "Complete competitive binding (three-state models)",
+    "text": "Complete competitive binding (three-state models)\nWhat function to use: fit_Kd_competition\n\n\n\n\n\nIn three-state models, the system is composed of receptor \\(R\\), labeled ligand \\(L^*\\), and unlabeled ligand \\(L\\). The formation of complex \\(RL^*\\) is described by a dissociation constant \\(K_d^*\\), while the formation of complex \\(RL\\) is described by a dissociation constant \\(K_d\\). For such a system, \\(F_b^*\\) could be related to the concentration of free receptor \\([R]\\) by the equation\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d + [R]}\n\\]\nTo allow for a proper description of the dependent variable, the general framework for competitive binding is defined as\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d + [R]}\n\\]\n\nComplete competitive binding - specific\nModel name: comp_3st_specific\nReferences: Wang 1995, Roehrl 2004\nDissociation constants in the three-state model are defined as:\n\\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}\n\\]\n\\[\nK_d = \\frac{[R][L]}{[RL]}\n\\]\nConservation of mass requires that:\n\\[\n[L^* ]_T = [L^*] + [RL^*]\n\\]\n\\[\n[L]_T = [L] + [RL]\n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL]\n\\]\nThus, the concentrations of the complexes are calculated as:\n\\[\n[RL] = \\frac{[R][L]_T}{K_d + [R]}\n\\]\n\\[\n[RL^*] = \\frac{[R][L^*]_T}{K_d^* + [R]}\n\\]\nFrom the above equations, \\([R]\\) can be expressed in a cubic equation:\n\\[\n[R]^3 + a[R]^2 + b[R] + c = 0\n\\]\nWhere the coefficients are calculated as:\n\\[\na = K_d^* + K_d + [L^*]_T + [L]_T - [R]_T\n\\]\n\\[\nb = K_d^*([L]_T - [R]_T) + K_d([L^*]_T - [R]_T) + K_d^* K_d\n\\]\n\\[\nc = - K_d^* K_d [R]_T\n\\]\nThe physical solution for \\([R]\\) can be calculated analytically using the equation:\n\\[\n[R] = -\\frac{a}{3} + \\frac{2}{3} \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right)\n\\]\nThe concentrations of both complexes are calculated as:\n\\[\n[RL^*] = \\frac{[L^*]_T \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}{3K_d^* + \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}\n\\]\n\\[\n[RL] = \\frac{[L]_T \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}{3K_d + \\left(2 \\sqrt{(a^2 - 3b)} \\cos\\left(\\frac{\\theta}{3}\\right) - a\\right)}\n\\]\nThe angle \\(\\theta\\) is defined as:\n\\[\n\\theta = \\arccos\\left(\\frac{-2a^3 + 9ab - 27c}{2 \\sqrt{(a^2 - 3b)^3}}\\right)\n\\]\n\n\nComplete competitive binding - total\nModel name: comp_3st_total\nReferences: Roehrl 2004\nNonspecific binding of the unlabeled ligand can be modeled by introducing a dimensionless, non-negative parameter \\(N\\). In such case, the dissociation constants \\(K_d^*\\) and \\(K_d\\) are defined the same way as above, and the conservation of mass now requires that:\n\\[\n[L^* ]_T = [L^*] + [RL^*]\n\\]\n\\[\n[L]_T = [L] + [RL] + N[L]\n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL]\n\\]\nFrom the above equations, \\([R]\\) can again be expressed in a cubic equation:\n\\[\n[R]^3 + a[R]^2 + b[R] + c = 0\n\\]\nWhere the coefficients are calculated as:\n\\[\na = K_d^* + (1+N)K_d + [L^* ]_T + [L]_T - [R]_T\n\\] \\[\nb = K_d^* ([L]_T - [R]_T) + (1+N)K_d ([L^* ]_T - [R]_T) + (1+N)K_d^* K_d\n\\] \\[\nc = -(1+N) K_d^* K_d [R]_T\n\\]\nThe physical solution for \\([R]\\) can be calculated analytically using the same set of equations as above. Analogous to the direct binding case, the introduction of \\(N\\) leads to a model where \\(K_d\\) is scaled by a factor of \\((1+N)\\).\n\n\n\n\n\n\nNote\n\n\n\nIn models of competitive binding, the nonspecific binding of the labeled ligand (\\(N^*\\)) is neglected as it is assumed that labeled ligands with significant nonspecific immobilization would not be used for such experiments.",
+    "crumbs": [
+      "GitHub",
+      "**Theory**",
+      "Exact Kd models"
+    ]
   },
   {
-    "objectID": "reference/plot_value.html",
-    "href": "reference/plot_value.html",
-    "title": "plot_value",
-    "section": "",
-    "text": "plot_value(\n    results_df\n    value\n    compound_sel=False\n    marker='o'\n    markersize=5\n    color='black'\n    label=None\n    show_annot=True\n    pre_text=''\n    post_text=''\n    decimals=2\n    xoffset=50\n    yoffset=0\n)\nPlots a marker to indicate a specific value on the curve, optionally with text annotation.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
+    "objectID": "theory_exact.html#incomplete-competitive-binding-four-state-models",
+    "href": "theory_exact.html#incomplete-competitive-binding-four-state-models",
+    "title": "Exact Kd models",
+    "section": "Incomplete competitive binding (four-state models)",
+    "text": "Incomplete competitive binding (four-state models)\nWhat function to use: fit_Kd_competition\n\n\n\n\n\nIn four-state models, the system is also composed of receptor \\(R\\), labeled ligand \\(L^*\\), and unlabeled ligand \\(L\\). However, in addition to complexes \\(RL^*\\) and \\(RL\\), a ternary complex \\(RLL^*\\) is also considered. The dissociation constants \\(K_d^*\\) and \\(K_d\\) are defined as in the three-state model, and the formation of \\(RLL^*\\) from \\(RL\\) and \\(L^*\\) is described by dissociation constant \\(K_{d3}\\). The constant \\(K_{d4}\\) is not used in the model.\nFor the four-state models, \\(F_b^*\\) and the general framework of the model stay the same as for three-state systems and is written as\n\\[\nF_b^* = \\frac{[RL^*]}{[L^*]_T} = \\frac{[R]}{K_d + [R]}\n\\]\n\\[\ny = ymin + (ymax - ymin) \\frac{[R]}{K_d + [R]}\n\\]\n\nIncomplete competitive binding - specific\nModel name: comp_4st_specific\nReferences: Roehrl 2004\nDissociation constants in the four-state model are defined as:\n\\[\nK_d^* = \\frac{[R][L^*]}{[RL^*]}  \n\\]\n\\[\nK_d = \\frac{[R][L]}{[RL]}  \n\\]\n\\[\nK_{d3} = \\frac{[RL][L^*]}{[RLL^*]}  \n\\]\n\\[\nK_{d4} = \\frac{[RL^*][L]}{[RLL^*]} \\quad \\text{(not used)}  \n\\]\nConservation of mass requires that:\n\\[\n[L^*]_T = [L^*] + [RL^*] + [RLL^*]  \n\\]\n\\[\n[L]_T = [L] + [RL] + [RLL^*]  \n\\]\n\\[\n[R]_T = [R] + [RL^*] + [RL] + [RLL^*]  \n\\]\nThus, concentrations of the complexes are calculated as:\n\\[\n[RL^*] = \\frac{[R]([L^*_T] - [RLL^*])}{K_d^* + [R]} \\quad\n\\]\n\\[\n[RL] = \\frac{[R]([L_T] - [RLL^*])}{K_d + [R]} \\quad  \n\\]\n\\[\n[RLL^*] = \\frac{[RL]([L^*_T] - [RL^*])}{K_{d3} + [RL]} \\quad  \n\\]\nFrom the above equations, \\([R]\\) can be expressed in a quintic equation:\n\\[\na[R]^5 + b[R]^4 + c[R]^3 + d[R]^2 + e[R] + f = 0  \n\\]\nThe coefficients \\(a\\), \\(b\\), \\(c\\), \\(d\\), \\(e\\), and \\(f\\) are quite lengthy and can be found in the source code. There is no analytical solution to the quintic equation, but it can be solved numerically.\n\n\nIncomplete competitive binding - total\nModel name: comp_4st_total\nReferences: Roehrl 2004\nIn analogy to the other models, total binding in the comp_4st_total model is modeled by scaling \\(K_d\\) by a factor of \\((1 + N)\\).",
+    "crumbs": [
+      "GitHub",
+      "**Theory**",
+      "Exact Kd models"
+    ]
   },
   {
-    "objectID": "reference/plot_value.html#parameters",
-    "href": "reference/plot_value.html#parameters",
-    "title": "plot_value",
+    "objectID": "input_format.html",
+    "href": "input_format.html",
+    "title": "BindCurve",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
+    "text": "BindCurve accepts the input data either from .csv file using the load_csv function, or from pandas dataframe using the load_df function. In both cases, the data should be formatted as follows:\n\nFirst row of the file should be a header. Names of columns do not matter, they will be standardized automatically.\nFirst column must contain compound names (for each row).\nSecond column must contain concentration in any units of your choosing. This unit will be retained throughout the workflow. When loading the data, concentration can be scaled by the c_scale argument. Concentration of 0 will raise error.\nThird to Nth columns are expected to contain your response values. There can be any number of replicates. The number of replicates can be different for each compound or for each concentration point.",
+    "crumbs": [
+      "GitHub",
+      "**How to use**",
+      "Input format"
+    ]
+  },
+  {
+    "objectID": "input_format.html#input-format",
+    "href": "input_format.html#input-format",
+    "title": "BindCurve",
+    "section": "",
+    "text": "BindCurve accepts the input data either from .csv file using the load_csv function, or from pandas dataframe using the load_df function. In both cases, the data should be formatted as follows:\n\nFirst row of the file should be a header. Names of columns do not matter, they will be standardized automatically.\nFirst column must contain compound names (for each row).\nSecond column must contain concentration in any units of your choosing. This unit will be retained throughout the workflow. When loading the data, concentration can be scaled by the c_scale argument. Concentration of 0 will raise error.\nThird to Nth columns are expected to contain your response values. There can be any number of replicates. The number of replicates can be different for each compound or for each concentration point.",
+    "crumbs": [
+      "GitHub",
+      "**How to use**",
+      "Input format"
+    ]
+  },
+  {
+    "objectID": "symbols.html",
+    "href": "symbols.html",
+    "title": "BindCurve",
+    "section": "",
+    "text": "BindCurve uses the following symbols:\n\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\\(N^*\\)\nNs\nNonspecific binding parameter for the labeled ligand.\n\n\n\\(N\\)\nN\nNonspecific binding parameter for the unlabeled ligand.",
+    "crumbs": [
+      "GitHub",
+      "**Symbols**"
+    ]
+  },
+  {
+    "objectID": "symbols.html#symbols",
+    "href": "symbols.html#symbols",
+    "title": "BindCurve",
+    "section": "",
+    "text": "BindCurve uses the following symbols:\n\n\n\n\n\n\n\n\nSymbol\nSymbol in code\nMeaning\n\n\n\n\n\\([R]_T\\)\nRT\nTotal concentration of receptor.\n\n\n\\([R]\\)\nR\nConcentration of free receptor.\n\n\n\\([L^*]_T\\)\nLsT\nTotal concentration of labelled ligand.\n\n\n\\([L^*]\\)\nLs\nConcentration of free labelled ligand.\n\n\n\\([L]_T\\)\nLT\nTotal concentration of unlabelled ligand.\n\n\n\\([L]\\)\nL\nConcentration of free unlabelled ligand.\n\n\n\\([RL^*]\\)\nRLs\nConcentration of (receptor-labelled ligand) complex.\n\n\n\\([RL]\\)\nRL\nConcentration of (receptor-unlabelled ligand) complex.\n\n\n\\([RLL^*]\\)\nRLLs\nConcentration of (receptor-unlabelled ligand-labelled ligand) complex.\n\n\n\\(K_d^*\\)\nKds\nDissociation constant of labelled ligand.\n\n\n\\(K_d\\)\nKd\nDissociation constant of unlabelled ligand.\n\n\n\\(K_{d3}\\)\nKd3\nThe third dissociation constant in four-state models.\n\n\n\\(N^*\\)\nNs\nNonspecific binding parameter for the labeled ligand.\n\n\n\\(N\\)\nN\nNonspecific binding parameter for the unlabeled ligand.",
+    "crumbs": [
+      "GitHub",
+      "**Symbols**"
+    ]
+  },
+  {
+    "objectID": "theory_conversions.html",
+    "href": "theory_conversions.html",
+    "title": "IC50 -> Kd conversion models",
+    "section": "",
+    "text": "What function to use: convert\nThese models are used for converting \\(\\text{IC}_{50}\\) to \\(K_d\\) using more or less approximate formulas.\n\nNikolovska-Coleska\nModel name: coleska\nReferences: Nikolovska-Coleska 2004\nIn the model of Nikolovska-Coleska, \\(K_d\\) is calculated by the equation:\n\\[\nK_d = \\frac{[L_{50}]}{\\left(\\frac{[L_{50}^*] + [R_0]}{K_d^*}\\right) + 1}  \n\\]\nwhere \\([L_{50}^*]\\) is the concentration of labeled ligand at 50% inhibition, \\([L_{50}]\\) is the concentration of unlabeled ligand at 50% inhibition, \\(K_d^*\\) is the dissociation constant of the labeled ligand, \\(K_d\\) is the dissociation constant of the unlabeled ligand, and \\([R_0]\\) is the concentration of receptor at 0% inhibition.\nFollowing the equations for conservation of mass, \\([R_0]\\) could be expressed in a quadratic equation:\n\\[\n[R_0]^2 + a[R_0] + b = 0  \n\\]\nwhere the coefficients are calculated as:\n\\[\na = [L^*]_T + K_d^* - [R]_T  \n\\]\n\\[\nb = -K_d^* [R]_T  \n\\]\n\nThe physical solution for \\([R_0]\\) is then calculated by the quadratic formula:\n\\[\n[R_0] = \\frac{-a + \\sqrt{a^2 - 4b}}{2}  \n\\]\nThe rest of the parameters are calculated as follows:\n\\[\n[L_0^*] = \\frac{[L^*]_T}{1 + \\frac{[R_0]}{K_d^*}}  \n\\]\n\\[\n[RL_0^*] = \\frac{[R]_T}{1 + \\frac{K_d^*}{[L_0^*]}}  \n\\]\n\\[\n[RL_{50}^*] = \\frac{[RL_0^*]}{2}  \n\\]\n\\[\n[L_{50}^*] = [L^*]_T - [RL_{50}^*]  \n\\]\n\\[\n[RL_{50}] = [R]_T + \\frac{K_d^* [RL_{50}^*]}{[L_{50}^*]} + [RL_{50}^*]  \n\\]\n\\[\n[L_{50}] = IC_{50} - [RL_{50}]  \n\\]\n\n\nCheng-Prusoff\nModel name: cheng_prusoff\n\\[\nK_d = \\frac{\\text{IC}_{50}}{1 + \\frac{[L^*]_T}{K_d^*}}  \n\\]\n\n\nCheng-Prusoff Corrected\nModel name: cheng_prusoff_corr\nReferences: Munson 2008\n\\[\nK_d = \\frac{\\text{IC}_{50}}{1 + \\left(\\frac{[L^*]_T(Y_0 + 2)}{2K_d^*(Y_0 + 1)}\\right) + Y_0} + \\frac{K_d^* Y_0}{Y_0 + 2}  \n\\]",
+    "crumbs": [
+      "GitHub",
+      "**Theory**",
+      "IC50->Kd conversion"
+    ]
+  },
+  {
+    "objectID": "tutorials/plotting_components.html",
+    "href": "tutorials/plotting_components.html",
+    "title": "Plotting system components",
+    "section": "",
+    "text": "In this tutorial, we will use the exact Kd models to plot concentrations of all components of the system.\nimport bindcurve as bc\nimport numpy as np\nimport matplotlib.pyplot as plt",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Plotting system components"
+    ]
+  },
+  {
+    "objectID": "tutorials/plotting_components.html#direct-binding",
+    "href": "tutorials/plotting_components.html#direct-binding",
+    "title": "Plotting system components",
+    "section": "Direct binding",
+    "text": "Direct binding\nIn direct binding, it is assumed that a receptor is titrated to a constant concentration of labeled ligand. In other words, RT is titrated while LsT does not change. Thus, we can treat RT as the independent variable, LsT as a constant, and all other components of the system (R, RLs, Ls) as dependent variables. Here, we will use the dir_specific model to plot the situation. You can play around with the values of LsT and Kds to see how the predicted equilibrium in the system changes.\n\n# Define minimum and maximum\nymin = 0\nymax = 1\n\n# Define experimental constants\nLsT = 10       # Total concentration of labeled ligand\nKds = 1        # Kd of labeled ligand\n\n# Get a range of values for the titrated component\nRT = np.logspace(np.log10(0.001), np.log10(10000), 1000)\n\n# Call the model and get concentrations of the system components\nmodel, R, RLs, Ls = bc.dir_specific(RT, ymin, ymax, LsT, Kds)\n\n# Plot LsT as horizontal line (it is constant during experiment)\nplt.axhline(y = LsT, linestyle=\"--\", color=\"black\", label=\"LsT (total conc. of labeled ligand)\")\n\n# Plot concentrations of the system components\nplt.plot(RT, R, label=\"R (free receptor)\")\nplt.plot(RT, RLs, label=\"RLs (complex)\")\nplt.plot(RT, Ls, label=\"Ls (free labeled ligand)\")\n\n# Set up and show the plot\nplt.title(\"dir_specific\")\nplt.xlabel(\"RT (total conc. of receptor)\")\nplt.ylabel(\"Component concentration\")\nplt.xscale(\"log\")\nplt.yscale(\"log\")\nplt.legend()\nplt.show()",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Plotting system components"
+    ]
+  },
+  {
+    "objectID": "tutorials/plotting_components.html#competitive-binding",
+    "href": "tutorials/plotting_components.html#competitive-binding",
+    "title": "Plotting system components",
+    "section": "Competitive binding",
+    "text": "Competitive binding\nIn competitive binding, it is assumed that the unlabeled ligand is titrated to a constant concentration of receptor and labeled ligand. In other words, LT is titrated while RT and LsT do not change. Thus, we can treat LT as the independent variable, RT and LsT as constants, and all other components of the system (R, RLs, RL, Ls, L) as dependent variables. Here, we will use the comp_3st_specific model to plot the situation. You can play around with the values of RT, LsT, Kds and Kd to see how the predicted equilibrium in the system changes.\n\n# Define minimum and maximum\nymin = 0\nymax = 1\n\n# Define experimental constants\nRT = 5         # Total concentration of receptor\nLsT = 10       # Total concentration of labeled ligand\nKds = 1        # Kd of labeled ligand\nKd = 1         # Kd of unlabeled ligand\n\n# Get a range of values for the titrated component\nLT = np.logspace(np.log10(0.001), np.log10(10000), 1000)\n\n# Call the model and get concentrations of the system components\nmodel, R, RLs, RL, Ls, L = bc.comp_3st_specific(LT, ymin, ymax, RT, LsT, Kds, Kd)\n\n# Plot LsT as horizontal line (it is constant during experiment)\nplt.axhline(y = RT, linestyle=\"--\", color=\"grey\", label=\"RT (total conc. of receptor\")\nplt.axhline(y = LsT, linestyle=\"--\", color=\"black\", label=\"LsT (total conc. of labeled ligand)\")\n\n# Plot concentrations of the system components\nplt.plot(LT, R, label=\"R (free receptor)\")\nplt.plot(LT, RLs, label=\"RLs (complex of labeled ligand)\")\nplt.plot(LT, RL, label=\"RL (complex of unlabeled ligand)\")\nplt.plot(LT, Ls, label=\"Ls (free labeled ligand)\")\nplt.plot(LT, L, label=\"L (free unlabeled ligand)\")\n\n# Set up and show the plot\nplt.title(\"comp_3st_specific\")\nplt.xlabel(\"LT (total conc. of unlabeled ligand)\")\nplt.ylabel(\"Component concentration\")\nplt.xscale(\"log\")\nplt.yscale(\"log\")\nplt.legend(fontsize = 8)\nplt.show()",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Plotting system components"
+    ]
+  },
+  {
+    "objectID": "tutorials/Kd_models.html",
+    "href": "tutorials/Kd_models.html",
+    "title": "Fitting Kd from exact models",
+    "section": "",
+    "text": "In this tutorial, we will use the exact models implemented in bindcurve to obtain Kd from direct and competitive binding experimental data. We will simulate a workflow that could conveniently be used for example in fluorescence-based or fluorescence polarization-based assays, or any other assays for which these models are suitable. We will first determine the Kd of the labeled ligand (probe) by fitting data from direct binding experiment (saturation experiment) and then we will determine Kd of a series of unlabeled ligands by fitting data from competitive binding experiments.",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Exact Kd models"
+    ]
+  },
+  {
+    "objectID": "tutorials/Kd_models.html#preparations",
+    "href": "tutorials/Kd_models.html#preparations",
+    "title": "Fitting Kd from exact models",
+    "section": "Preparations",
+    "text": "Preparations\nFirst, let’s import everything we will need for this workflow:\n\nimport bindcurve as bc\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\nThe following settings adjust the decimals and display width for pandas. This is just for display purposes, all numbers will still be stored with many decimal places.\n\npd.set_option(\"display.precision\", 3)\npd.set_option('display.width', 200)",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Exact Kd models"
+    ]
+  },
+  {
+    "objectID": "tutorials/Kd_models.html#direct-binding",
+    "href": "tutorials/Kd_models.html#direct-binding",
+    "title": "Fitting Kd from exact models",
+    "section": "Direct binding",
+    "text": "Direct binding\nTo begin, let’s first load the data and print the preprocessed DataFrame. We will use data from /docs/tutorials/examples/direct.csv.\n\ninput_data_dir = bc.load_csv(\"examples/direct.csv\")\nprint(input_data_dir)\n\nLoading data from examples/direct.csv\n   compound          c  log c  n_reps  rep1  rep2  rep3  rep4  median     SD    SEM\n0     probe  3.000e+00  0.477       4   132   130   130   136   131.0  2.828  1.414\n1     probe  1.200e+00  0.079       4   129   130   131   133   130.5  1.708  0.854\n2     probe  4.800e-01 -0.319       4   129   130   126   130   129.5  1.893  0.946\n3     probe  1.920e-01 -0.717       4   120   126   121   121   121.0  2.708  1.354\n4     probe  7.680e-02 -1.115       4   106   103   106   107   106.0  1.732  0.866\n5     probe  3.072e-02 -1.513       4    83    85    89    81    84.0  3.416  1.708\n6     probe  1.229e-02 -1.911       4    59    64    61    62    61.5  2.082  1.041\n7     probe  4.915e-03 -2.308       4    36    38    38    39    38.0  1.258  0.629\n8     probe  1.966e-03 -2.706       4    31    33    34    36    33.5  2.082  1.041\n9     probe  7.864e-04 -3.104       4    26    28    32    33    30.0  3.304  1.652\n10    probe  3.146e-04 -3.502       4    25    32    30    28    29.0  2.986  1.493\n\n\nFor the sake of this tutorial, we will fit two models for direct binding. The dir_simple model is a simplified model which assumes no receptor depletion, and dir_specific is an exact quadratic model for direct binding. We will fit these models using the fit_Kd_direct function and print the DataFrame with results. As you can see, both models provide quite similar results and the fitted values of Kds are very close. We will use the value from the dir_specific model, as this is the more accurate model of the two.\n\nLsT = 0.015       # Define total concentration of the labeled ligand\n\n# Fit the simplified model\nresults_dir_simple = bc.fit_Kd_direct(input_data_dir, model=\"dir_simple\", LsT=None)\nprint(results_dir_simple)\n\n# Fit the quadratic model\nresults_dir = bc.fit_Kd_direct(input_data_dir, model=\"dir_specific\", LsT=LsT)\nprint(results_dir)\n\nFitting dir_simple ...\n  compound  n_points    Kds   loCL   upCL     SE       model    ymin    ymax    Chi^2    R^2\n0    probe        44  0.027  0.024  0.029  0.001  dir_simple  25.829  133.82  337.396  0.996\nFitting dir_specific ...\n  compound  n_points    Kds   loCL   upCL     SE         model    ymin     ymax    LsT    Chi^2    R^2\n0    probe        44  0.019  0.017  0.022  0.001  dir_specific  27.382  132.289  0.015  336.049  0.996\n\n\nWe can now grab the value of Kds obtained from the dir_specific and store it in the variable.\n\nKd_probe = results_dir[results_dir['compound'] == 'probe']['Kds'].values[0]\nprint(\"Kd of the probe is:\", Kd_probe)\n\nKd of the probe is: 0.019393831705308173\n\n\nWe will also compare the fitted curves for both models graphically by plotting them next to each other. In this case, the two curves are quite closely aligned.\n\n# Initiate the plot\nplt.figure(figsize=(5, 4))\n\n# PLot the dir_simple model\nbc.plot(input_data_dir, results_dir_simple, single_label=\"dir_simple\", show_medians=False, show_errorbars=False, single_color=\"dodgerblue\")\n\n# PLot the dir_specific model\nbc.plot(input_data_dir, results_dir, single_label=\"dir_specific\", show_medians=False, show_errorbars=False, single_color=\"tomato\")\n\nplt.title(\"Direct binding\")\nplt.xlabel(r\"[Receptor] $\\mu$M\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\nplt.show()\n\n\n\n\n\n\n\n\nYou can also plot just one of the models and customize the plot a little bit. For fun, we will plot a marker for the Kd value, we can also plot dashed traces indicating the Kd value.\n\n# Initiate the plot\nplt.figure(figsize=(5, 4))\n\n# Plot the actual curve\nbc.plot(input_data_dir, results_dir, single_label=\"dir_specific\", single_color=\"tomato\", show_medians=False)\n\n# Plot the traces\nbc.plot_traces(results_dir, value=\"Kds\", kind=\"partial\")\n\n# Plot the annotated marker\nbc.plot_value(results_dir, value=\"Kds\", color=\"black\", marker=\"*\", label=\"$K_d$\", post_text=r\" $\\mu$M\", decimals=3, xoffset=0.04)\n\nplt.title(\"Direct binding\")\nplt.xlabel(r\"[Receptor] $\\mu$M\")\nplt.ylabel(\"Response\")\nplt.ylim(20)\nplt.xscale(\"log\")\nplt.legend()\nplt.show()\n\nPlotting trace for x value 0.019393831705308173\nPlotting marker for x value 0.019393831705308173",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Exact Kd models"
+    ]
+  },
+  {
+    "objectID": "tutorials/Kd_models.html#competitive-binding",
+    "href": "tutorials/Kd_models.html#competitive-binding",
+    "title": "Fitting Kd from exact models",
+    "section": "Competitive binding",
+    "text": "Competitive binding\nOnce we have obtained the value of Kds (dissociation constant of the labeled ligand) from direct binding experiment, we can proceed to fit the competitive binding data, where the labeled ligand was displaced by the unlabeled ligand. First, let’s load our data from competitive experiments into out input DataFrame. You can find the data at /docs/tutorials/examples/competitive.csv. This time we will not print the whole DataFrame, but just the begining, to save space.\n\ninput_data_comp = bc.load_csv(\"examples/competitive.csv\")\nprint(input_data_comp.head())\n\nLoading data from examples/competitive.csv\n  compound       c  log c  n_reps  r1  r2  r3  r4  r5  r6  median     SD    SEM\n0    comp1  2000.0  3.301       6  28  26  29  27  27  25    27.0  1.414  0.577\n1    comp1  1000.0  3.000       6  30  28  30  28  32  32    30.0  1.789  0.730\n2    comp1   250.0  2.398       6  37  40  37  41  42  38    39.0  2.137  0.872\n3    comp1    60.0  1.778       6  60  58  54  58  53  57    57.5  2.658  1.085\n4    comp1    15.0  1.176       6  82  84  78  85  84  85    84.0  2.683  1.095\n\n\nLet’s also print what compounds do we have in our data.\n\ncompounds = input_data_comp[\"compound\"].unique()\nprint(\"Detected compounds:\", compounds)\nprint(\"No of compounds:\", len(compounds))\n\nDetected compounds: ['comp1' 'comp2' 'comp3' 'comp4' 'comp5' 'comp6']\nNo of compounds: 6\n\n\nNext, we can proceed to define the known experimental constants RT, LsT and Kds. Then we will use the fit_Kd_competition function to fit the comp_3st_specific model, adn print the results.\n\nRT = 0.05           # Total concentration of the receptor\nLsT = 0.005         # Total concentration of the labeled ligand\nKds = Kd_probe      # Dissociation constant of the labeled ligand\n\nresults_comp = bc.fit_Kd_competition(input_data_comp, model=\"comp_3st_specific\", RT=RT, LsT=LsT, Kds=Kds)\nprint(results_comp)\n\nFitting comp_3st_specific ...\n  compound  n_points      Kd   loCL    upCL     SE              model    ymin     ymax    RT    LsT    Kds     Chi^2    R^2\n0    comp1        54  11.437  9.839  13.301  0.822  comp_3st_specific  26.693  134.487  0.05  0.005  0.019   537.472  0.990\n1    comp2        54   2.851  2.417   3.364  0.234  comp_3st_specific  26.828  132.026  0.05  0.005  0.019   705.520  0.986\n2    comp3        54   0.610  0.502   0.740  0.057  comp_3st_specific  23.724  136.476  0.05  0.005  0.019   908.705  0.982\n3    comp4        54   1.042  0.861   1.260  0.099  comp_3st_specific  24.220  138.923  0.05  0.005  0.019  1024.489  0.982\n4    comp5        54   9.126  7.510  11.082  0.891  comp_3st_specific  25.638  132.209  0.05  0.005  0.019   929.856  0.982\n5    comp6        54   2.510  2.143   2.942  0.198  comp_3st_specific  23.731  132.746  0.05  0.005  0.019   664.941  0.988\n\n\nWe can also get the results as formatted report using the report function. The last line of code will copy this report to your clipboard, so that you can paste it anywhere you want.\n\nresults_comp_report = bc.report(results_comp, decimals=1)\nprint(results_comp_report)\nresults_comp_report.to_clipboard(excel=True, sep=\",\")\n\n  compound     Mean (95% CI)   Mean ± SE\n0    comp1  11.4 (9.8, 13.3)  11.4 ± 0.8\n1    comp2    2.9 (2.4, 3.4)   2.9 ± 0.2\n2    comp3    0.6 (0.5, 0.7)   0.6 ± 0.1\n3    comp4    1.0 (0.9, 1.3)   1.0 ± 0.1\n4    comp5   9.1 (7.5, 11.1)   9.1 ± 0.9\n5    comp6    2.5 (2.1, 2.9)   2.5 ± 0.2\n\n\nFinally, we can plot the results.\n\n# Initiate the plot\nplt.figure(figsize=(5, 4))\n\n# Plot the actual curve\nbc.plot(input_data_comp, results_comp)\n\n# Provide other matplotlib settings\nplt.title(\"Competitive binding\")\nplt.xlabel(r\"[Ligand] $\\mu$M\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\n\n# Show the plot\nplt.show()\n\n\n\n\n\n\n\n\nYou can use the compound_sel argument to plot just selected compound(s).\n\nplt.figure(figsize=(5, 4))\n\nbc.plot(input_data_comp, results_comp, compound_sel=[\"comp1\"], single_color=\"dodgerblue\")\n\nplt.title(\"Plotting selection\")\nplt.xlabel(r\"[Ligand] $\\mu$M\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\nplt.show()\n\n\n\n\n\n\n\n\nYou can also plot the compounds on a grid using the plot_grid function. In this example, let’s customize the grid a little bit to make it more interesting.\n\nbc.plot_grid(input_data_comp,\n             results_comp,\n             n_cols=3,\n             figsize=(8,5),\n             single_color=\"dodgerblue\",\n             show_title=False,\n             show_legend=True,\n             show_all_data=True,\n             show_medians=False,\n             show_errorbars=False,\n             markersize=2,\n             hspace=0,\n             wspace=0,\n             show_inner_ticklabels=False,\n             x_label=r\"[Ligand] $\\mu$M\",\n             y_label=\"Response\")",
+    "crumbs": [
+      "GitHub",
+      "**Tutorials**",
+      "Exact Kd models"
+    ]
+  },
+  {
+    "objectID": "reference/report.html",
+    "href": "reference/report.html",
+    "title": "report",
+    "section": "",
+    "text": "report(results_df, decimals=2)\nProvides the results as a formatted report.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+  },
+  {
+    "objectID": "reference/report.html#parameters",
+    "href": "reference/report.html#parameters",
+    "title": "report",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2"
+  },
+  {
+    "objectID": "reference/report.html#returns",
+    "href": "reference/report.html#returns",
+    "title": "report",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+  },
+  {
+    "objectID": "reference/plot.html",
+    "href": "reference/plot.html",
+    "title": "plot",
+    "section": "",
+    "text": "plot(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n)\nPlots one or more curves into an initiated matplotlib plot.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
+  },
+  {
+    "objectID": "reference/plot.html#parameters",
+    "href": "reference/plot.html#parameters",
+    "title": "plot",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
   },
   {
     "objectID": "reference/index.html",
@@ -330,210 +539,85 @@
     ]
   },
   {
-    "objectID": "reference/plot.html",
-    "href": "reference/plot.html",
-    "title": "plot",
+    "objectID": "reference/plot_value.html",
+    "href": "reference/plot_value.html",
+    "title": "plot_value",
     "section": "",
-    "text": "plot(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n)\nPlots one or more curves into an initiated matplotlib plot.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
+    "text": "plot_value(\n    results_df\n    value\n    compound_sel=False\n    marker='o'\n    markersize=5\n    color='black'\n    label=None\n    show_annot=True\n    pre_text=''\n    post_text=''\n    decimals=2\n    xoffset=50\n    yoffset=0\n)\nPlots a marker to indicate a specific value on the curve, optionally with text annotation.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
   },
   {
-    "objectID": "reference/plot.html#parameters",
-    "href": "reference/plot.html#parameters",
-    "title": "plot",
+    "objectID": "reference/plot_value.html#parameters",
+    "href": "reference/plot_value.html#parameters",
+    "title": "plot_value",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse"
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to plot. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\ncolor\nstr\nColor of the marker. Any matplotlib syntax will be accepted.\n'black'\n\n\nlabel\nstr\nLabel for the marker to show in legend.\nNone\n\n\nshow_annot\nbool\nWhether to show text annotation.\nTrue\n\n\npre_text\nstr\nText to apear before the numerical annotation.\n''\n\n\npost_text\nstr\nText to apear after the numerical annotation.\n''\n\n\ndecimals\nint\nNumber of decimals to use for the numerical annotation.\n2\n\n\nxoffset\nfloat or int\nOffset of the annotation on x axis.\n50\n\n\nyoffset\nfloat or int\nOffset of the annotation on y axis.\n0"
   },
   {
-    "objectID": "reference/report.html",
-    "href": "reference/report.html",
-    "title": "report",
+    "objectID": "reference/convert.html",
+    "href": "reference/convert.html",
+    "title": "convert",
     "section": "",
-    "text": "report(results_df, decimals=2)\nProvides the results as a formatted report.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+    "text": "convert(\n    IC50_df\n    model\n    RT=None\n    LsT=None\n    Kds=None\n    y0=None\n    compound_sel=False\n    ci=True\n    verbose=False\n)\nFunction for converting IC50 to Kd using coleska, cheng_prusoff and cheng_prusoff_corr models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
   },
   {
-    "objectID": "reference/report.html#parameters",
-    "href": "reference/report.html#parameters",
-    "title": "report",
+    "objectID": "reference/convert.html#parameters",
+    "href": "reference/convert.html#parameters",
+    "title": "convert",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ndecimals\nint\nNumber of decimals to use.\n2"
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nIC50_df\nDataFrame\nPandas DataFrame containing the fitted IC50 values.\nrequired\n\n\nmodel\nstr\nName of the conversion model. Options: coleska, cheng_prusoff, cheng_prusoff_corr\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nNone\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nNone\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nNone\n\n\ny0\nfloat or int\nParameter used in the corrected Cheng-Prusoff model.\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
   },
   {
-    "objectID": "reference/report.html#returns",
-    "href": "reference/report.html#returns",
-    "title": "report",
+    "objectID": "reference/convert.html#returns",
+    "href": "reference/convert.html#returns",
+    "title": "convert",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the report."
+    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the conversion results."
   },
   {
-    "objectID": "reference/fit_Kd_competition.html",
-    "href": "reference/fit_Kd_competition.html",
-    "title": "fit_Kd_competition",
+    "objectID": "reference/fit_50.html",
+    "href": "reference/fit_50.html",
+    "title": "fit_50",
     "section": "",
-    "text": "fit_Kd_competition(\n    input_df\n    model\n    RT\n    LsT\n    Kds\n    N=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the comp_3st_specific, comp_3st_total, comp_4st_specific and comp_4st_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
+    "text": "fit_50(\n    input_df\n    model\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    fix_slope=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the IC50 and logIC50 models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
-    "objectID": "reference/fit_Kd_competition.html#parameters",
-    "href": "reference/fit_Kd_competition.html#parameters",
-    "title": "fit_Kd_competition",
+    "objectID": "reference/fit_50.html#parameters",
+    "href": "reference/fit_50.html#parameters",
+    "title": "fit_50",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total\nrequired\n\n\nRT\nfloat or int\nTotal concentration of the receptor.\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nKds\nfloat or int\nDissociation constant of the labeled ligand.\nrequired\n\n\nN\nfloat or int\nParameter for nonspecific binding of the unlabeled ligand (needed only for comp_3st_total and comp_4st_total models).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: IC50, logIC50\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_slope\nfloat or int\nSlope of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
   },
   {
-    "objectID": "reference/fit_Kd_competition.html#returns",
-    "href": "reference/fit_Kd_competition.html#returns",
-    "title": "fit_Kd_competition",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
-  },
-  {
-    "objectID": "reference/load_df.html",
-    "href": "reference/load_df.html",
-    "title": "load_df",
-    "section": "",
-    "text": "load_df(df, c_scale=1)\nLoads and preprocesses data from existing DataFrame.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndf\nDataFrame\nDataFrame object with data.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
-  },
-  {
-    "objectID": "reference/load_df.html#parameters",
-    "href": "reference/load_df.html#parameters",
-    "title": "load_df",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndf\nDataFrame\nDataFrame object with data.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1"
-  },
-  {
-    "objectID": "reference/load_df.html#returns",
-    "href": "reference/load_df.html#returns",
-    "title": "load_df",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
-  },
-  {
-    "objectID": "reference/plot_traces.html",
-    "href": "reference/plot_traces.html",
-    "title": "plot_traces",
-    "section": "",
-    "text": "plot_traces(\n    results_df\n    value\n    compound_sel=False\n    kind='full'\n    vtrace=True\n    htrace=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n    label=None\n)\nPlots traces to indicate a specific value on the curve.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
-  },
-  {
-    "objectID": "reference/plot_traces.html#parameters",
-    "href": "reference/plot_traces.html#parameters",
-    "title": "plot_traces",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\nvalue\nstr\nWhat value to use for plotting the traces. This should be one of the column names in results_df. Usually “IC50”, “Kd” or “Kds”.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nkind\nstr\nWhat kind of trace should be plotted. Options are “full” or “partial”.\n'full'\n\n\nvtrace\nbool\nWhether to plot the vertical trace.\nTrue\n\n\nhtrace\nbool\nWhether to plot the horizontal trace.\nTrue\n\n\ncolor\nstr\nColor for plotting the traces. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloat or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'\n\n\nlabel\nstr\nLabel that will be used for the traces.\nNone"
-  },
-  {
-    "objectID": "reference/fit_Kd_direct.html",
-    "href": "reference/fit_Kd_direct.html",
-    "title": "fit_Kd_direct",
-    "section": "",
-    "text": "fit_Kd_direct(\n    input_df\n    model\n    LsT\n    Ns=None\n    compound_sel=False\n    fix_ymin=False\n    fix_ymax=False\n    ci=True\n    verbose=False\n)\nFunction for fitting the dir_simple, dir_specific and dir_total models.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
-  },
-  {
-    "objectID": "reference/fit_Kd_direct.html#parameters",
-    "href": "reference/fit_Kd_direct.html#parameters",
-    "title": "fit_Kd_direct",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nmodel\nstr\nName of the model. Options: dir_simple, dir_specific, dir_total\nrequired\n\n\nLsT\nfloat or int\nTotal concentration of the labeled ligand.\nrequired\n\n\nNs\nfloat or int\nParameter for nonspecific binding of the labeled ligand (needed only for dir_total model).\nNone\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds will be used.\nFalse\n\n\nfix_ymin\nfloat or int\nLower asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nfix_ymax\nfloat or int\nUpper asymptote of the model will be fixed at the provided value. If set to “False”, it will be fitted freely.\nFalse\n\n\nci\nbool\nWhether to calculate 95% confidence intervals.\nTrue\n\n\nverbose\nbool\nIf set to “True”, more detailed output is printed. Intended mainly for troubleshooting.\nFalse"
-  },
-  {
-    "objectID": "reference/fit_Kd_direct.html#returns",
-    "href": "reference/fit_Kd_direct.html#returns",
-    "title": "fit_Kd_direct",
+    "objectID": "reference/fit_50.html#returns",
+    "href": "reference/fit_50.html#returns",
+    "title": "fit_50",
     "section": "",
     "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing the fit results."
   },
   {
-    "objectID": "reference/load_csv.html",
-    "href": "reference/load_csv.html",
-    "title": "load_csv",
+    "objectID": "reference/plot_asymptotes.html",
+    "href": "reference/plot_asymptotes.html",
+    "title": "plot_asymptotes",
     "section": "",
-    "text": "load_csv(csvfile, c_scale=1)\nLoads and preprocesses data from csv file.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncsvfile\nstr\nPath to the csv file.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
+    "text": "plot_asymptotes(\n    results_df\n    compound_sel=False\n    lower=True\n    upper=True\n    color='black'\n    linewidth=1\n    linestyle='--'\n)\nPlots lower and/or upper asymptote of the model as a horizontal line.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
   },
   {
-    "objectID": "reference/load_csv.html#parameters",
-    "href": "reference/load_csv.html#parameters",
-    "title": "load_csv",
+    "objectID": "reference/plot_asymptotes.html#parameters",
+    "href": "reference/plot_asymptotes.html#parameters",
+    "title": "plot_asymptotes",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ncsvfile\nstr\nPath to the csv file.\nrequired\n\n\nc_scale\nfloat or int\nFactor for scaling concentration. Used for unit conversion.\n1"
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nlower\nbool\nWhether to plot the lower asymptote.\nTrue\n\n\nupper\nbool\nWhether to plot the upper asymptote.\nTrue\n\n\ncolor\nstr\nColor for plotting the asymptotes. Any matplotlib syntax will be accepted.\n'black'\n\n\nlinewidth\nfloar or int\nLine width.\n1\n\n\nlinestyle\nstr\nLine style.\n'--'"
   },
   {
-    "objectID": "reference/load_csv.html#returns",
-    "href": "reference/load_csv.html#returns",
-    "title": "load_csv",
+    "objectID": "theory_logistic.html",
+    "href": "theory_logistic.html",
+    "title": "Logistic models",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nDataFrame\nPandas DataFrame containing preprocessed input data."
-  },
-  {
-    "objectID": "reference/plot_grid.html",
-    "href": "reference/plot_grid.html",
-    "title": "plot_grid",
-    "section": "",
-    "text": "plot_grid(\n    input_df\n    results_df\n    compound_sel=False\n    xmin=False\n    xmax=False\n    marker='o'\n    markersize=5\n    linewidth=1\n    linestyle='-'\n    show_medians=True\n    show_all_data=False\n    show_errorbars=True\n    errorbars_kind='SD'\n    errorbar_linewidth=1\n    errorbar_capsize=3\n    cmap='tab10'\n    cmap_min=0\n    cmap_max=1\n    custom_colors=False\n    single_color=False\n    custom_labels=False\n    single_label=False\n    no_labels=False\n    x_logscale=True\n    show_legend=False\n    show_title=True\n    figsize=(7, 5)\n    n_cols=3\n    x_label='dose'\n    y_label='response'\n    show_inner_ticklabels=False\n    sharex=True\n    sharey=True\n    hspace=0.3\n    wspace=0.3\n)\nPlots a grid of binding curves.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
-  },
-  {
-    "objectID": "reference/plot_grid.html#parameters",
-    "href": "reference/plot_grid.html#parameters",
-    "title": "plot_grid",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ninput_df\nDataFrame\nPandas DataFrame containing the input data.\nrequired\n\n\nresults_df\nDataFrame\nPandas DataFrame containing the fit results.\nrequired\n\n\ncompound_sel\nlist\nList of compounds to execute the function on. If set to False, all compounds from the results_df will be used.\nFalse\n\n\nxmin\nfloat or int\nManually set the minimum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nxmax\nfloat or int\nManually set the maximum value on x axis for all curves. If set to False, it will be determined automatically for each curve.\nFalse\n\n\nmarker\nstr\nMarker type. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/api/markers_api.html).\n'o'\n\n\nmarkersize\nfloat or int\nMarker size.\n5\n\n\nlinewidth\nfloat or int\nLine width of the curve.\n1\n\n\nlinestyle\nstr\nLine style of the curve.\n'-'\n\n\nshow_medians\nbool\nWhether to show concentration median values.\nTrue\n\n\nshow_all_data\nbool\nWhether to show all concentration points.\nFalse\n\n\nshow_errorbars\nbool\nWhether to show errorbars.\nTrue\n\n\nerrorbars_kind\nstr\nWhat should be shown as errorbars, options are “SD” or “SEM”.\n'SD'\n\n\nerrorbar_linewidth\nfloat or int\nLine width of the errorbars.\n1\n\n\nerrorbar_capsize\nfloat or int\nSize of the errorbar caps (upper and lower points of the bars).\n3\n\n\ncmap\nstr\nWhat cmap to use for coloring the curves. Any matplotlib syntax is accepted (see https://matplotlib.org/stable/gallery/color/colormap_reference.html).\n'tab10'\n\n\ncmap_min\nfloat or int\nMinimum point of the cmap to use. Between 0 and 1.\n0\n\n\ncmap_max\nfloat or int\nMaximum point of the cmap to use. Between 0 and 1.\n1\n\n\ncustom_colors\nlist\nIf you want to define custom colors for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_color\nstr\nProvide single color to color all ploted curves.\nFalse\n\n\ncustom_labels\nlist\nIf you want to define custom labels for the curves, provide list. Length of the list should be the same as number of compounds.\nFalse\n\n\nsingle_label\nstr\nProvide single label for all ploted curves.\nFalse\n\n\nno_labels\nbool\nIf you do not want any labels, set this to true.\nFalse\n\n\nx_logscale\nbool\nIf set to True, the x axis will be plotted on a log scale.\nTrue\n\n\nshow_legend\nbool\nWhether to show legend in each subplot.\nFalse\n\n\nshow_title\nbool\nWhether to show names of the compounds in the title for each sunplot.\nTrue\n\n\nfigsize\ntuple\nTuple of (x, y) determining dimensions for the plot. This is passed into matplotlib figsize.\n(7, 5)\n\n\nn_cols\nint\nNumber of columns to plot. Number of rows is then determined automatically.\n3\n\n\nx_label\nstr\nAxis label for the x axis.\n'dose'\n\n\ny_label\nstr\nAxis label for the y axis.\n'response'\n\n\nshow_inner_ticklabels\nbool\nWhether to show ticklabels on the inner axes of the grid.\nFalse\n\n\nsharex\nbool\nWhether to share (lock) the scales on the x axes for all subplots in the grid.\nTrue\n\n\nsharey\nbool\nWhether to share (lock) the scales on the y axes for all subplots in the grid.\nTrue\n\n\nhspace\nfloat or int\nHorizontal space between subplots.\n0.3\n\n\nwspace\nfloat or int\nHorizontal space between subplots.\n0.3"
-  },
-  {
-    "objectID": "basics.html",
-    "href": "basics.html",
-    "title": "Basics of BindCurve",
-    "section": "",
-    "text": "In this tutorial, we will go through the very basics of bindcurve. We will fit IC50 for six compounds and plot the results. This will demonstrate the most minimalistic workflow you can do to get your results quickly and easily. For clarity, we will mostly use default settings. There is much more you can do, please see more advanced tutorials for more detailed overview of the available options and settings.",
+    "text": "What function to use: fit_50\nLogistic models are implemented in the traditional sigmoid form. This model could be used broadly for any dose-response curve, where x corresponds to dose and y corresponds to response. In the context of BindCurve, x will commonly correspond to the total concentration of the titrated ligand. By fixing the slope in these models to a constant value (e.g. 1 for activation and -1 for inhibition), this four-parameter model is reduced to a three-parameter model.\n\nFitting midpoint\nModel name: IC50\n\\(\\text{IC}_{50}\\) is fitted using the following equation:\n\\[\ny = ymin + (ymax - ymin) \\frac{1}{1 + \\left(\\frac{\\text{IC}_{50}}{x}\\right)^{\\text{slope}}}\n\\]\nwhere x is the dose, usually the total concentration of the titrated ligand\n\\[\nx = [L]_T\n\\]\n\n\nFitting midpoint from log-transformed data\nModel name: logIC50\nAnalogically, \\(\\text{logIC}_{50}\\) is fitted using:\n\\[\ny = ymin + (ymax - ymin) \\frac{1}{1 + 10^{\\text{slope}(\\text{logIC}_{50} - x)}}\n\\]\nwhere x is log transformed dose\n\\[\nx = \\log([L]_T)\n\\]\n\n\n\n\n\n\nNote\n\n\n\nOnce you have \\(\\text{logIC}_{50}\\) value, it can easily be converted to \\(\\text{pIC}_{50}\\) by multiplying with -1.",
     "crumbs": [
       "GitHub",
-      "**Tutorials**",
-      "Basics"
-    ]
-  },
-  {
-    "objectID": "basics.html#preparations",
-    "href": "basics.html#preparations",
-    "title": "Basics of BindCurve",
-    "section": "Preparations",
-    "text": "Preparations\nFirst, let’s start by importing bindcurve. We will use bc as alias to help with clarity. Also, we will import pandas and matplotlib because we will need it. Don’t worry, all dependencies have been installed automatically when installing bindcurve.\n\nimport bindcurve as bc\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\nThe following settings adjust the decimals and display width for pandas. This is just for display purposes, all numbers will still be stored with many decimal places.\n\npd.set_option(\"display.precision\", 2)\npd.set_option('display.width', 200)",
-    "crumbs": [
-      "GitHub",
-      "**Tutorials**",
-      "Basics"
-    ]
-  },
-  {
-    "objectID": "basics.html#load-the-data",
-    "href": "basics.html#load-the-data",
-    "title": "Basics of BindCurve",
-    "section": "Load the data",
-    "text": "Load the data\nWith all preparations taken care of, let’s load our data from csv file. You can find this data on GitHub in the folder /docs/tutorials/examples/competitive.csv. As you can see, the loaded data have been preprocessed and now newly contain log-transformed concentrations (log c) as well as number of replicates (n_reps) and median values with SD snd SEM metrics for each concentration point.\n\ninput_data = bc.load_csv(\"examples/competitive.csv\")\n\nprint(input_data)\n\nLoading data from examples/competitive.csv\n   compound        c  log c  n_reps   r1   r2   r3   r4   r5   r6  median    SD   SEM\n0     comp1  2000.00   3.30       6   28   26   29   27   27   25    27.0  1.41  0.58\n1     comp1  1000.00   3.00       6   30   28   30   28   32   32    30.0  1.79  0.73\n2     comp1   250.00   2.40       6   37   40   37   41   42   38    39.0  2.14  0.87\n3     comp1    60.00   1.78       6   60   58   54   58   53   57    57.5  2.66  1.09\n4     comp1    15.00   1.18       6   82   84   78   85   84   85    84.0  2.68  1.10\n5     comp1     4.00   0.60       6   94   88   91   97   95  100    94.5  4.26  1.74\n6     comp1     1.00   0.00       6   97   98   96  102  103  106   100.0  3.93  1.61\n7     comp1     0.25  -0.60       6  100  100  101  106  106  108   103.5  3.56  1.45\n8     comp1     0.06  -1.22       6  100  101  102   97  109  109   101.5  4.94  2.02\n9     comp2  2000.00   3.30       6   27   29   31   26   27   30    28.0  1.97  0.80\n10    comp2  1000.00   3.00       6   24   28   26   25   29   30    27.0  2.37  0.97\n11    comp2   250.00   2.40       6   32   33   30   28   30   30    30.0  1.76  0.72\n12    comp2    60.00   1.78       6   31   33   39   38   41   34    36.0  3.90  1.59\n13    comp2    15.00   1.18       6   53   55   61   62   53   57    56.0  3.92  1.60\n14    comp2     4.00   0.60       6   82   78   82   75   86   87    82.0  4.59  1.87\n15    comp2     1.00   0.00       6   91   88   86   96   97  100    93.5  5.51  2.25\n16    comp2     0.25  -0.60       6   97   99   95  102  100  100    99.5  2.48  1.01\n17    comp2     0.06  -1.22       6  100   98   94  105  102  109   101.0  5.28  2.16\n18    comp3  2000.00   3.30       6   25   25   20   24   22   20    23.0  2.34  0.95\n19    comp3  1000.00   3.00       6   24   26   23   25   26   21    24.5  1.94  0.79\n20    comp3   250.00   2.40       6   21   26   25   25   25   24    25.0  1.75  0.71\n21    comp3    60.00   1.78       6   27   27   30   27   24   29    27.0  2.07  0.84\n22    comp3    15.00   1.18       6   31   34   35   33   36   37    34.5  2.16  0.88\n23    comp3     4.00   0.60       6   49   47   44   54   58   60    51.5  6.36  2.59\n24    comp3     1.00   0.00       6   71   78   75   80   86   84    79.0  5.59  2.28\n25    comp3     0.25  -0.60       6   84   91   87   98   97  102    94.0  6.97  2.85\n26    comp3     0.06  -1.22       6   97   98  101  107  111  103   102.0  5.38  2.20\n27    comp4  2000.00   3.30       6   25   24   22   22   23   25    23.5  1.38  0.56\n28    comp4  1000.00   3.00       6   26   25   24   22   23   27    24.5  1.87  0.76\n29    comp4   250.00   2.40       6   27   29   25   25   21   25    25.0  2.66  1.09\n30    comp4    60.00   1.78       6   27   24   29   35   30   33    29.5  3.98  1.63\n31    comp4    15.00   1.18       6   34   38   40   48   43   51    41.5  6.35  2.59\n32    comp4     4.00   0.60       6   53   54   59   67   63   65    61.0  5.81  2.37\n33    comp4     1.00   0.00       6   85   88   86   95   93   99    90.5  5.55  2.27\n34    comp4     0.25  -0.60       6   98   93   96  105  105  105   101.5  5.35  2.19\n35    comp4     0.06  -1.22       6  100   97  102  104  106  106   103.0  3.56  1.45\n36    comp5  2000.00   3.30       6   25   26   32   26   27   27    26.5  2.48  1.01\n37    comp5  1000.00   3.00       6   26   27   33   27   21   33    27.0  4.58  1.87\n38    comp5   250.00   2.40       6   30   32   32   40   33   40    32.5  4.37  1.78\n39    comp5    60.00   1.78       6   52   50   48   54   50   57    51.0  3.25  1.33\n40    comp5    15.00   1.18       6   73   77   77   78   80   79    77.5  2.42  0.99\n41    comp5     4.00   0.60       6   92   90   88   91   96  100    91.5  4.40  1.80\n42    comp5     1.00   0.00       6   92   92   91  104  104  101    96.5  6.31  2.58\n43    comp5     0.25  -0.60       6   94   99   96  100  107  105    99.5  5.04  2.06\n44    comp5     0.06  -1.22       6   95   96   99  102  109  108   100.5  5.96  2.43\n45    comp6  2000.00   3.30       6   22   23   24   24   21   25    23.5  1.47  0.60\n46    comp6  1000.00   3.00       6   23   24   25   24   20   27    24.0  2.32  0.95\n47    comp6   250.00   2.40       6   26   27   33   27   21   33    27.0  4.58  1.87\n48    comp6    60.00   1.78       6   30   32   32   40   33   40    32.5  4.37  1.78\n49    comp6    15.00   1.18       6   52   50   48   54   50   57    51.0  3.25  1.33\n50    comp6     4.00   0.60       6   73   77   77   78   80   79    77.5  2.42  0.99\n51    comp6     1.00   0.00       6   92   90   88   91   96   98    91.5  3.78  1.54\n52    comp6     0.25  -0.60       6   95   94   94  104  104  101    98.0  4.89  1.99\n53    comp6     0.06  -1.22       6   94   99   96  100  107  105    99.5  5.04  2.06\n\n\nWe can also get the list of compounds in our data and print the number of them.\n\ncompounds = input_data[\"compound\"].unique()\nprint(\"Detected compounds:\", compounds)\nprint(\"No. of detected compounds:\", len(compounds))\n\nDetected compounds: ['comp1' 'comp2' 'comp3' 'comp4' 'comp5' 'comp6']\nNo. of detected compounds: 6",
-    "crumbs": [
-      "GitHub",
-      "**Tutorials**",
-      "Basics"
-    ]
-  },
-  {
-    "objectID": "basics.html#fitting-the-model",
-    "href": "basics.html#fitting-the-model",
-    "title": "Basics of BindCurve",
-    "section": "Fitting the model",
-    "text": "Fitting the model\nFinally, we can fit a logistic model into our data. We will do that by using the fit_50 function and we will pass the DataFrame with the input data, and the model name, as the arguments for this function. The function will output a new Dataframe containing the results. The results contain the following information:\n\nn_points: number of datapoints that were used for fitting\nIC50: value of IC50\nloCL: lower confidence limit of the 95% confidence interval\nupCL: upper confidence limit of the 95% confidence interval\nSE: standard error\nmodel: name of the model that was used\nymin: lower asymptote of the model\nymax: upper asymptote of the model\nslope: slope of the model\nChi^2: estimate of \\(\\chi^2\\) (the lower the better)\nR^2: estimate of \\(R^2\\) (the closer to 1 the better)\n\n\nIC50_results = bc.fit_50(input_data, model=\"IC50\")\nprint(IC50_results)\n\nFitting IC50 ...\n  compound  n_points   IC50   loCL   upCL    SE model   ymin    ymax  slope    Chi^2   R^2\n0    comp1        54  41.89  35.65  49.82  3.37  IC50  25.45  103.37  -0.91   522.48  0.99\n1    comp2        54  10.28   8.74  12.06  0.80  IC50  27.32  100.41  -1.06   693.80  0.99\n2    comp3        54   2.13   1.67   2.63  0.23  IC50  23.30  104.77  -0.93   894.91  0.98\n3    comp4        54   3.77   3.11   4.55  0.36  IC50  24.42  104.83  -1.02  1024.47  0.98\n4    comp5        54  32.47  26.70  39.81  3.15  IC50  25.76  100.77  -1.00   929.11  0.98\n5    comp6        54   8.97   7.62  10.54  0.71  IC50  23.52  100.92  -0.97   663.17  0.99\n\n\nWe can also get the results as a formatted report using the report function. This will provide a convenient report in two formats: - mean (95% confidence interval) - mean ± SE\nThe last line will copy the report into your clipboard, you can then paste the results by CTRL+V anywhere you want.\n\nIC50_report = bc.report(IC50_results, decimals=1)\nprint(IC50_report)\nIC50_report.to_clipboard(excel=True, sep=\",\")\n\n  compound      Mean (95% CI)   Mean ± SE\n0    comp1  41.9 (35.7, 49.8)  41.9 ± 3.4\n1    comp2   10.3 (8.7, 12.1)  10.3 ± 0.8\n2    comp3     2.1 (1.7, 2.6)   2.1 ± 0.2\n3    comp4     3.8 (3.1, 4.5)   3.8 ± 0.4\n4    comp5  32.5 (26.7, 39.8)  32.5 ± 3.1\n5    comp6    9.0 (7.6, 10.5)   9.0 ± 0.7",
-    "crumbs": [
-      "GitHub",
-      "**Tutorials**",
-      "Basics"
-    ]
-  },
-  {
-    "objectID": "basics.html#plotting-the-curves",
-    "href": "basics.html#plotting-the-curves",
-    "title": "Basics of BindCurve",
-    "section": "Plotting the curves",
-    "text": "Plotting the curves\nPlotting is done using the matplotlib library. We will initiate the plot in a standard way, then we will use the plot function to actually pass the curves into the plot. Then we will use common matplotlib settings to set up title, axis labels, and set x axis to log scale. This way you have a lot of flexibility in designing your plot.\n\nplt.figure(figsize=(5, 4))\n\nbc.plot(input_data, IC50_results)\n\nplt.title(\"Title of my plot\")\nplt.xlabel(\"Concentration\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\n\n# Uncomment the below line if you want to save your plot as png\n#plt.savefig(\"my_plot.png\", dpi=300) \n\nplt.show()\n\n\n\n\n\n\n\n\nWe can also plot just a selected compounds using the compound_sel argument. The selection is supplied as a list of compound names. We will also show all the datapoints instead of onyl medians using show_all_data=True and show_medians=False arguments. We will also hide the errorbars by using show_errorbars=False. Let’s also make the markers smaller to get better clarity, we will accomplish that by markersize=3.\n\nplt.figure(figsize=(5, 4))\n\nbc.plot(input_data, \n        IC50_results, \n        compound_sel=[\"comp3\", \"comp6\"], \n        show_all_data=True, \n        show_medians=False, \n        show_errorbars=False, \n        markersize=3)\n\nplt.title(\"Plotting selection\")\nplt.xlabel(\"Concentration\")\nplt.ylabel(\"Response\")\nplt.xscale(\"log\")\nplt.legend()\nplt.show()\n\n\n\n\n\n\n\n\nFinally, you can also plot the compounds on a grid using the plot_grid function. To do this, you don’t initiate the matplotlib plot prior to using the bindcurve function as in tha case of the plot function. Instead, everything is executed by a single line of code. You have to supply all the settings as arguments into the plot_grid function.\n\nbc.plot_grid(input_data, IC50_results, n_cols=3, figsize=(10,6))",
-    "crumbs": [
-      "GitHub",
-      "**Tutorials**",
-      "Basics"
+      "**Theory**",
+      "Logistic models"
     ]
   }
 ]

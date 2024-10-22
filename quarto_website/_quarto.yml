@@ -32,11 +32,11 @@ website:
       - section: "**Tutorials**"
         contents:
           - text: "Basics"
-            href: basics.ipynb 
+            href: tutorials/basics.ipynb 
           - text: "Exact Kd models"
-            href: ../tutorials/Kd_models.ipynb 
+            href: tutorials/Kd_models.ipynb 
           - text: "Plotting system components"
-            href: ../tutorials/plotting_components.ipynb
+            href: tutorials/plotting_components.ipynb
 
       - section: "**Theory**"
         contents:
