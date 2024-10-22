@@ -1,0 +1,22 @@
+## Symbols
+
+BindCurve uses the following symbols:
+
+| Symbol     | Symbol in code | Meaning            |
+|------------|----------------|--------------------|
+| $[R]_T$    | `RT`           | Total concentration of receptor.                                      |
+| $[R]$      | `R`            | Concentration of free receptor.                                       |
+| $[L^*]_T$  | `LsT`          | Total concentration of labelled ligand.                               |
+| $[L^*]$    | `Ls`           | Concentration of free labelled ligand.                                |
+| $[L]_T$    | `LT`           | Total concentration of unlabelled ligand.                             |
+| $[L]$      | `L`            | Concentration of free unlabelled ligand.                              |
+| $[RL^*]$   | `RLs`          | Concentration of (receptor-labelled ligand) complex.                  |
+| $[RL]$     | `RL`           | Concentration of (receptor-unlabelled ligand) complex.                |
+| $[RLL^*]$  | `RLLs`         | Concentration of (receptor-unlabelled ligand-labelled ligand) complex.|
+| $K_d^*$    | `Kds`          | Dissociation constant of labelled ligand.                             |
+| $K_d$      | `Kd`           | Dissociation constant of unlabelled ligand.                           |
+| $K_{d3}$   | `Kd3`          | The third dissociation constant in four-state models.                 |
+| $N^*$      | `Ns`           | Nonspecific binding parameter for the labeled ligand.                 |
+| $N$        | `N`            | Nonspecific binding parameter for the unlabeled ligand.               |
+
+: {tbl-colwidths="[20,20,60]"}

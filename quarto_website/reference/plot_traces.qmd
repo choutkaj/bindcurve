@@ -1,0 +1,33 @@
+# plot_traces { #bindcurve.plot_traces }
+
+```python
+plot_traces(
+    results_df
+    value
+    compound_sel=False
+    kind='full'
+    vtrace=True
+    htrace=True
+    color='black'
+    linewidth=1
+    linestyle='--'
+    label=None
+)
+```
+
+Plots traces to indicate a specific value on the curve.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type         | Description                                                                                                                     | Default    |
+|--------------|--------------|---------------------------------------------------------------------------------------------------------------------------------|------------|
+| results_df   | DataFrame    | Pandas DataFrame containing the fit results.                                                                                    | _required_ |
+| value        | str          | What value to use for plotting the traces. This should be one of the column names in results_df. Usually "IC50", "Kd" or "Kds". | _required_ |
+| compound_sel | list         | List of compounds to execute the function on. If set to False, all compounds from the results_df will be used.                  | `False`    |
+| kind         | str          | What kind of trace should be plotted. Options are "full" or "partial".                                                          | `'full'`   |
+| vtrace       | bool         | Whether to plot the vertical trace.                                                                                             | `True`     |
+| htrace       | bool         | Whether to plot the horizontal trace.                                                                                           | `True`     |
+| color        | str          | Color for plotting the traces. Any matplotlib syntax will be accepted.                                                          | `'black'`  |
+| linewidth    | float or int | Line width.                                                                                                                     | `1`        |
+| linestyle    | str          | Line style.                                                                                                                     | `'--'`     |
+| label        | str          | Label that will be used for the traces.                                                                                         | `None`     |

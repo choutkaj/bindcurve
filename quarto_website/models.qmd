@@ -1,0 +1,102 @@
+---
+title: "Models"
+tbl-colwidths: [18,25,13,18,24]
+highlight-style: pygments
+---
+
+
+### Logistic models
+
+These models are calculated by the `fit_50` function. You can use these models for any dose-response curves without knowing any concentrations in the system. Parameters `ymin`, `ymax` and `slope` could be fixed. If you fix `slope` to `-1` (for inhibition) or `1` (for activation), the model will be reduced from a model with variable slope to a model with fixed slope. 
+
+| Model name         | Description              | Complexity    | Input parameters | Fitted parameters                 |
+|--------------------|--------------------------|---------------|------------------|-----------------------------------|
+| `IC50`             | Fits midpoint from c     | logistic      | -                | `ymin`, `ymax`, `slope`, `IC50`     |
+| `logIC50`          | Fits midpoint from log(c)| logistic      | -                | `ymin`, `ymax`, `slope`, `logIC50`  |
+
+
+
+
+### Direct binding
+
+These models are calculated by the `fit_Kd_direct` function. It is assumed that `LsT` is fixed and `RT` is titrated. Parameters `ymin` and `ymax` could be fixed.
+
+| Model name         | Description              | Complexity    | Input parameters | Fitted parameters    |
+|--------------------|--------------------------|---------------|------------------|----------------------|
+| `dir_simple`       | Simplified direct binding| $[R] = [R]_T$ | -                | `ymin`, `ymax`, `Kds`  |
+| `dir_specific`     | Specific direct binding  | quadratic     | `LsT`            | `ymin`, `ymax`, `Kds`  |
+| `dir_total`        | Total direct binding     | quadratic     | `LsT`, `Ns`      | `ymin`, `ymax`, `Kds`  |
+
+
+
+### Competitive binding
+
+These models are calculated using the `fit_Kd_competition` function. It is assumed that `RT` and `LsT` are fixed and `LT` is titrated. Parameters `ymin` and `ymax` could be fixed. When fitting `comp_4st_specific` or `comp_4st_total`, it is recommended to fix the `ymin` parameter (minimal asymptote of the model). 
+
+
+| Model name         | Description                  | Complexity | Input parameters        | Fitted parameters         |
+|--------------------|------------------------------|------------|-------------------------|---------------------------|
+| `comp_3st_specific`| Three-state, specific        | cubic      | `RT`, `LsT`, `Kds`      | `ymin`, `ymax`, `Kd`        |
+| `comp_3st_total`   | Three-state, total           | cubic      | `RT`, `LsT`, `Kds`, `N` | `ymin`, `ymax`, `Kd`        |
+| `comp_4st_specific`| Four-state, specific binding | quintic    | `RT`, `LsT`, `Kds`      | `ymin`, `ymax`, `Kd`, `Kd3` |
+| `comp_4st_total`   | Four-state, total binding    | quintic    | `RT`, `LsT`, `Kds`, `N` | `ymin`, `ymax`, `Kd`, `Kd3` |
+
+::: {.callout-warning}
+The quintic models `comp_4st_specific` and `comp_4st_total` are solved numerically. Choosing the physical root is not always straightforward. The current implementation might give unphysical results in some situations, for example in strongly cooperative regimes. 
+:::
+
+
+### IC50 -> Kd conversion models
+These models are calculated using the `convert` function. No fitting is performed, only a single-point conversion of `IC50` values from provided dataframe to `Kd`.
+
+| Model name         | Description             | Complexity | Input parameters           | Output |
+|--------------------|-------------------------|------------|----------------------------|--------|
+| `cheng_prusoff`    | Cheng-Prusoff           | -          | `LsT`, `Kds`, `IC50`       | `Kd`   |
+|`cheng_prusoff_corr`| Corrected Cheng-Prusoff | -          | `LsT`, `Kds`, `y0`, `IC50` | `Kd`   |
+| `coleska`          | Nikolovska-Coleska      | quadratic  | `RT`, `LsT`, `Kds`, `IC50` | `Kd`   |
+
+
+
+
+## Parameter fixing
+
+BindCurve allows fixing certain parameters during fitting to user-defined value. In all models, you can fix both the `ymin` and/or `ymax` parameters which will constrain the lower and/or upper asymptote of the model. For example, if your data are normalized between 0 and 1, you can simply fix `ymin` to 0 and `ymax` to 1 and the fit will be constrained to these values. You can also fix these parameters to any other arbitrary value depending on your situation. The `fit_50` function also allows fixing the `slope` parameter for the logistic models, which could be used to simplify the model. Typically, you might want to fix the slope to either -1 for inhibition, or 1 for activation.
+
+
+Fixing of `ymin` and `ymax` parameters is controled by `fix_ymin` and `fix_ymax` arguments when calling any fitting function in BindCurve. The `slope` parameter can be fixed by `fix_slope` argument (only available for `fit_50` function). All of these parameters are set to `False` by default, which means the parameter is fitted freely. When you change the `fix_ymin`, `fix_ymax` or `fix_slope` to any numerical value, the parameter will be fixed to the given value. 
+
+```{python}
+#| eval: false
+
+# This will fix minimum to 0, maximum to 1 and slope to -1
+IC50_results = bc.fit_50(input_data, model="IC50", fix_ymin=0, fix_ymax=1, fix_slope=-1)
+
+```
+
+Fixing can also be useful when fitting Kd using the exact polynomial models. For example, if your competitive inhibition curve is not titrated all the way to the minimum asymptote, you can just fix the `ymin` parameter to the value of the lower asymptote, which you have determined previously from direct binding. 
+
+```{python}
+#| eval: false
+
+# This will fix minimum to 20, maximum is fitted freely
+Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", fix_ymin=20)
+
+```
+
+::: {.callout-note}
+The `ymin` and `ymax` parameters have different meaning for the logistic models and for the exact Kd models. In the logistic models, `ymin` and `ymax` will always correspont to the actual minimum and maximum of the curve. In the exact Kd models, `ymin` and `ymax` define the asymptotes of the model which is often not be the same as the minimum and maximum of the curve.
+:::
+
+
+
+## Uncertainties
+
+BindCurve offers two kinds of uncertainty estimates for the fitted parameters, both obtained from the underlying LMFIT library. For every fit, standard error (SE) is outputted. Additionally, the calculation of 95% confidence intervals is enabled by default, but could be disabled by setting `ci=False`. The 95% confidence interval is outputted as `loCL` and `upCL`, which correspond to lower and upper confidence limits. Please note that the 95% confidence interval can only be calculated if more than one parameter is freely fitted. In case only one parameter is freely fitted, BindCurve will automatically set `ci=False` and only SE will be calculated.
+
+
+
+## Goodness of fit
+
+To quantify the goodness of fit, $\chi^2$ and $R^2$ metrics are outputted for every fit. Good fit is characterized by low value of $\chi^2$ and high value (close to 1) of $R^2$.
+
+

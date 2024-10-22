@@ -1,0 +1,28 @@
+# Function reference {.doc .doc-index}
+
+## Loading data
+
+| | |
+| --- | --- |
+| [load_csv](load_csv.qmd#bindcurve.load_csv) | Loads and preprocesses data from csv file. |
+| [load_df](load_df.qmd#bindcurve.load_df) | Loads and preprocesses data from existing DataFrame. |
+
+## Fitting & conversions
+
+| | |
+| --- | --- |
+| [fit_50](fit_50.qmd#bindcurve.fit_50) | Function for fitting the `IC50` and `logIC50` models. |
+| [fit_Kd_direct](fit_Kd_direct.qmd#bindcurve.fit_Kd_direct) | Function for fitting the `dir_simple`, `dir_specific` and `dir_total` models. |
+| [fit_Kd_competition](fit_Kd_competition.qmd#bindcurve.fit_Kd_competition) | Function for fitting the `comp_3st_specific`, `comp_3st_total`, `comp_4st_specific` and `comp_4st_total` models. |
+| [convert](convert.qmd#bindcurve.convert) | Function for converting IC50 to Kd using `coleska`, `cheng_prusoff` and `cheng_prusoff_corr` models. |
+| [report](report.qmd#bindcurve.report) | Provides the results as a formatted report. |
+
+## Plotting
+
+| | |
+| --- | --- |
+| [plot](plot.qmd#bindcurve.plot) | Plots one or more curves into an initiated matplotlib plot. |
+| [plot_grid](plot_grid.qmd#bindcurve.plot_grid) | Plots a grid of binding curves. |
+| [plot_asymptotes](plot_asymptotes.qmd#bindcurve.plot_asymptotes) | Plots lower and/or upper asymptote of the model as a horizontal line. |
+| [plot_traces](plot_traces.qmd#bindcurve.plot_traces) | Plots traces to indicate a specific value on the curve. |
+| [plot_value](plot_value.qmd#bindcurve.plot_value) | Plots a marker to indicate a specific value on the curve, optionally with text annotation. |

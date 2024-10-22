@@ -1,0 +1,20 @@
+# load_csv { #bindcurve.load_csv }
+
+```python
+load_csv(csvfile, c_scale=1)
+```
+
+Loads and preprocesses data from csv file.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type         | Description                                                 | Default    |
+|---------|--------------|-------------------------------------------------------------|------------|
+| csvfile | str          | Path to the csv file.                                       | _required_ |
+| c_scale | float or int | Factor for scaling concentration. Used for unit conversion. | `1`        |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type      | Description                                          |
+|--------|-----------|------------------------------------------------------|
+|        | DataFrame | Pandas DataFrame containing preprocessed input data. |

@@ -1,0 +1,94 @@
+project:
+  type: website
+  output-dir: ../docs
+
+
+website:
+  title: "BindCurve"
+  navbar:
+
+    right:
+      - text: "GitHub"
+        href: https://github.com/choutkaj/bindcurve
+        icon: github
+
+  page-footer: |
+    © 2024 | Created by <a href="https://quarto.org/">Quarto</a>.
+
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+
+      - section: "**How to use**"
+        contents:
+          - text: "Getting started"
+            href: getting_started.qmd
+          - text: "Input format"
+            href: input_format.qmd
+          - text: "Models"
+            href: models.qmd
+
+      - section: "**Tutorials**"
+        contents:
+          - text: "Basics"
+            href: basics.ipynb 
+          - text: "Exact Kd models"
+            href: ../tutorials/Kd_models.ipynb 
+          - text: "Plotting system components"
+            href: ../tutorials/plotting_components.ipynb
+
+      - section: "**Theory**"
+        contents:
+          - text: "Logistic models"
+            href: theory_logistic.qmd 
+          - text: "Exact Kd models"
+            href: theory_exact.qmd
+          - text: "IC50->Kd conversion"
+            href: theory_conversions.qmd
+      - text: "**Symbols**"
+        href: symbols.qmd
+      - text: "**API reference**"
+        href: ./reference/index.qmd
+
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    number-sections: false
+    
+
+
+quartodoc:
+  style: pkgdown
+  dir: reference
+  source_dir: ..
+  package: bindcurve
+  sections:
+    - title: Loading data
+      contents:
+        - load_csv
+        - load_df
+    - title: Fitting & conversions
+      contents:
+        - fit_50
+        - fit_Kd_direct
+        - fit_Kd_competition
+        - convert
+        - report
+    - title: Plotting
+      contents:
+        - plot
+        - plot_grid
+        - plot_asymptotes
+        - plot_traces
+        - plot_value
+
+
+
+
+
+
+

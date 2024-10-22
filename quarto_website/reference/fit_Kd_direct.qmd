@@ -1,0 +1,37 @@
+# fit_Kd_direct { #bindcurve.fit_Kd_direct }
+
+```python
+fit_Kd_direct(
+    input_df
+    model
+    LsT
+    Ns=None
+    compound_sel=False
+    fix_ymin=False
+    fix_ymax=False
+    ci=True
+    verbose=False
+)
+```
+
+Function for fitting the `dir_simple`, `dir_specific` and `dir_total` models.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type         | Description                                                                                                    | Default    |
+|--------------|--------------|----------------------------------------------------------------------------------------------------------------|------------|
+| input_df     | DataFrame    | Pandas DataFrame containing the input data.                                                                    | _required_ |
+| model        | str          | Name of the model. Options: `dir_simple`, `dir_specific`, `dir_total`                                          | _required_ |
+| LsT          | float or int | Total concentration of the labeled ligand.                                                                     | _required_ |
+| Ns           | float or int | Parameter for nonspecific binding of the labeled ligand (needed only for `dir_total` model).                   | `None`     |
+| compound_sel | list         | List of compounds to execute the function on. If set to False, all compounds will be used.                     | `False`    |
+| fix_ymin     | float or int | Lower asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely. | `False`    |
+| fix_ymax     | float or int | Upper asymptote of the model will be fixed at the provided value. If set to "False", it will be fitted freely. | `False`    |
+| ci           | bool         | Whether to calculate 95% confidence intervals.                                                                 | `True`     |
+| verbose      | bool         | If set to "True", more detailed output is printed. Intended mainly for troubleshooting.                        | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type      | Description                                  |
+|--------|-----------|----------------------------------------------|
+|        | DataFrame | Pandas DataFrame containing the fit results. |

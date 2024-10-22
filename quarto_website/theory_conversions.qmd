@@ -1,0 +1,97 @@
+---
+title: "IC50 -> Kd conversion models"
+---
+
+
+What function to use: `convert`
+
+These models are used for converting $\text{IC}_{50}$ to $K_d$ using more or less approximate formulas.
+
+### Nikolovska-Coleska
+
+Model name: `coleska`  
+References: [Nikolovska-Coleska 2004](https://doi.org/10.1016/j.ab.2004.05.055)  
+
+In the model of Nikolovska-Coleska, $K_d$ is calculated by the equation:  
+
+$$
+K_d = \frac{[L_{50}]}{\left(\frac{[L_{50}^*] + [R_0]}{K_d^*}\right) + 1}  
+$$
+
+where $[L_{50}^*]$ is the concentration of labeled ligand at 50% inhibition, $[L_{50}]$ is the concentration of unlabeled ligand at 50% inhibition, $K_d^*$ is the dissociation constant of the labeled ligand, $K_d$ is the dissociation constant of the unlabeled ligand, and $[R_0]$ is the concentration of receptor at 0% inhibition.
+
+Following the equations for conservation of mass, $[R_0]$ could be expressed in a quadratic equation:  
+$$
+[R_0]^2 + a[R_0] + b = 0  
+$$
+
+where the coefficients are calculated as:  
+$$
+a = [L^*]_T + K_d^* - [R]_T  
+$$
+
+$$
+b = -K_d^* [R]_T  
+$$
+
+
+<!---
+::: {.callout-note}
+Please note that the coefficients of this quadratic equation are expressed incorrectly in [Nikolovska-Coleska 2004](https://doi.org/10.1016/j.ab.2004.05.055).
+:::
+-->
+
+The physical solution for $[R_0]$ is then calculated by the quadratic formula:  
+$$
+[R_0] = \frac{-a + \sqrt{a^2 - 4b}}{2}  
+$$
+
+The rest of the parameters are calculated as follows:  
+$$
+[L_0^*] = \frac{[L^*]_T}{1 + \frac{[R_0]}{K_d^*}}  
+$$  
+
+$$
+[RL_0^*] = \frac{[R]_T}{1 + \frac{K_d^*}{[L_0^*]}}  
+$$  
+
+$$
+[RL_{50}^*] = \frac{[RL_0^*]}{2}  
+$$  
+
+$$
+[L_{50}^*] = [L^*]_T - [RL_{50}^*]  
+$$ 
+
+$$
+[RL_{50}] = [R]_T + \frac{K_d^* [RL_{50}^*]}{[L_{50}^*]} + [RL_{50}^*]  
+$$  
+
+$$
+[L_{50}] = IC_{50} - [RL_{50}]  
+$$
+
+
+
+### Cheng-Prusoff
+
+Model name: `cheng_prusoff`
+
+
+
+$$
+K_d = \frac{\text{IC}_{50}}{1 + \frac{[L^*]_T}{K_d^*}}  
+$$
+
+
+
+### Cheng-Prusoff Corrected
+
+Model name: `cheng_prusoff_corr`  
+References: [Munson 2008](https://doi.org/10.3109/10799898809049010)
+
+
+$$
+K_d = \frac{\text{IC}_{50}}{1 + \left(\frac{[L^*]_T(Y_0 + 2)}{2K_d^*(Y_0 + 1)}\right) + Y_0} + \frac{K_d^* Y_0}{Y_0 + 2}  
+$$
+
