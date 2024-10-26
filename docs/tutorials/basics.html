@@ -325,10 +325,10 @@ window.Quarto = {
 </header>
 
 
-<p>In this tutorial, we will go through the very basics of <code>bindcurve</code>. We will fit IC50 for six compounds and plot the results. This will demonstrate the most minimalistic workflow you can do to get your results quickly and easily. For clarity, we will mostly use default settings. There is much more you can do, please see more advanced tutorials for more detailed overview of the available options and settings.</p>
+<p>In this tutorial, we will go through the very basics of <code>bindcurve</code>. We will fit <span class="math inline">\(\text{IC}_{50}\)</span> for six compounds and plot the results. This will demonstrate the most minimalistic workflow you can do to get your results quickly and easily. For clarity, we will mostly use default settings for all the <code>bindcurve</code> functions. There is much more you can do, please see more advanced tutorials for more detailed overview of the available options and settings.</p>
 <section id="preparations" class="level2">
 <h2 class="anchored" data-anchor-id="preparations">Preparations</h2>
-<p>First, let’s start by importing <code>bindcurve</code>. We will use <code>bc</code> as alias to help with clarity. Also, we will import pandas and matplotlib because we will need it. Don’t worry, all dependencies have been installed automatically when installing <code>bindcurve</code>.</p>
+<p>First, let’s start by importing <code>bindcurve</code>. We will use <code>bc</code> as alias to help with clarity. Also, we will import <code>pandas</code> and <code>matplotlib</code> because we will need it. Don’t worry, all dependencies have been installed automatically when installing <code>bindcurve</code>.</p>
 <div id="245c8c0b-7f92-49e3-a5e2-ec98710a58b4" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bindcurve <span class="im">as</span> bc</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -342,7 +342,7 @@ window.Quarto = {
 </section>
 <section id="load-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-the-data">Load the data</h2>
-<p>With all preparations taken care of, let’s load our data from csv file. You can find this data on GitHub in the folder <code>/docs/tutorials/examples/competitive.csv</code>. As you can see, the loaded data have been preprocessed and now newly contain log-transformed concentrations (log c) as well as number of replicates (n_reps) and median values with SD snd SEM metrics for each concentration point.</p>
+<p>With all preparations taken care of, let’s load our data from csv file using the <code>load_csv</code> function. You can find this data on GitHub in the folder <code>/tutorials/examples/competitive.csv</code>. We will load the data into a DataFrame which we will call <code>input_data</code>. As you can see, the loaded data have been preprocessed and now newly contain log-transformed concentrations (log c) as well as number of replicates (n_reps) and median response values with SD snd SEM metrics for each concentration point. This has all been added by the <code>load_csv</code> function, so that the loaded DataFrame contains all the necessary information for further use in <code>bindcurve</code>.</p>
 <div id="ec8aedda-0506-467c-9a02-1a969bd018d6" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>input_data <span class="op">=</span> bc.load_csv(<span class="st">"examples/competitive.csv"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -406,7 +406,7 @@ window.Quarto = {
 53    comp6     0.06  -1.22       6   94   99   96  100  107  105    99.5  5.04  2.06</code></pre>
 </div>
 </div>
-<p>We can also get the list of compounds in our data and print the number of them.</p>
+<p>We can get the list of compounds available in our data and print the number of them.</p>
 <div id="f9f5a861-22e6-4021-8d6d-acab6a8310c3" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>compounds <span class="op">=</span> input_data[<span class="st">"compound"</span>].unique()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Detected compounds:"</span>, compounds)</span>
@@ -419,10 +419,10 @@ No. of detected compounds: 6</code></pre>
 </section>
 <section id="fitting-the-model" class="level2">
 <h2 class="anchored" data-anchor-id="fitting-the-model">Fitting the model</h2>
-<p>Finally, we can fit a logistic model into our data. We will do that by using the <code>fit_50</code> function and we will pass the DataFrame with the input data, and the model name, as the arguments for this function. The function will output a new Dataframe containing the results. The results contain the following information:</p>
+<p>Finally, we can fit a logistic model into our data. We will do that by using the <code>fit_50</code> function and we will pass the <code>input_data</code> DataFrame and the model name as the arguments for this function. The function will output a new Dataframe containing the results, let’s call it <code>IC50_results</code>. The results contain the following information:</p>
 <ul>
 <li><code>n_points</code>: number of datapoints that were used for fitting</li>
-<li><code>IC50</code>: value of IC50</li>
+<li><code>IC50</code>: value of <span class="math inline">\(\text{IC}_{50}\)</span></li>
 <li><code>loCL</code>: lower confidence limit of the 95% confidence interval</li>
 <li><code>upCL</code>: upper confidence limit of the 95% confidence interval</li>
 <li><code>SE</code>: standard error</li>
@@ -466,8 +466,8 @@ No. of detected compounds: 6</code></pre>
 </section>
 <section id="plotting-the-curves" class="level2">
 <h2 class="anchored" data-anchor-id="plotting-the-curves">Plotting the curves</h2>
-<p>Plotting is done using the matplotlib library. We will initiate the plot in a standard way, then we will use the <code>plot</code> function to actually pass the curves into the plot. Then we will use common matplotlib settings to set up title, axis labels, and set x axis to log scale. This way you have a lot of flexibility in designing your plot.</p>
-<div id="edaf4ee3-bf56-45ef-aaa9-a666e7c2c5eb" class="cell" data-execution_count="7">
+<p>Plotting is done using the matplotlib library. We will initiate the plot in a standard way, then we will use the <code>plot</code> function, which will retrieve the curve from the model and draws it into the initiated plot. The required arguments for the <code>plot</code> function are the DataFrame with the input data (that is used to retrieve the concentration points), and the DataFrame with the results (that is used to draw the curve). Then we can use any common matplotlib settings, here we will set up title, axis labels, and set x axis to log scale. This way you have a lot of flexibility in designing your plot.</p>
+<div id="edaf4ee3-bf56-45ef-aaa9-a666e7c2c5eb" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data, IC50_results)</span>
@@ -490,24 +490,18 @@ No. of detected compounds: 6</code></pre>
 </div>
 </div>
 </div>
-<p>We can also plot just a selected compounds using the <code>compound_sel</code> argument. The selection is supplied as a list of compound names. We will also show all the datapoints instead of onyl medians using <code>show_all_data=True</code> and <code>show_medians=False</code> arguments. We will also hide the errorbars by using <code>show_errorbars=False</code>. Let’s also make the markers smaller to get better clarity, we will accomplish that by <code>markersize=3</code>.</p>
-<div id="19a4327d-d19c-4532-9808-95cf5f2fe72f" class="cell" data-execution_count="8">
+<p>We can also plot just a selected compounds using the <code>compound_sel</code> argument. The selection is supplied as a list of compound names. In the following example, we will plot just the comp3 and com6 compounds.</p>
+<div id="19a4327d-d19c-4532-9808-95cf5f2fe72f" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data, </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        IC50_results, </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        compound_sel<span class="op">=</span>[<span class="st">"comp3"</span>, <span class="st">"comp6"</span>], </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        show_all_data<span class="op">=</span><span class="va">True</span>, </span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        show_medians<span class="op">=</span><span class="va">False</span>, </span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        show_errorbars<span class="op">=</span><span class="va">False</span>, </span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        markersize<span class="op">=</span><span class="dv">3</span>)</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Plotting selection"</span>)</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Concentration"</span>)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Response"</span>)</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">"log"</span>)</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data, IC50_results, compound_sel<span class="op">=</span>[<span class="st">"comp3"</span>, <span class="st">"comp6"</span>])</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Plotting selection"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Concentration"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Response"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">"log"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -516,8 +510,8 @@ No. of detected compounds: 6</code></pre>
 </div>
 </div>
 </div>
-<p>Finally, you can also plot the compounds on a grid using the <code>plot_grid</code> function. To do this, you don’t initiate the matplotlib plot prior to using the bindcurve function as in tha case of the <code>plot</code> function. Instead, everything is executed by a single line of code. You have to supply all the settings as arguments into the <code>plot_grid</code> function.</p>
-<div id="cf16c83d-ebe4-4b80-921d-697316140116" class="cell" data-execution_count="10">
+<p>Finally, you can also plot the compounds on a grid using the <code>plot_grid</code> function. To do this, you don’t initiate the matplotlib plot in advance as in the case of the <code>plot</code> function. Instead, everything is executed by a single line of code. You have to supply all the settings as arguments into the <code>plot_grid</code> function. Here we will use the default settings. We just need to supply the <code>n_cols</code> argument to define the number of columns (number of rows is then determined automatically), and the <code>figsize</code> argument to define the figure size.</p>
+<div id="cf16c83d-ebe4-4b80-921d-697316140116" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bc.plot_grid(input_data, IC50_results, n_cols<span class="op">=</span><span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>

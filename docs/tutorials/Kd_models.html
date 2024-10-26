@@ -101,6 +101,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -295,27 +324,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In this tutorial, we will use the exact models implemented in <code>bindcurve</code> to obtain Kd from direct and competitive binding experimental data. We will simulate a workflow that could conveniently be used for example in fluorescence-based or fluorescence polarization-based assays, or any other assays for which these models are suitable. We will first determine the Kd of the labeled ligand (probe) by fitting data from direct binding experiment (saturation experiment) and then we will determine Kd of a series of unlabeled ligands by fitting data from competitive binding experiments.</p>
+<p>In this tutorial, we will use the exact models implemented in <code>bindcurve</code> to obtain <span class="math inline">\(K_d\)</span> from direct and competitive binding experimental data. We will simulate a workflow that could conveniently be used for example in fluorescence-based or fluorescence polarization-based assays, or any other assays for which these models are suitable. We will first determine the <span class="math inline">\(K^*_d\)</span> (<code>Kds</code>, the dissociation constant of the labeled ligand) by fitting data from direct binding experiment (saturation experiment) and then we will determine <span class="math inline">\(K_d\)</span> (<code>Kd</code>, the dissociation constant of the unlabeled ligand) for a series of inhibitors by fitting data from competitive binding experiments.</p>
 <section id="preparations" class="level2">
 <h2 class="anchored" data-anchor-id="preparations">Preparations</h2>
 <p>First, let’s import everything we will need for this workflow:</p>
-<div id="3c4cb32e-0e81-4417-af9a-1d6569d20263" class="cell" data-execution_count="1">
+<div id="3c4cb32e-0e81-4417-af9a-1d6569d20263" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bindcurve <span class="im">as</span> bc</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The following settings adjust the decimals and display width for pandas. This is just for display purposes, all numbers will still be stored with many decimal places.</p>
-<div id="874415de-66e8-45b1-9996-4430c82506c1" class="cell" data-execution_count="2">
+<div id="874415de-66e8-45b1-9996-4430c82506c1" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.precision"</span>, <span class="dv">3</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.width'</span>, <span class="dv">200</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="direct-binding" class="level2">
 <h2 class="anchored" data-anchor-id="direct-binding">Direct binding</h2>
-<p>To begin, let’s first load the data and print the preprocessed DataFrame. We will use data from <code>/docs/tutorials/examples/direct.csv</code>.</p>
-<div id="54395b76-552b-4ab4-a2f7-7dd462150acd" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>input_data_dir <span class="op">=</span> bc.load_csv(<span class="st">"examples/direct.csv"</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(input_data_dir)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>To begin, let’s first load the data and print the preprocessed DataFrame. We will use data from <code>/tutorials/examples/direct.csv</code>.</p>
+<div id="54395b76-552b-4ab4-a2f7-7dd462150acd" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>input_data_direct <span class="op">=</span> bc.load_csv(<span class="st">"examples/direct.csv"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(input_data_direct)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading data from examples/direct.csv
    compound          c  log c  n_reps  rep1  rep2  rep3  rep4  median     SD    SEM
@@ -332,17 +361,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 10    probe  3.146e-04 -3.502       4    25    32    30    28    29.0  2.986  1.493</code></pre>
 </div>
 </div>
-<p>For the sake of this tutorial, we will fit two models for direct binding. The <code>dir_simple</code> model is a simplified model which assumes no receptor depletion, and <code>dir_specific</code> is an exact quadratic model for direct binding. We will fit these models using the <code>fit_Kd_direct</code> function and print the DataFrame with results. As you can see, both models provide quite similar results and the fitted values of Kds are very close. We will use the value from the <code>dir_specific</code> model, as this is the more accurate model of the two.</p>
-<div id="26b9f3b0-1f10-4ff5-8437-ee50428a6f17" class="cell" data-execution_count="4">
+<p>For the sake of this tutorial, we will fit two models for direct binding. The <code>dir_simple</code> model is a simplified model which assumes no receptor depletion, and <code>dir_specific</code> is an exact quadratic model for direct binding. We will fit these models using the <code>fit_Kd_direct</code> function and print the DataFrame with results. As you can see, both models provide quite similar results and the fitted values of Kds are very close.</p>
+<div id="26b9f3b0-1f10-4ff5-8437-ee50428a6f17" class="cell" data-execution_count="30">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>LsT <span class="op">=</span> <span class="fl">0.015</span>       <span class="co"># Define total concentration of the labeled ligand</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the simplified model</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>results_dir_simple <span class="op">=</span> bc.fit_Kd_direct(input_data_dir, model<span class="op">=</span><span class="st">"dir_simple"</span>, LsT<span class="op">=</span><span class="va">None</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_dir_simple)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>results_direct_simple <span class="op">=</span> bc.fit_Kd_direct(input_data_direct, model<span class="op">=</span><span class="st">"dir_simple"</span>, LsT<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_direct_simple)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the quadratic model</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>results_dir <span class="op">=</span> bc.fit_Kd_direct(input_data_dir, model<span class="op">=</span><span class="st">"dir_specific"</span>, LsT<span class="op">=</span>LsT)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_dir)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>results_direct <span class="op">=</span> bc.fit_Kd_direct(input_data_direct, model<span class="op">=</span><span class="st">"dir_specific"</span>, LsT<span class="op">=</span>LsT)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_direct)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Fitting dir_simple ...
   compound  n_points    Kds   loCL   upCL     SE       model    ymin    ymax    Chi^2    R^2
@@ -352,24 +381,24 @@ Fitting dir_specific ...
 0    probe        44  0.019  0.017  0.022  0.001  dir_specific  27.382  132.289  0.015  336.049  0.996</code></pre>
 </div>
 </div>
-<p>We can now grab the value of Kds obtained from the <code>dir_specific</code> and store it in the variable.</p>
-<div id="a10d6719-900b-41a1-bee7-b92d75f2b182" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Kd_probe <span class="op">=</span> results_dir[results_dir[<span class="st">'compound'</span>] <span class="op">==</span> <span class="st">'probe'</span>][<span class="st">'Kds'</span>].values[<span class="dv">0</span>]</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Kd of the probe is:"</span>, Kd_probe)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We will use the result from the <code>dir_specific</code> model, as this is the more accurate model of the two. We can now grab the value of <code>Kds</code> obtained from the <code>dir_specific</code> model and store it in a variable which we will call <code>Kds_probe</code>.</p>
+<div id="a10d6719-900b-41a1-bee7-b92d75f2b182" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Kds_probe <span class="op">=</span> results_direct[results_direct[<span class="st">'compound'</span>] <span class="op">==</span> <span class="st">'probe'</span>][<span class="st">'Kds'</span>].values[<span class="dv">0</span>]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Kd of the probe is:"</span>, Kds_probe)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Kd of the probe is: 0.019393831705308173</code></pre>
 </div>
 </div>
 <p>We will also compare the fitted curves for both models graphically by plotting them next to each other. In this case, the two curves are quite closely aligned.</p>
-<div id="12c10c11-82d4-4998-85d9-147974faa0d6" class="cell" data-execution_count="6">
+<div id="12c10c11-82d4-4998-85d9-147974faa0d6" class="cell" data-execution_count="32">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initiate the plot</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># PLot the dir_simple model</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_dir, results_dir_simple, single_label<span class="op">=</span><span class="st">"dir_simple"</span>, show_medians<span class="op">=</span><span class="va">False</span>, show_errorbars<span class="op">=</span><span class="va">False</span>, single_color<span class="op">=</span><span class="st">"dodgerblue"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_direct, results_direct_simple, single_label<span class="op">=</span><span class="st">"dir_simple"</span>, show_medians<span class="op">=</span><span class="va">False</span>, show_errorbars<span class="op">=</span><span class="va">False</span>, single_color<span class="op">=</span><span class="st">"dodgerblue"</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># PLot the dir_specific model</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_dir, results_dir, single_label<span class="op">=</span><span class="st">"dir_specific"</span>, show_medians<span class="op">=</span><span class="va">False</span>, show_errorbars<span class="op">=</span><span class="va">False</span>, single_color<span class="op">=</span><span class="st">"tomato"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_direct, results_direct, single_label<span class="op">=</span><span class="st">"dir_specific"</span>, show_medians<span class="op">=</span><span class="va">False</span>, show_errorbars<span class="op">=</span><span class="va">False</span>, single_color<span class="op">=</span><span class="st">"tomato"</span>)</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Direct binding"</span>)</span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"[Receptor] $\mu$M"</span>)</span>
@@ -385,19 +414,19 @@ Fitting dir_specific ...
 </div>
 </div>
 </div>
-<p>You can also plot just one of the models and customize the plot a little bit. For fun, we will plot a marker for the Kd value, we can also plot dashed traces indicating the Kd value.</p>
-<div id="51babd88-1e4f-4516-90b8-e335476d1f87" class="cell" data-execution_count="7">
+<p>We can also plot just one of the models and customize the plot a little bit. For example, let’s plot a marker for the <code>Kds</code> value using the <code>plot_value</code> function, and also dashed traces using the <code>plot_traces</code> function. For clarity, we will also hide the median values by <code>show_medians=False</code></p>
+<div id="51babd88-1e4f-4516-90b8-e335476d1f87" class="cell" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initiate the plot</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the actual curve</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_dir, results_dir, single_label<span class="op">=</span><span class="st">"dir_specific"</span>, single_color<span class="op">=</span><span class="st">"tomato"</span>, show_medians<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_direct, results_direct, single_label<span class="op">=</span><span class="st">"dir_specific"</span>, single_color<span class="op">=</span><span class="st">"tomato"</span>, show_medians<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the traces</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>bc.plot_traces(results_dir, value<span class="op">=</span><span class="st">"Kds"</span>, kind<span class="op">=</span><span class="st">"partial"</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the annotated marker</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>bc.plot_value(results_direct, value<span class="op">=</span><span class="st">"Kds"</span>, color<span class="op">=</span><span class="st">"black"</span>, marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"$K_d$"</span>, post_text<span class="op">=</span><span class="vs">r" $\mu$M"</span>, decimals<span class="op">=</span><span class="dv">3</span>, xoffset<span class="op">=</span><span class="fl">0.04</span>)</span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the annotated marker</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>bc.plot_value(results_dir, value<span class="op">=</span><span class="st">"Kds"</span>, color<span class="op">=</span><span class="st">"black"</span>, marker<span class="op">=</span><span class="st">"*"</span>, label<span class="op">=</span><span class="st">"$K_d$"</span>, post_text<span class="op">=</span><span class="vs">r" $\mu$M"</span>, decimals<span class="op">=</span><span class="dv">3</span>, xoffset<span class="op">=</span><span class="fl">0.04</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the traces</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>bc.plot_traces(results_direct, value<span class="op">=</span><span class="st">"Kds"</span>, kind<span class="op">=</span><span class="st">"partial"</span>)</span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Direct binding"</span>)</span>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"[Receptor] $\mu$M"</span>)</span>
@@ -407,8 +436,8 @@ Fitting dir_specific ...
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Plotting trace for x value 0.019393831705308173
-Plotting marker for x value 0.019393831705308173</code></pre>
+<pre><code>Plotting marker for x value 0.019393831705308173
+Plotting trace for x value 0.019393831705308173</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <div>
@@ -421,10 +450,10 @@ Plotting marker for x value 0.019393831705308173</code></pre>
 </section>
 <section id="competitive-binding" class="level2">
 <h2 class="anchored" data-anchor-id="competitive-binding">Competitive binding</h2>
-<p>Once we have obtained the value of Kds (dissociation constant of the labeled ligand) from direct binding experiment, we can proceed to fit the competitive binding data, where the labeled ligand was displaced by the unlabeled ligand. First, let’s load our data from competitive experiments into out input DataFrame. You can find the data at <code>/docs/tutorials/examples/competitive.csv</code>. This time we will not print the whole DataFrame, but just the begining, to save space.</p>
-<div id="65f99578-4088-41f3-aba6-1081a77536d1" class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>input_data_comp <span class="op">=</span> bc.load_csv(<span class="st">"examples/competitive.csv"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(input_data_comp.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Once we have obtained the value of <code>Kds</code> (dissociation constant of the labeled ligand) from direct binding experiment, we can proceed to fit the competitive binding data, where the labeled ligand was displaced by the unlabeled ligand. First, let’s load our data from competitive experiments into out input DataFrame. You can find the data at <code>/tutorials/examples/competitive.csv</code>. To save space, this time we will not print the whole DataFrame, but just the beginning, we can use the <code>head()</code> method in pandas.</p>
+<div id="65f99578-4088-41f3-aba6-1081a77536d1" class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>input_data_competition <span class="op">=</span> bc.load_csv(<span class="st">"examples/competitive.csv"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(input_data_competition.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading data from examples/competitive.csv
   compound       c  log c  n_reps  r1  r2  r3  r4  r5  r6  median     SD    SEM
@@ -435,9 +464,9 @@ Plotting marker for x value 0.019393831705308173</code></pre>
 4    comp1    15.0  1.176       6  82  84  78  85  84  85    84.0  2.683  1.095</code></pre>
 </div>
 </div>
-<p>Let’s also print what compounds do we have in our data.</p>
-<div id="b63287b2-ec02-493d-8aa1-68e515673662" class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>compounds <span class="op">=</span> input_data_comp[<span class="st">"compound"</span>].unique()</span>
+<p>Let’s also print what compounds do we have in our data for competitive binding.</p>
+<div id="b63287b2-ec02-493d-8aa1-68e515673662" class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>compounds <span class="op">=</span> input_data_competition[<span class="st">"compound"</span>].unique()</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Detected compounds:"</span>, compounds)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"No of compounds:"</span>, <span class="bu">len</span>(compounds))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -445,14 +474,14 @@ Plotting marker for x value 0.019393831705308173</code></pre>
 No of compounds: 6</code></pre>
 </div>
 </div>
-<p>Next, we can proceed to define the known experimental constants <code>RT</code>, <code>LsT</code> and <code>Kds</code>. Then we will use the <code>fit_Kd_competition</code> function to fit the <code>comp_3st_specific</code> model, adn print the results.</p>
-<div id="9b09dbbd-06ff-4ce5-a1be-f7e180c9985a" class="cell" data-execution_count="10">
+<p>Next, we can proceed to define the known experimental constants <code>RT</code>, <code>LsT</code> and <code>Kds</code>. For <code>Kds</code>, we will use the value stored in the <code>Kds_probe</code> variable which we obtained earlier from fitting the direct binding model. Then we will use the <code>fit_Kd_competition</code> function to fit the <code>comp_3st_specific</code> model, and print the results.</p>
+<div id="9b09dbbd-06ff-4ce5-a1be-f7e180c9985a" class="cell" data-execution_count="36">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>RT <span class="op">=</span> <span class="fl">0.05</span>           <span class="co"># Total concentration of the receptor</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>LsT <span class="op">=</span> <span class="fl">0.005</span>         <span class="co"># Total concentration of the labeled ligand</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>Kds <span class="op">=</span> Kd_probe      <span class="co"># Dissociation constant of the labeled ligand</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>Kds <span class="op">=</span> Kds_probe     <span class="co"># Dissociation constant of the labeled ligand</span></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>results_comp <span class="op">=</span> bc.fit_Kd_competition(input_data_comp, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, RT<span class="op">=</span>RT, LsT<span class="op">=</span>LsT, Kds<span class="op">=</span>Kds)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_comp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>results_competition <span class="op">=</span> bc.fit_Kd_competition(input_data_competition, model<span class="op">=</span><span class="st">"comp_3st_specific"</span>, RT<span class="op">=</span>RT, LsT<span class="op">=</span>LsT, Kds<span class="op">=</span>Kds)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_competition)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Fitting comp_3st_specific ...
   compound  n_points      Kd   loCL    upCL     SE              model    ymin     ymax    RT    LsT    Kds     Chi^2    R^2
@@ -465,10 +494,10 @@ No of compounds: 6</code></pre>
 </div>
 </div>
 <p>We can also get the results as formatted report using the <code>report</code> function. The last line of code will copy this report to your clipboard, so that you can paste it anywhere you want.</p>
-<div id="918185ea-9eb2-4508-8917-4753f9989673" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>results_comp_report <span class="op">=</span> bc.report(results_comp, decimals<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_comp_report)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>results_comp_report.to_clipboard(excel<span class="op">=</span><span class="va">True</span>, sep<span class="op">=</span><span class="st">","</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="918185ea-9eb2-4508-8917-4753f9989673" class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>results_competition_report <span class="op">=</span> bc.report(results_competition, decimals<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results_competition_report)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>results_competition_report.to_clipboard(excel<span class="op">=</span><span class="va">True</span>, sep<span class="op">=</span><span class="st">","</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  compound     Mean (95% CI)   Mean ± SE
 0    comp1  11.4 (9.8, 13.3)  11.4 ± 0.8
@@ -479,13 +508,13 @@ No of compounds: 6</code></pre>
 5    comp6    2.5 (2.1, 2.9)   2.5 ± 0.2</code></pre>
 </div>
 </div>
-<p>Finally, we can plot the results.</p>
-<div id="8fc8b075-49ac-4b8f-b3e7-eaade0567ce3" class="cell" data-execution_count="12">
+<p>Finally, we can plot the results. Let’s just use default settings for the <code>plot</code> function this time and plot all the compounds.</p>
+<div id="8fc8b075-49ac-4b8f-b3e7-eaade0567ce3" class="cell" data-execution_count="38">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initiate the plot</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the actual curve</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_comp, results_comp)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_competition, results_competition)</span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Provide other matplotlib settings</span></span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Competitive binding"</span>)</span>
@@ -504,11 +533,11 @@ No of compounds: 6</code></pre>
 </div>
 </div>
 </div>
-<p>You can use the <code>compound_sel</code> argument to plot just selected compound(s).</p>
-<div id="766809eb-7c73-4608-89e3-f9ce9e7167f0" class="cell" data-execution_count="13">
+<p>If you want to plot just a selection of compounds, you can use the <code>compound_sel</code> argument. The following example will plot only the comp1 compound.</p>
+<div id="766809eb-7c73-4608-89e3-f9ce9e7167f0" class="cell" data-execution_count="39">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_comp, results_comp, compound_sel<span class="op">=</span>[<span class="st">"comp1"</span>], single_color<span class="op">=</span><span class="st">"dodgerblue"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>bc.plot(input_data_competition, results_competition, compound_sel<span class="op">=</span>[<span class="st">"comp1"</span>], single_color<span class="op">=</span><span class="st">"dodgerblue"</span>)</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Plotting selection"</span>)</span>
 <span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"[Ligand] $\mu$M"</span>)</span>
@@ -524,10 +553,10 @@ No of compounds: 6</code></pre>
 </div>
 </div>
 </div>
-<p>You can also plot the compounds on a grid using the <code>plot_grid</code> function. In this example, let’s customize the grid a little bit to make it more interesting.</p>
-<div id="4ab24baf-a922-4609-8a42-85f0a06d01b7" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>bc.plot_grid(input_data_comp,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>             results_comp,</span>
+<p>You can also plot the compounds on a grid using the <code>plot_grid</code> function. In this example, we will customize the grid by hiding the medians and errorbars, showing all the data points, and setting <code>hspace</code> and <code>wspace</code> arguments to 0 so that there is no space between the subplots. This formatting can be used to produce neat, space-saving figure for your document.</p>
+<div id="4ab24baf-a922-4609-8a42-85f0a06d01b7" class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>bc.plot_grid(input_data_competition,</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>             results_competition,</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>             n_cols<span class="op">=</span><span class="dv">3</span>,</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>             figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>),</span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>             single_color<span class="op">=</span><span class="st">"dodgerblue"</span>,</span>
