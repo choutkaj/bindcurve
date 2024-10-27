@@ -1,5 +1,5 @@
 # Welcome to BindCurve
-This repository contains `bindcurve` - a lightweight Python package that allows fitting and plotting of binding curves. It contains logistic model for fitting IC50 or logIC50, and also  exact polynomial models for fitting Kd from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic models. Additionally, IC50 values can be converted to Kd using conversion models.
+This website contains documentation for `bindcurve` - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains logistic model for fitting $`\text{IC}_{50}`$ or $`\text{logIC}_{50}`$, and also  exact polynomial models for fitting $K_d$ from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic model. Additionally, $`\text{IC}_{50}`$ values can be converted to $K_d$ using conversion models.
 
 `bindcurve` is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in formatted output.
 
@@ -42,7 +42,7 @@ print(IC50_results)
 Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", RT=0.05, LsT=0.005, Kds=0.0245)
 print(Kd_results)
 ```
-### Plotting curves
+### Plotting
 ```python
 # Import matplotlib
 import matplotlib.pyplot as plt
