@@ -450,7 +450,11 @@ No. of detected compounds: 6</code></pre>
 5    comp6        54   8.97   7.62  10.54  0.71  IC50  23.52  100.92  -0.97   663.17  0.99</code></pre>
 </div>
 </div>
-<p>We can also get the results as a formatted report using the <code>report</code> function. This will provide a convenient report in two formats: - mean (95% confidence interval) - mean ± SE</p>
+<p>We can also get the results as a formatted report using the <code>report</code> function. This will provide a convenient report in two formats:</p>
+<ul>
+<li>mean (95% confidence interval)</li>
+<li>mean ± SE</li>
+</ul>
 <p>The last line will copy the report into your clipboard, you can then paste the results by CTRL+V anywhere you want.</p>
 <div id="d4eb2e93-4976-411c-a90e-0415207a12c1" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>IC50_report <span class="op">=</span> bc.report(IC50_results, decimals<span class="op">=</span><span class="dv">1</span>)</span>
