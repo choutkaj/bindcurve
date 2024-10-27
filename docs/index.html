@@ -67,6 +67,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -78,6 +107,9 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./images/logo3.png" alt="" class="navbar-logo">
+    </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">BindCurve</span>
     </a>
@@ -253,7 +285,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This website contains documentation for <code>bindcurve</code> - a lightweight Python package that allows fitting and plotting of binding curves. It contains logistic model for fitting IC50 or logIC50, and also exact polynomial models for fitting Kd from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic models. Additionally, IC50 values can be converted to Kd using conversion models.</p>
+<p>This website contains documentation for <code>bindcurve</code> - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains logistic model for fitting <span class="math inline">\(\text{IC}_{50}\)</span> or <span class="math inline">\(\text{logIC}_{50}\)</span>, and also exact polynomial models for fitting <span class="math inline">\(K_d\)</span> from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in logistic model. Additionally, <span class="math inline">\(\text{IC}_{50}\)</span> values can be converted to <span class="math inline">\(K_d\)</span> using conversion models.</p>
 <p><code>bindcurve</code> is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in formatted output.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">

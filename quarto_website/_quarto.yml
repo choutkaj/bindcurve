@@ -6,7 +6,7 @@ project:
 website:
   title: "BindCurve"
   navbar:
-
+    logo: images/logo3.png
     right:
       - text: "GitHub"
         href: https://github.com/choutkaj/bindcurve
