@@ -254,7 +254,7 @@ def plot(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
     """    
 
     # In compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = results_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -331,20 +331,20 @@ def plot(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
         plt.plot(x_curve, y_curve, color=colors[i], linestyle=linestyle, linewidth=linewidth)
         
         # Hidden plots just to make labels for the legend
-        if single_label == False:
-            if show_medians==True and show_all_data==False:
+        if not single_label:
+            if show_medians and not show_all_data:
                 plt.plot(sel_data[conc].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])
-            if show_all_data==True:
+            if show_all_data:
                 plt.plot(sel_data_pooled[conc].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])        
-            if show_medians==False and show_all_data==False:
+            if not show_medians and not show_all_data:
                 plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=labels[i])
                 
-    if single_label != False:
-        if show_medians==True and show_all_data==False:
+    if single_label:
+        if show_medians and not show_all_data:
             plt.plot(sel_data[conc].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)
-        if show_all_data==True:
+        if show_all_data:
             plt.plot(sel_data_pooled[conc].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=single_label)        
-        if show_medians==False and show_all_data==False:
+        if not show_medians and not show_all_data:
             plt.plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=single_label)
       
 
@@ -458,7 +458,7 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
     
 
     # In compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = results_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -544,24 +544,24 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
         
         
         # Setting log scale for x axis
-        if x_logscale==True:
+        if x_logscale:
             axes[i].set_xscale('log', base=10)
         
         # Show name in the title of subplots
-        if show_title==True:
+        if show_title:
             axes[i].set_title(compound, fontsize=10)
 
 
         # Hidden plots just to make labels for the legend
-        if show_medians==True and show_all_data==False:
+        if show_medians and not show_all_data:
             axes[i].plot(sel_data['c'].iloc[0], sel_data['median'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])
-        if show_all_data==True:
+        if show_all_data:
             axes[i].plot(sel_data_pooled['c'].iloc[0], sel_data_pooled['response'].iloc[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker=marker, markersize=markersize, label=labels[i])        
-        if show_medians==False and show_all_data==False:
+        if not show_medians and not show_all_data:
             axes[i].plot(x_curve[0], y_curve[0], color=colors[i], linestyle=linestyle, linewidth=linewidth, marker="none", label=labels[i])
             
         # Setting up legend        
-        if show_legend==True:        
+        if show_legend:        
             axes[i].legend()
                 
 
@@ -572,7 +572,7 @@ def plot_grid(input_df, results_df, compound_sel=False, xmin=False, xmax=False,
     # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axes:
         ax.label_outer()
-        if show_inner_ticklabels == True:
+        if show_inner_ticklabels:
             ax.xaxis.set_tick_params(labelbottom=True)      # Put back x ticklabels 
             ax.yaxis.set_tick_params(labelbottom=True)      # Put back y ticklabels 
 
@@ -608,7 +608,7 @@ def plot_asymptotes(results_df, compound_sel=False, lower=True, upper=True, colo
     """
 
     # If compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = results_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -655,7 +655,7 @@ def plot_traces(results_df, value, compound_sel=False, kind="full", vtrace=True,
     """
     
     # If compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = results_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -729,7 +729,7 @@ def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, 
     """
             
     # If compound selection is provided, than use it, otherwise plot all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = results_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -757,7 +757,7 @@ def plot_value(results_df, value, compound_sel=False, marker="o", markersize=5, 
         
         # Show annotation
         #plt.text(x, y, f"{pre_text}{x:.{decimals}f}{post_text}")
-        if show_annot==True:
+        if show_annot:
             plt.annotate(f"{pre_text}{x:.{decimals}f}{post_text}", (x, y), xytext=(x+xoffset, y+yoffset), horizontalalignment='center', verticalalignment='center')
         
         

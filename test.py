@@ -13,7 +13,7 @@ import bindcurve as bc
 # Direct binding
 ###
 
-input_data = bc.load_csv("examples/direct.csv")
+input_data = bc.load_csv("quarto_website/tutorials/examples/direct.csv")
 print(input_data)
 
 
@@ -23,7 +23,7 @@ print("No of compounds:", len(compounds))
 
 min = 0
 max = 1
-LsT = 5       # [L]*T parameter
+LsT = 0.015       # [L]*T parameter
 
 Ns = 0.5
 
@@ -62,7 +62,7 @@ plt.show()
 # competitive binding
 ###
 
-input_data = bc.load_csv("examples/competitive.csv")
+input_data = bc.load_csv("quarto_website/tutorials/examples/competitive.csv")
 print(input_data)
 
 

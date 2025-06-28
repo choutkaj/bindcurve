@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import lmfit
 import traceback
 from bindcurve import data
@@ -43,12 +43,12 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
         pars = lmfit.Parameters()
         
         # Setting ymin and ymax
-        if fix_ymin == False:
+        if not fix_ymin:
             pars.add('ymin', value = ymin_guess)
         else:
             pars.add('ymin', value = fix_ymin, vary=False)
             
-        if fix_ymax == False:
+        if not fix_ymax:
             pars.add('ymax', value = ymax_guess)
         else:
             pars.add('ymax', value = fix_ymax, vary=False)  
@@ -56,7 +56,7 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
         # Setting parameters for the logistic models
         if model in models.get_list_of_models("logistic"):
            
-            if fix_slope == False:
+            if not fix_slope:
                 pars.add('slope', value = 0)
             else:
                 pars.add('slope', value = fix_slope, vary=False) 
@@ -132,7 +132,7 @@ def fit_50(input_df, model, compound_sel = False, fix_ymin = False, fix_ymax = F
     print("Fitting", model, "...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -225,7 +225,7 @@ def fit_50(input_df, model, compound_sel = False, fix_ymin = False, fix_ymax = F
             # Adding new row to the output dataframe
             output_df.loc[len(output_df)] = new_row
          
-        except:
+        except Exception:
             print("Calculation for compound " + compound + " failed.")
             if verbose:
                 traceback.print_exc()  
@@ -268,13 +268,13 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_ymin 
     
     
     # Initial checks
-    if fix_ymin != False and fix_ymax != False:
+    if fix_ymin and fix_ymax:
         ci=False
         print("Only one parameter is fitted. Confidence intervals will not be calculated.")
         
       
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -378,7 +378,7 @@ def fit_Kd_direct(input_df, model, LsT, Ns=None, compound_sel = False, fix_ymin 
             # Adding new row to the output dataframe
             output_df.loc[len(output_df)] = new_row
         
-        except:
+        except Exception:
             print("Calculation for compound " + compound + " failed.")
             if verbose:
                 traceback.print_exc()  
@@ -425,13 +425,13 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
     print("Fitting", model, "...")
     
     # Initial checks
-    if fix_ymin != False and fix_ymax != False:
+    if fix_ymin and fix_ymax:
         ci=False
         print("Only one parameter is fitted. Confidence intervals will not be calculated.")
         
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = input_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -541,7 +541,7 @@ def fit_Kd_competition(input_df, model, RT, LsT, Kds, N=None, compound_sel = Fal
             # Adding new row to the output dataframe
             output_df.loc[len(output_df)] = new_row
             
-        except:
+        except Exception:
             print("Calculation for compound " + compound + " failed.")
             if verbose:
                 traceback.print_exc()  
@@ -584,7 +584,7 @@ def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=F
     print("Converting IC50 to Kd using", model, "model...")
     
     # In compound selection is provided, than use it, otherwise calculate fit for all compounds
-    if compound_sel == False:
+    if not compound_sel:
         compounds = IC50_df["compound"].unique()
     else:
         compounds = compound_sel
@@ -596,7 +596,7 @@ def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=F
     if IC50_df["loCL"].iloc[0] == "nd" and IC50_df["upCL"].iloc[0] == "nd":
         ci=False
         print("Confidence limits not detected in the provided dataframe. Converting only mean values...")
-    if ci==False:
+    if not ci:
         loCL = "nd"
         upCL = "nd"
 
@@ -611,17 +611,17 @@ def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=F
             # Here are the actual conversions
             if model == "cheng_prusoff":
                 Kd = models.cheng_prusoff(LsT, Kds, df_compound["IC50"].iloc[0])
-                if ci==True:
+                if ci:
                     loCL = models.cheng_prusoff(LsT, Kds, df_compound["loCL"].iloc[0])
                     upCL = models.cheng_prusoff(LsT, Kds, df_compound["upCL"].iloc[0])
             if model == "cheng_prusoff_corr":
                 Kd = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["IC50"].iloc[0])
-                if ci==True:
+                if ci:
                     loCL = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["loCL"].iloc[0])
                     upCL = models.cheng_prusoff_corr(LsT, Kds, y0, df_compound["upCL"].iloc[0])
             if model == "coleska":
                 Kd = models.coleska(RT, LsT, Kds, df_compound["IC50"].iloc[0])
-                if ci==True:
+                if ci:
                     loCL = models.coleska(RT, LsT, Kds, df_compound["loCL"].iloc[0])
                     upCL = models.coleska(RT, LsT, Kds, df_compound["upCL"].iloc[0])
 
@@ -631,7 +631,7 @@ def convert(IC50_df, model, RT=None, LsT=None, Kds=None, y0=None, compound_sel=F
             # Adding new row to the output dataframe
             output_df.loc[len(output_df)] = new_row
             
-        except:
+        except Exception:
             print("Calculation for compound " + compound + " failed.")
             if verbose:
                 traceback.print_exc()  

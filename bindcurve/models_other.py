@@ -18,11 +18,11 @@ def cubic_lebedev(LT, RT, LsT, Kds, Kd):
     phi = np.arccos(A)
     cnull = np.cos(phi/3)
     p = cnull*np.sqrt(tau)
-    r = np.sqrt(3)*np.sqrt(tau)*(np.absolute(1-cnull**2))**0.5
+    #r = np.sqrt(3)*np.sqrt(tau)*(np.absolute(1-cnull**2))**0.5
     
     x1 = sigma*(2*p-b)
-    x2 = sigma*(r-p-b)
-    x3 = -sigma*(p+r+b)
+    #x2 = sigma*(r-p-b)
+    #x3 = -sigma*(p+r+b)
     
     R = x1
     

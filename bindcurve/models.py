@@ -1,6 +1,6 @@
 import numpy as np
 
-   
+
 def get_list_of_models(kind):
     
     if kind == "logistic":
