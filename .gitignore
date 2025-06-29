@@ -5,3 +5,4 @@ bindcurve.egg-info
 build
 logo
 test.py
+test.ipynb
