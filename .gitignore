@@ -3,6 +3,11 @@ test.py
 test.ipynb
 algebra
 tempCodeRunnerFile.py
-bindcurve.egg-info
 build
 logo
+
+# Distribution / packaging
+bindcurve.egg-info
+build
+dist
+
