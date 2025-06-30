@@ -2,14 +2,14 @@
 
 [![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 [![Pylint](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml)
-[![Lint with Ruff](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml)
+
+
 
 This repository contains `bindcurve` - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains the logistic model for fitting $`\text{IC}_{50}`$ or $`\text{logIC}_{50}`$ and also  exact polynomial models for fitting $K_d$ from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in the logistic model. Additionally, $`\text{IC}_{50}`$ values can be converted to $K_d$ using conversion models.
 
 `bindcurve` is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in formatted output.
 
-> [!WARNING]
-> `bindcurve` is currently in Alpha version. Changes to API might happen momentarily without notice. If you encounter bugs, please report them as Issues. 
+
 
 ## Documentation
 The `bindcurve` documentation can be found at https://choutkaj.github.io/bindcurve/.

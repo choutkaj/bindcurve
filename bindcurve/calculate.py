@@ -43,12 +43,12 @@ def define_pars(model, ymin_guess, ymax_guess, IC50_guess, RT=None, LsT=None, Kd
         pars = lmfit.Parameters()
         
         # Setting ymin and ymax
-        if not fix_ymin:
+        if fix_ymin==False:
             pars.add('ymin', value = ymin_guess)
         else:
             pars.add('ymin', value = fix_ymin, vary=False)
             
-        if not fix_ymax:
+        if fix_ymax==False:
             pars.add('ymax', value = ymax_guess)
         else:
             pars.add('ymax', value = fix_ymax, vary=False)  
