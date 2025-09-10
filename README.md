@@ -6,6 +6,11 @@
 
 
 
+[![PyPI Version](https://img.shields.io/pypi/v/bindcurve)](https://pypi.org/project/bindcurve/)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/bindcurve)
+
+
+
 This repository contains `bindcurve` - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains the logistic model for fitting $`\text{IC}_{50}`$ or $`\text{logIC}_{50}`$ and also  exact polynomial models for fitting $K_d$ from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in the logistic model. Additionally, $`\text{IC}_{50}`$ values can be converted to $K_d$ using conversion models.
 
 `bindcurve` is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in a formatted output.
