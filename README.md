@@ -1,14 +1,11 @@
 # Welcome to BindCurve
 
-[![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
-[![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
-[![Pylint](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml)
-
-
-
 [![PyPI Version](https://img.shields.io/pypi/v/bindcurve)](https://pypi.org/project/bindcurve/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/bindcurve)
-
+[![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
+[![Pylint](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml)
+[![Ruff](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml)
+[![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 
 
 This repository contains `bindcurve` - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains the logistic model for fitting $`\text{IC}_{50}`$ or $`\text{logIC}_{50}`$ and also  exact polynomial models for fitting $K_d$ from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in the logistic model. Additionally, $`\text{IC}_{50}`$ values can be converted to $K_d$ using conversion models.
