@@ -8,4 +8,4 @@ title: "BindCurve: Fitting and plotting of experimental binding curves in Python
 version: 0.1.2
 doi: 10.5281/zenodo.15776819
 date-released: 2025-6-30
-url: "https://choutkaj.github.io/bindcurve/"
+url: "https://github.com/choutkaj/bindcurve"
