@@ -288,3 +288,61 @@ def test_plot_confidence_bands_requires_covariance_matrix():
             experiments=["exp1"],
         )
     plt.close(fig)
+
+
+def test_plot_residuals_draws_aggregated_residuals_and_zero_line():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    returned_ax = bc.plot_residuals(data, results, ax=ax, experiments=["exp1"])
+
+    assert returned_ax is ax
+    assert len(ax.collections) == 1
+    assert len(ax.lines) == 1
+    assert ax.lines[0].get_ydata()[0] == 0.0
+    assert ax.get_xlabel() == "concentration (uM)"
+    assert ax.get_ylabel() == "residual (percent)"
+    assert ax.get_xscale() == "log"
+    plt.close(fig)
+
+
+def test_plot_residuals_can_plot_raw_replicate_residuals():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    bc.plot_residuals(data, results, ax=ax, experiments=["exp1"], aggregate=False)
+
+    offsets = ax.collections[0].get_offsets()
+    assert len(offsets) == 24
+    plt.close(fig)
+
+
+def test_plot_residuals_can_disable_zero_line_and_use_linear_xscale():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    bc.plot_residuals(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        zero_line=False,
+        xscale="linear",
+    )
+
+    assert len(ax.lines) == 0
+    assert ax.get_xscale() == "linear"
+    plt.close(fig)
+
+
+def test_plot_residuals_requires_matching_successful_fits():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    with pytest.raises(ValueError, match="No successful fits"):
+        bc.plot_residuals(data, results, ax=ax, experiments=["missing"])
+    plt.close(fig)

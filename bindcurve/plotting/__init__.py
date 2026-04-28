@@ -8,6 +8,7 @@ from bindcurve.plotting.curves import (
     plot_curves,
     plot_fits,
     plot_observations,
+    plot_residuals,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "plot_curves",
     "plot_fits",
     "plot_observations",
+    "plot_residuals",
 ]

@@ -41,6 +41,7 @@ def test_public_api_exports_new_objects():
         "plot_curves",
         "plot_fits",
         "plot_observations",
+        "plot_residuals",
     }
 
     assert expected <= set(bc.__all__)
