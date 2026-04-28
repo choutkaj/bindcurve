@@ -38,11 +38,11 @@ class FitCalculator:
         fits: list[FitResult] = []
 
         for compound_id in compound_ids:
-            compound = data.select_compound(compound_id)
-            fit_inputs = self._make_fit_inputs(compound)
+            try:
+                compound = data.select_compound(compound_id)
+                fit_inputs = self._make_fit_inputs(compound)
 
-            for experiment_id, fit_data in fit_inputs:
-                try:
+                for experiment_id, fit_data in fit_inputs:
                     fits.append(
                         self._fit_one(
                             fit_data,
@@ -51,17 +51,17 @@ class FitCalculator:
                             bounds=bounds,
                         )
                     )
-                except Exception as exc:
-                    if self.settings.errors == "raise":
-                        raise
-                    fits.append(
-                        FitResult.failed(
-                            compound_id=compound.compound_id,
-                            model_name=self.model.name,
-                            experiment_id=experiment_id,
-                            message=str(exc),
-                        )
+            except Exception as exc:
+                if self.settings.errors == "raise":
+                    raise
+                fits.append(
+                    FitResult.failed(
+                        compound_id=str(compound_id),
+                        model_name=self.model.name,
+                        experiment_id=None,
+                        message=str(exc),
                     )
+                )
 
         summaries = summarize_fit_parameters(
             fits,
