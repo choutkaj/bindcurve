@@ -34,6 +34,9 @@ def test_public_api_exports_new_objects():
         "convert_ic50_to_kd",
         "fit",
         "get_model",
+        "plot_curves",
+        "plot_fits",
+        "plot_observations",
     }
 
     assert expected <= set(bc.__all__)
