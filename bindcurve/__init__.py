@@ -1,16 +1,30 @@
-from bindcurve.data import load_csv, load_df, plot, plot_grid, plot_asymptotes, plot_traces, plot_value, report
-from bindcurve.calculate import fit_50, fit_Kd_direct, fit_Kd_competition, convert
-from bindcurve.models import IC50, logIC50,dir_simple, dir_specific, dir_total, comp_3st_specific, comp_3st_total, comp_4st_specific, comp_4st_total, cheng_prusoff, cheng_prusoff_corr, coleska
+"""Object-oriented dose-response fitting with an lmfit backend."""
 
+from importlib.metadata import PackageNotFoundError, version
+
+from bindcurve.datasets import CompoundData, DoseResponseData
+from bindcurve.fitting import FitCalculator, FitSettings, fit
+from bindcurve.modeling import BaseDoseResponseModel, IC50Model, ParameterSpec, get_model
+from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
+
+try:
+    __version__ = version("bindcurve")
+except PackageNotFoundError:  # pragma: no cover - useful in editable source trees
+    __version__ = "0+unknown"
 
 __all__ = [
-    "load_csv", "load_df", "plot", "plot_grid", "plot_asymptotes", "plot_traces", "plot_value", "report",
-    "fit_50", "fit_Kd_direct", "fit_Kd_competition", "convert", "IC50", "logIC50", "dir_simple", "dir_specific", "dir_total",
-    "comp_3st_specific", "comp_3st_total", "comp_4st_specific", "comp_4st_total", "cheng_prusoff", "cheng_prusoff_corr", "coleska",
-    "__version__"
+    "BaseDoseResponseModel",
+    "CompoundData",
+    "DoseResponseData",
+    "FitCalculator",
+    "FitMetrics",
+    "FitResult",
+    "FitResults",
+    "FitSettings",
+    "IC50Model",
+    "ParameterEstimate",
+    "ParameterSpec",
+    "__version__",
+    "fit",
+    "get_model",
 ]
-
-
-
-
-
