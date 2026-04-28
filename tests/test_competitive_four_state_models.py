@@ -7,6 +7,7 @@ import pytest
 import bindcurve as bc
 from bindcurve.modeling.competitive import (
     _competitive_four_state_coefficients,
+    _equivalent_receptor_bounds,
     _select_physical_root,
 )
 
@@ -96,26 +97,47 @@ def test_registry_contains_competitive_four_state_models():
     )
 
 
-def test_four_state_root_selector_returns_physical_root():
-    coefficients = _competitive_four_state_coefficients(
-        0.1,
+def test_four_state_root_selector_returns_physical_transformed_root():
+    kwargs = {
+        "RT": 0.05,
+        "LsT": 0.005,
+        "Kds": 0.02,
+        "Kd": 1.6,
+        "Kd3": 0.5,
+    }
+    coefficients = _competitive_four_state_coefficients(0.1, **kwargs)
+    lower_bound, upper_bound = _equivalent_receptor_bounds(
+        RT=kwargs["RT"],
+        LsT=kwargs["LsT"],
+        Kds=kwargs["Kds"],
+        Kd3=kwargs["Kd3"],
+    )
+    root = _select_physical_root(
+        coefficients,
+        lower_bound=lower_bound,
+        upper_bound=upper_bound,
+    )
+
+    assert lower_bound <= root <= upper_bound
+    assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
+
+
+def test_four_state_root_bounds_can_extend_beyond_receptor_total():
+    lower_bound, upper_bound = _equivalent_receptor_bounds(
         RT=0.05,
         LsT=0.005,
         Kds=0.02,
-        Kd=1.6,
-        Kd3=0.5,
+        Kd3=0.001,
     )
-    root = _select_physical_root(coefficients, receptor_total=0.05)
 
-    assert 0.0 <= root <= 0.05
-    assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
+    assert lower_bound < 0.05 < upper_bound
 
 
 def test_four_state_root_selector_rejects_polynomial_with_no_physical_root():
     coefficients = np.array([1.0, 0.0, 1.0])
 
     with pytest.raises(ValueError, match="No physical four-state root"):
-        _select_physical_root(coefficients, receptor_total=0.05)
+        _select_physical_root(coefficients, lower_bound=0.0, upper_bound=0.05)
 
 
 def test_comp_4st_specific_recovers_kd_from_synthetic_data():

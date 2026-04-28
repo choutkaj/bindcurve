@@ -19,6 +19,52 @@ def _competition_guess(compound: CompoundData) -> dict[str, float]:
     return {"ymin": ymin, "ymax": ymax, "Kd": kd_guess}
 
 
+def _direct_bound_fraction(*, Kd: float, RT: float, LsT: float) -> float:
+    """Return the direct-binding bound tracer fraction for finite totals."""
+    discriminant = (Kd + LsT + RT) ** 2 - 4.0 * LsT * RT
+    return float((Kd + LsT + RT - np.sqrt(discriminant)) / (2.0 * LsT))
+
+
+def _equivalent_receptor_from_bound_fraction(
+    fraction_bound: float,
+    *,
+    Kds: float,
+) -> float:
+    """Transform FSB to the legacy four-state polynomial coordinate."""
+    return float(Kds * fraction_bound / (1.0 - fraction_bound))
+
+
+def _equivalent_receptor_bounds(
+    *,
+    RT: float,
+    LsT: float,
+    Kds: float,
+    Kd3: float,
+) -> tuple[float, float]:
+    """Return the physically feasible range for the transformed coordinate.
+
+    The four-state polynomial is expressed in the coordinate
+    ``r_equiv = Kds * FSB / (1 - FSB)``. This is equal to free receptor only in
+    three-state/complete competition. In incomplete competition, the physical
+    interval is determined by the initial direct-binding fraction, governed by
+    ``Kds``, and the asymptotic bound fraction, governed by ``Kd3``.
+    """
+    initial_fraction = _direct_bound_fraction(Kd=Kds, RT=RT, LsT=LsT)
+    asymptotic_fraction = _direct_bound_fraction(Kd=Kd3, RT=RT, LsT=LsT)
+    initial_coordinate = _equivalent_receptor_from_bound_fraction(
+        initial_fraction,
+        Kds=Kds,
+    )
+    asymptotic_coordinate = _equivalent_receptor_from_bound_fraction(
+        asymptotic_fraction,
+        Kds=Kds,
+    )
+    return (
+        min(initial_coordinate, asymptotic_coordinate),
+        max(initial_coordinate, asymptotic_coordinate),
+    )
+
+
 def _competitive_four_state_coefficients(
     ligand_total: float,
     *,
@@ -30,9 +76,14 @@ def _competitive_four_state_coefficients(
 ) -> np.ndarray:
     """Return quintic coefficients for the four-state competitive model.
 
-    The coefficients are ported from the legacy implementation. The total model
-    should call this with an effective ``Kd`` of ``(1 + N) * Kd`` rather than
-    maintaining a separate duplicated coefficient expression.
+    The polynomial variable is not literal free receptor in the four-state
+    model. It is the transformed coordinate ``r_equiv = Kds * FSB / (1 - FSB)``.
+    This coordinate lets the model recover ``FSB`` as
+    ``FSB = r_equiv / (Kds + r_equiv)`` after solving the quintic.
+
+    The total/nonspecific model should call this with an effective ``Kd`` of
+    ``(1 + N) * Kd`` rather than maintaining a duplicated coefficient
+    expression.
     """
     LT = float(ligand_total)
 
@@ -61,20 +112,22 @@ def _scaled_polynomial_residual(coefficients: np.ndarray, root: float) -> float:
 def _select_physical_root(
     coefficients: np.ndarray,
     *,
-    receptor_total: float,
+    lower_bound: float,
+    upper_bound: float,
     imaginary_tolerance: float = 1.0e-7,
     interval_tolerance: float = 1.0e-8,
 ) -> float:
-    """Select the physical free-receptor root from a quintic polynomial.
+    """Select the physical four-state transformed-coordinate root.
 
     The physical root must be effectively real and lie in the feasible interval
-    ``0 <= R <= RT``. Among feasible candidates, the root with the smallest
-    scaled polynomial residual is selected.
+    for ``r_equiv = Kds * FSB / (1 - FSB)``. This interval is not generally
+    ``0 <= r_equiv <= RT``. Among feasible candidates, the root with the
+    smallest scaled polynomial residual is selected.
     """
     roots = np.roots(coefficients)
-    interval_scale = max(1.0, abs(receptor_total))
-    lower = -interval_tolerance * interval_scale
-    upper = receptor_total + interval_tolerance * interval_scale
+    interval_scale = max(1.0, abs(lower_bound), abs(upper_bound))
+    lower = lower_bound - interval_tolerance * interval_scale
+    upper = upper_bound + interval_tolerance * interval_scale
 
     candidates: list[float] = []
     for root in roots:
@@ -83,12 +136,13 @@ def _select_physical_root(
         if imaginary_part > imaginary_tolerance * max(1.0, abs(real_part)):
             continue
         if lower <= real_part <= upper:
-            candidates.append(float(np.clip(real_part, 0.0, receptor_total)))
+            candidates.append(float(np.clip(real_part, lower_bound, upper_bound)))
 
     if not candidates:
         raise ValueError(
-            "No physical four-state root found in the feasible interval "
-            f"0 <= R <= {receptor_total}. Roots were: {roots!r}"
+            "No physical four-state root found in the feasible transformed "
+            f"coordinate interval {lower_bound} <= r_equiv <= {upper_bound}. "
+            f"Roots were: {roots!r}"
         )
 
     return min(
@@ -97,7 +151,7 @@ def _select_physical_root(
     )
 
 
-def _competitive_four_state_receptor_free(
+def _competitive_four_state_equivalent_receptor(
     ligand_total: np.ndarray,
     *,
     RT: float,
@@ -108,7 +162,13 @@ def _competitive_four_state_receptor_free(
 ) -> np.ndarray:
     ligand_total = np.asarray(ligand_total, dtype=float)
     flat_ligand_total = ligand_total.ravel()
-    receptor_free = []
+    lower_bound, upper_bound = _equivalent_receptor_bounds(
+        RT=RT,
+        LsT=LsT,
+        Kds=Kds,
+        Kd3=Kd3,
+    )
+    equivalent_receptor = []
 
     for concentration in flat_ligand_total:
         coefficients = _competitive_four_state_coefficients(
@@ -119,11 +179,15 @@ def _competitive_four_state_receptor_free(
             Kd=Kd,
             Kd3=Kd3,
         )
-        receptor_free.append(
-            _select_physical_root(coefficients, receptor_total=RT)
+        equivalent_receptor.append(
+            _select_physical_root(
+                coefficients,
+                lower_bound=lower_bound,
+                upper_bound=upper_bound,
+            )
         )
 
-    return np.asarray(receptor_free, dtype=float).reshape(ligand_total.shape)
+    return np.asarray(equivalent_receptor, dtype=float).reshape(ligand_total.shape)
 
 
 class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
@@ -155,7 +219,7 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
         Kd3: float,
         Kd: float,
     ) -> np.ndarray:
-        receptor_free = _competitive_four_state_receptor_free(
+        equivalent_receptor = _competitive_four_state_equivalent_receptor(
             x,
             RT=RT,
             LsT=LsT,
@@ -163,7 +227,7 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
             Kd=Kd,
             Kd3=Kd3,
         )
-        fraction_tracer_bound = receptor_free / (Kds + receptor_free)
+        fraction_tracer_bound = equivalent_receptor / (Kds + equivalent_receptor)
         return ymin + (ymax - ymin) * fraction_tracer_bound
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
@@ -201,7 +265,7 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
         N: float,
         Kd: float,
     ) -> np.ndarray:
-        receptor_free = _competitive_four_state_receptor_free(
+        equivalent_receptor = _competitive_four_state_equivalent_receptor(
             x,
             RT=RT,
             LsT=LsT,
@@ -209,7 +273,7 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
             Kd=(1.0 + N) * Kd,
             Kd3=Kd3,
         )
-        fraction_tracer_bound = receptor_free / (Kds + receptor_free)
+        fraction_tracer_bound = equivalent_receptor / (Kds + equivalent_receptor)
         return ymin + (ymax - ymin) * fraction_tracer_bound
 
     def guess(self, compound: CompoundData) -> dict[str, float]:

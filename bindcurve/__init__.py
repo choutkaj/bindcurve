@@ -2,6 +2,13 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from bindcurve.conversion import (
+    IC50ConversionResult,
+    cheng_prusoff,
+    cheng_prusoff_corrected,
+    coleska,
+    convert_ic50_to_kd,
+)
 from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting import FitCalculator, FitSettings, fit
 from bindcurve.modeling import (
@@ -19,6 +26,16 @@ from bindcurve.modeling import (
     ParameterSpec,
     get_model,
 )
+from bindcurve.plotting import (
+    CurvePoint,
+    plot_asymptotes,
+    plot_confidence_bands,
+    plot_curve_points,
+    plot_curves,
+    plot_fits,
+    plot_observations,
+    plot_residuals,
+)
 from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
 
 try:
@@ -33,6 +50,7 @@ __all__ = [
     "CompetitiveThreeStateSpecificKdModel",
     "CompetitiveThreeStateTotalKdModel",
     "CompoundData",
+    "CurvePoint",
     "DirectSimpleKdModel",
     "DirectSpecificKdModel",
     "DirectTotalKdModel",
@@ -43,11 +61,23 @@ __all__ = [
     "FitResult",
     "FitResults",
     "FitSettings",
+    "IC50ConversionResult",
     "IC50Model",
     "LogIC50Model",
     "ParameterEstimate",
     "ParameterSpec",
     "__version__",
+    "cheng_prusoff",
+    "cheng_prusoff_corrected",
+    "coleska",
+    "convert_ic50_to_kd",
     "fit",
     "get_model",
+    "plot_asymptotes",
+    "plot_confidence_bands",
+    "plot_curve_points",
+    "plot_curves",
+    "plot_fits",
+    "plot_observations",
+    "plot_residuals",
 ]
