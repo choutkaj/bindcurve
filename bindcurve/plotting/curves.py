@@ -311,6 +311,29 @@ def _fit_confidence_band(
     return y, y - band, y + band
 
 
+def _residual_table_for_fit(
+    table: pd.DataFrame,
+    fit: FitResult,
+    *,
+    aggregate: bool,
+) -> pd.DataFrame:
+    fit_table = table
+    if fit.experiment_id is not None:
+        fit_table = table[table["experiment_id"].astype(str) == str(fit.experiment_id)]
+
+    if fit_table.empty:
+        return pd.DataFrame(columns=["concentration", "response", "predicted", "residual"])
+
+    if aggregate:
+        fit_table = _aggregate_observations(fit_table, by_experiment=False)
+
+    plotted = fit_table.copy()
+    predicted = np.asarray(_evaluate_fit(fit, plotted["concentration"].to_numpy()), dtype=float)
+    plotted["predicted"] = predicted
+    plotted["residual"] = plotted["response"].to_numpy(dtype=float) - predicted
+    return plotted
+
+
 def plot_fits(
     data: DoseResponseData,
     results: FitResults,
@@ -412,6 +435,75 @@ def plot_confidence_bands(
     if xscale is not None:
         ax.set_xscale(xscale)
     _set_axis_labels(data, ax)
+    return ax
+
+
+def plot_residuals(
+    data: DoseResponseData,
+    results: FitResults,
+    *,
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    experiments: Iterable[str] | None = None,
+    aggregate: bool = True,
+    xscale: XScale = "log",
+    zero_line: bool = True,
+    label: str | None = None,
+    zero_line_kwargs: dict | None = None,
+    **scatter_kwargs,
+) -> Axes:
+    """Plot fit residuals against concentration on an existing axes.
+
+    Residuals are computed as ``observed - predicted``. By default, technical
+    replicates are aggregated in the same way as fitted observations.
+    """
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    compound = data.select_compound(resolved_compound_id)
+    table = _filter_experiments(compound.table, experiments)
+    fits = _matching_fits(
+        results,
+        compound_id=resolved_compound_id,
+        experiments=experiments,
+    )
+
+    if table.empty:
+        raise ValueError("No observations remain after filtering.")
+
+    default_scatter_kwargs = {"marker": "o"}
+    default_scatter_kwargs.update(scatter_kwargs)
+
+    for fit in fits:
+        residuals = _residual_table_for_fit(table, fit, aggregate=aggregate)
+        if residuals.empty:
+            continue
+
+        residual_label = label
+        if residual_label is None:
+            residual_label = str(fit.experiment_id or fit.model_name)
+
+        ax.scatter(
+            residuals["concentration"],
+            residuals["residual"],
+            label=residual_label,
+            **default_scatter_kwargs,
+        )
+
+    if zero_line:
+        default_zero_line_kwargs = {"linestyle": "--", "linewidth": 1.0, "alpha": 0.7}
+        default_zero_line_kwargs.update(zero_line_kwargs or {})
+        ax.axhline(0.0, **default_zero_line_kwargs)
+
+    if xscale is not None:
+        ax.set_xscale(xscale)
+    concentration_label = "concentration"
+    if data.concentration_unit is not None:
+        concentration_label = f"concentration ({data.concentration_unit})"
+    response_label = "residual"
+    if data.response_unit is not None:
+        response_label = f"residual ({data.response_unit})"
+    ax.set_xlabel(concentration_label)
+    ax.set_ylabel(response_label)
     return ax
 
 
