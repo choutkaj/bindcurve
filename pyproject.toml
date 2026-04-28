@@ -2,31 +2,39 @@
 requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "bindcurve"
-# This will determine the version dynamically using setuptools_scm
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
   "numpy",
   "pandas",
   "matplotlib",
   "lmfit",
 ]
-description = "A Python package for fitting and plotting of binding curves."
+description = "A Python package for fitting and plotting dose-response and binding curves."
 readme = "README.md"
 authors = [
   {name = "Jan Choutka", email = "jan.choutka@uochb.cas.cz"},
 ]
 license = "MIT"
 
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+
 [tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
-include = ["bindcurve"]
+include = ["bindcurve*"]
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F"]  # E: pycodestyle, F: pyflakes
-ignore = ["E501"]    # Example: ignore line length errors
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
