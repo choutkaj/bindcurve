@@ -9,6 +9,9 @@ def test_public_api_exports_new_objects():
     expected = {
         "BaseDoseResponseModel",
         "CompoundData",
+        "DirectSimpleKdModel",
+        "DirectSpecificKdModel",
+        "DirectTotalKdModel",
         "DoseResponseData",
         "EC50Model",
         "FitCalculator",
