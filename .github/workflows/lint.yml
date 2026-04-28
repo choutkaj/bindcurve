@@ -21,4 +21,4 @@ jobs:
         run: python -m pip install ruff
 
       - name: Run Ruff
-        run: ruff check bindcurve/datasets bindcurve/modeling bindcurve/fitting bindcurve/results tests
+        run: ruff check bindcurve/datasets bindcurve/modeling bindcurve/fitting bindcurve/results bindcurve/plotting tests
