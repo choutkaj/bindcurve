@@ -8,6 +8,10 @@ from bindcurve.modeling.binding import (
     DirectSpecificKdModel,
     DirectTotalKdModel,
 )
+from bindcurve.modeling.competitive import (
+    CompetitiveFourStateSpecificKdModel,
+    CompetitiveFourStateTotalKdModel,
+)
 from bindcurve.modeling.logistic import EC50Model, IC50Model, LogIC50Model
 
 _MODELS: dict[str, BaseDoseResponseModel] = {
@@ -21,6 +25,10 @@ _MODELS: dict[str, BaseDoseResponseModel] = {
         CompetitiveThreeStateSpecificKdModel()
     ),
     CompetitiveThreeStateTotalKdModel.name: CompetitiveThreeStateTotalKdModel(),
+    CompetitiveFourStateSpecificKdModel.name: (
+        CompetitiveFourStateSpecificKdModel()
+    ),
+    CompetitiveFourStateTotalKdModel.name: CompetitiveFourStateTotalKdModel(),
 }
 
 
