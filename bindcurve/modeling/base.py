@@ -18,6 +18,7 @@ class BaseDoseResponseModel(ABC):
     concentration_parameters: frozenset[str] = frozenset()
     log_concentration_parameters: frozenset[str] = frozenset()
     response_parameters: frozenset[str] = frozenset()
+    required_fixed_parameters: frozenset[str] = frozenset()
 
     @abstractmethod
     def evaluate(self, x: np.ndarray, **params: float) -> np.ndarray:
@@ -51,6 +52,13 @@ class BaseDoseResponseModel(ABC):
         unknown_bounds = set(bounds) - known_names
         if unknown_bounds:
             raise KeyError(f"Unknown bounded parameter(s): {sorted(unknown_bounds)}")
+
+        missing_required = self.required_fixed_parameters - set(fixed)
+        if missing_required:
+            raise ValueError(
+                "Missing required fixed parameter(s) for "
+                f"{self.name!r}: {sorted(missing_required)}"
+            )
 
         for spec in self.parameter_specs:
             value = fixed.get(spec.name, guesses.get(spec.name, spec.initial))

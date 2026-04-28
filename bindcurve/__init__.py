@@ -6,6 +6,9 @@ from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting import FitCalculator, FitSettings, fit
 from bindcurve.modeling import (
     BaseDoseResponseModel,
+    DirectSimpleKdModel,
+    DirectSpecificKdModel,
+    DirectTotalKdModel,
     EC50Model,
     IC50Model,
     LogIC50Model,
@@ -22,6 +25,9 @@ except PackageNotFoundError:  # pragma: no cover - useful in editable source tre
 __all__ = [
     "BaseDoseResponseModel",
     "CompoundData",
+    "DirectSimpleKdModel",
+    "DirectSpecificKdModel",
+    "DirectTotalKdModel",
     "DoseResponseData",
     "EC50Model",
     "FitCalculator",
