@@ -29,6 +29,7 @@ from bindcurve.modeling import (
 from bindcurve.plotting import (
     CurvePoint,
     plot_asymptotes,
+    plot_confidence_bands,
     plot_curve_points,
     plot_curves,
     plot_fits,
@@ -72,6 +73,7 @@ __all__ = [
     "fit",
     "get_model",
     "plot_asymptotes",
+    "plot_confidence_bands",
     "plot_curve_points",
     "plot_curves",
     "plot_fits",
