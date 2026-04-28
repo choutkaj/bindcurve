@@ -213,3 +213,78 @@ def test_plot_curve_points_rejects_invalid_dict_spec():
     with pytest.raises(ValueError, match="x"):
         bc.plot_curve_points(data, results, ax=ax, points=[{"label": "bad"}])
     plt.close(fig)
+
+
+def test_plot_confidence_bands_draws_fill_between_collection():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    returned_ax = bc.plot_confidence_bands(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        n_points=50,
+        confidence_level=0.90,
+    )
+
+    assert returned_ax is ax
+    assert len(ax.collections) == 1
+    assert ax.collections[0].get_label() == "exp1 90% confidence band"
+    assert ax.get_xscale() == "log"
+    plt.close(fig)
+
+
+def test_plot_curves_can_add_confidence_band():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    returned_ax = bc.plot_curves(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        confidence_band=True,
+        n_points=50,
+        confidence_band_kwargs={"label": "band"},
+    )
+
+    assert returned_ax is ax
+    assert len(ax.collections) >= 2
+    assert any(collection.get_label() == "band" for collection in ax.collections)
+    assert len(ax.lines) >= 1
+    plt.close(fig)
+
+
+def test_plot_confidence_bands_rejects_invalid_confidence_level():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    with pytest.raises(ValueError, match="confidence_level"):
+        bc.plot_confidence_bands(
+            data,
+            results,
+            ax=ax,
+            experiments=["exp1"],
+            confidence_level=1.5,
+        )
+    plt.close(fig)
+
+
+def test_plot_confidence_bands_requires_covariance_matrix():
+    data = make_data()
+    results = make_results(data)
+    results.successful()[0].lmfit_result.covar = None
+    fig, ax = plt.subplots()
+
+    with pytest.raises(ValueError, match="covariance"):
+        bc.plot_confidence_bands(
+            data,
+            results,
+            ax=ax,
+            experiments=["exp1"],
+        )
+    plt.close(fig)
