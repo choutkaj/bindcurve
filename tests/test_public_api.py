@@ -36,6 +36,7 @@ def test_public_api_exports_new_objects():
         "fit",
         "get_model",
         "plot_asymptotes",
+        "plot_confidence_bands",
         "plot_curve_points",
         "plot_curves",
         "plot_fits",
