@@ -22,6 +22,7 @@ license = "MIT"
 [project.optional-dependencies]
 test = [
   "pytest",
+  "scipy",
 ]
 
 [tool.setuptools_scm]
