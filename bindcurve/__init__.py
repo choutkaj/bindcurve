@@ -2,6 +2,13 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from bindcurve.conversion import (
+    IC50ConversionResult,
+    cheng_prusoff,
+    cheng_prusoff_corrected,
+    coleska,
+    convert_ic50_to_kd,
+)
 from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting import FitCalculator, FitSettings, fit
 from bindcurve.modeling import (
@@ -43,11 +50,16 @@ __all__ = [
     "FitResult",
     "FitResults",
     "FitSettings",
+    "IC50ConversionResult",
     "IC50Model",
     "LogIC50Model",
     "ParameterEstimate",
     "ParameterSpec",
     "__version__",
+    "cheng_prusoff",
+    "cheng_prusoff_corrected",
+    "coleska",
+    "convert_ic50_to_kd",
     "fit",
     "get_model",
 ]
