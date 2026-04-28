@@ -1,27 +1,294 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Literal
 
-if TYPE_CHECKING:
-    from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.axes import Axes
 
-    from bindcurve.datasets import DoseResponseData
-    from bindcurve.results import FitResults
+from bindcurve.datasets import DoseResponseData
+from bindcurve.modeling import get_model
+from bindcurve.results import FitResult, FitResults
+
+ErrorStyle = Literal["sem", "sd", None]
+XScale = Literal["log", "linear", None]
+
+
+def _get_axes(ax: Axes | None) -> Axes:
+    if ax is not None:
+        return ax
+    _, created_ax = plt.subplots()
+    return created_ax
+
+
+def _resolve_compound_id(data: DoseResponseData, compound_id: str | None) -> str:
+    if compound_id is not None:
+        return str(compound_id)
+    compounds = data.compounds
+    if len(compounds) != 1:
+        raise ValueError(
+            "compound_id must be provided when data contain multiple compounds."
+        )
+    return compounds[0]
+
+
+def _filter_experiments(
+    table: pd.DataFrame,
+    experiments: Iterable[str] | None,
+) -> pd.DataFrame:
+    if experiments is None:
+        return table
+    requested = {str(experiment) for experiment in experiments}
+    return table[table["experiment_id"].astype(str).isin(requested)]
+
+
+def _aggregate_observations(
+    table: pd.DataFrame,
+    *,
+    by_experiment: bool,
+) -> pd.DataFrame:
+    group_cols = ["concentration"]
+    if by_experiment:
+        group_cols = ["experiment_id", "concentration"]
+
+    grouped = table.groupby(group_cols, as_index=False)["response"]
+    aggregated = grouped.agg(response="mean", response_sd="std", n="count")
+    aggregated["response_sem"] = aggregated["response_sd"] / np.sqrt(aggregated["n"])
+    return aggregated.sort_values(group_cols)
+
+
+def _set_axis_labels(data: DoseResponseData, ax: Axes) -> None:
+    concentration_label = "concentration"
+    response_label = "response"
+    if data.concentration_unit is not None:
+        concentration_label = f"concentration ({data.concentration_unit})"
+    if data.response_unit is not None:
+        response_label = f"response ({data.response_unit})"
+    ax.set_xlabel(concentration_label)
+    ax.set_ylabel(response_label)
+
+
+def plot_observations(
+    data: DoseResponseData,
+    *,
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    aggregate: bool = True,
+    by_experiment: bool = True,
+    error: ErrorStyle = "sem",
+    experiments: Iterable[str] | None = None,
+    label: str | None = None,
+    **errorbar_kwargs,
+) -> Axes:
+    """Plot dose-response observations onto an existing Matplotlib axes.
+
+    Parameters
+    ----------
+    data
+        Dose-response data to plot.
+    compound_id
+        Compound to plot. Required when ``data`` contain multiple compounds.
+    ax
+        Existing Matplotlib axes. If omitted, a new figure and axes are created.
+    aggregate
+        If ``True``, responses are averaged before plotting. If ``False``, raw
+        observations are plotted without error bars.
+    by_experiment
+        If aggregating, aggregate separately within each independent experiment.
+    error
+        Error bar to show for aggregated observations. Use ``"sem"``, ``"sd"``,
+        or ``None``.
+    experiments
+        Optional subset of experiment identifiers to plot.
+    label
+        Optional label override. If omitted and plotting by experiment, each
+        experiment is labeled separately.
+    **errorbar_kwargs
+        Additional keyword arguments passed to ``Axes.errorbar``.
+    """
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    compound = data.select_compound(resolved_compound_id)
+    table = _filter_experiments(compound.table, experiments)
+
+    if table.empty:
+        raise ValueError("No observations remain after filtering.")
+
+    default_kwargs = {"fmt": "o", "linestyle": "none"}
+    default_kwargs.update(errorbar_kwargs)
+
+    if not aggregate:
+        ax.errorbar(
+            table["concentration"],
+            table["response"],
+            yerr=None,
+            label=label,
+            **default_kwargs,
+        )
+        _set_axis_labels(data, ax)
+        return ax
+
+    aggregated = _aggregate_observations(table, by_experiment=by_experiment)
+    groups: Iterable[tuple[str | None, pd.DataFrame]]
+    if by_experiment:
+        groups = aggregated.groupby("experiment_id", sort=True)
+    else:
+        groups = [(None, aggregated)]
+
+    for experiment_id, group in groups:
+        yerr = None
+        if error == "sem":
+            yerr = group["response_sem"].fillna(0.0)
+        elif error == "sd":
+            yerr = group["response_sd"].fillna(0.0)
+        elif error is not None:
+            raise ValueError("error must be 'sem', 'sd', or None.")
+
+        plot_label = label
+        if plot_label is None and by_experiment:
+            plot_label = str(experiment_id)
+
+        ax.errorbar(
+            group["concentration"],
+            group["response"],
+            yerr=yerr,
+            label=plot_label,
+            **default_kwargs,
+        )
+
+    _set_axis_labels(data, ax)
+    return ax
+
+
+def _make_x_grid(
+    data: DoseResponseData,
+    *,
+    compound_id: str,
+    x_grid: np.ndarray | None,
+    n_points: int,
+    xscale: XScale,
+) -> np.ndarray:
+    if x_grid is not None:
+        return np.asarray(x_grid, dtype=float)
+
+    compound = data.select_compound(compound_id)
+    xmin = float(compound.table["concentration"].min())
+    xmax = float(compound.table["concentration"].max())
+    if xscale == "log":
+        return np.logspace(np.log10(xmin), np.log10(xmax), n_points)
+    return np.linspace(xmin, xmax, n_points)
+
+
+def _matching_fits(
+    results: FitResults,
+    *,
+    compound_id: str,
+    experiments: Iterable[str] | None,
+) -> list[FitResult]:
+    requested = None if experiments is None else {str(experiment) for experiment in experiments}
+    fits = []
+    for fit in results.successful():
+        if fit.compound_id != compound_id:
+            continue
+        if requested is not None and str(fit.experiment_id) not in requested:
+            continue
+        fits.append(fit)
+    if not fits:
+        raise ValueError("No successful fits match the requested filters.")
+    return fits
+
+
+def plot_fits(
+    data: DoseResponseData,
+    results: FitResults,
+    *,
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    experiments: Iterable[str] | None = None,
+    x_grid: np.ndarray | None = None,
+    n_points: int = 300,
+    xscale: XScale = "log",
+    label: str | None = None,
+    **plot_kwargs,
+) -> Axes:
+    """Plot fitted dose-response curves onto an existing Matplotlib axes."""
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    grid = _make_x_grid(
+        data,
+        compound_id=resolved_compound_id,
+        x_grid=x_grid,
+        n_points=n_points,
+        xscale=xscale,
+    )
+
+    fits = _matching_fits(
+        results,
+        compound_id=resolved_compound_id,
+        experiments=experiments,
+    )
+
+    for fit in fits:
+        model = get_model(fit.model_name)
+        x_transformed = model.transform_x(grid)
+        parameters = {
+            name: estimate.value for name, estimate in fit.parameters.items()
+        }
+        y = model.evaluate(x_transformed, **parameters)
+
+        plot_label = label
+        if plot_label is None:
+            plot_label = str(fit.experiment_id or fit.model_name)
+
+        ax.plot(grid, y, label=plot_label, **plot_kwargs)
+
+    if xscale is not None:
+        ax.set_xscale(xscale)
+    _set_axis_labels(data, ax)
+    return ax
 
 
 def plot_curves(
     data: DoseResponseData,
     results: FitResults,
     *,
+    compound_id: str | None = None,
     ax: Axes | None = None,
-):
-    """Plot dose-response data and fitted curves.
+    experiments: Iterable[str] | None = None,
+    aggregate: bool = True,
+    by_experiment: bool = True,
+    error: ErrorStyle = "sem",
+    x_grid: np.ndarray | None = None,
+    n_points: int = 300,
+    xscale: XScale = "log",
+    observation_kwargs: dict | None = None,
+    fit_kwargs: dict | None = None,
+) -> Axes:
+    """Plot observations and fitted curves onto one Matplotlib axes."""
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
 
-    This is a placeholder for the future plotting API. It exists so that the
-    package namespace is ready for plotting, but fitting and result semantics can
-    stabilize before plotting behavior is designed in detail.
-    """
-    raise NotImplementedError(
-        "plot_curves is not implemented yet. Plotting will be added after the "
-        "core fitting API stabilizes."
+    plot_observations(
+        data,
+        compound_id=resolved_compound_id,
+        ax=ax,
+        aggregate=aggregate,
+        by_experiment=by_experiment,
+        error=error,
+        experiments=experiments,
+        **(observation_kwargs or {}),
     )
+    plot_fits(
+        data,
+        results,
+        compound_id=resolved_compound_id,
+        ax=ax,
+        experiments=experiments,
+        x_grid=x_grid,
+        n_points=n_points,
+        xscale=xscale,
+        **(fit_kwargs or {}),
+    )
+    return ax

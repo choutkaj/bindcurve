@@ -26,6 +26,7 @@ from bindcurve.modeling import (
     ParameterSpec,
     get_model,
 )
+from bindcurve.plotting import plot_curves, plot_fits, plot_observations
 from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
 
 try:
@@ -62,4 +63,7 @@ __all__ = [
     "convert_ic50_to_kd",
     "fit",
     "get_model",
+    "plot_curves",
+    "plot_fits",
+    "plot_observations",
 ]
