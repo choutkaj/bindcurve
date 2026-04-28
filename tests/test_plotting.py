@@ -112,3 +112,104 @@ def test_plot_curves_can_select_experiment_subset():
 
     assert len(ax.lines) >= 1
     plt.close(fig)
+
+
+def test_plot_asymptotes_draws_horizontal_ymin_ymax_lines():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    returned_ax = bc.plot_asymptotes(data, results, ax=ax, experiments=["exp1"])
+
+    assert returned_ax is ax
+    assert len(ax.lines) == 2
+    assert {line.get_label() for line in ax.lines} == {"exp1 ymin", "exp1 ymax"}
+    assert {line.get_linestyle() for line in ax.lines} == {"--"}
+    plt.close(fig)
+
+
+def test_plot_asymptotes_can_plot_single_parameter_without_labels():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    bc.plot_asymptotes(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        parameters=("ymax",),
+        label=False,
+    )
+
+    assert len(ax.lines) == 1
+    assert ax.lines[0].get_label().startswith("_child")
+    plt.close(fig)
+
+
+def test_plot_curve_points_draws_points_and_annotations():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    returned_ax = bc.plot_curve_points(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        points=[(1.5, "IC50")],
+    )
+
+    assert returned_ax is ax
+    assert len(ax.collections) == 1
+    assert [text.get_text() for text in ax.texts] == ["IC50"]
+    plt.close(fig)
+
+
+def test_plot_curve_points_accepts_dict_specs_and_appends_experiment_names():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    bc.plot_curve_points(
+        data,
+        results,
+        ax=ax,
+        points=[{"x": 1.5, "label": "point"}],
+    )
+
+    labels = {text.get_text() for text in ax.texts}
+    assert labels == {"point (exp1)", "point (exp2)"}
+    assert len(ax.collections) == 2
+    plt.close(fig)
+
+
+def test_plot_curves_can_add_asymptotes_and_curve_points():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    bc.plot_curves(
+        data,
+        results,
+        ax=ax,
+        experiments=["exp1"],
+        show_asymptotes=True,
+        curve_points=[(1.5, "IC50")],
+        n_points=50,
+    )
+
+    assert len(ax.lines) >= 3
+    assert len(ax.texts) == 1
+    assert ax.texts[0].get_text() == "IC50"
+    plt.close(fig)
+
+
+def test_plot_curve_points_rejects_invalid_dict_spec():
+    data = make_data()
+    results = make_results(data)
+    fig, ax = plt.subplots()
+
+    with pytest.raises(ValueError, match="x"):
+        bc.plot_curve_points(data, results, ax=ax, points=[{"label": "bad"}])
+    plt.close(fig)
