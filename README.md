@@ -4,84 +4,129 @@
 [![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
 [![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 
-<!-- [![Pylint](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/pylint.yml) -->
-<!-- [![Ruff](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/lint.yml) -->
-<!-- ![PyPI - Downloads](https://img.shields.io/pypi/dm/bindcurve) -->
-
-
-
-This repository contains `bindcurve` - a lightweight Python package for fitting and plotting of binding curves (dose-response curves). It contains the logistic model for fitting $`\text{IC}_{50}`$ or $`\text{logIC}_{50}`$ and also  exact polynomial models for fitting $K_d$ from both direct and competitive binding experiments. Fixing lower and upper asymptotes of the models during fitting is supported, as well as fixing the slope in the logistic model. Additionally, $`\text{IC}_{50}`$ values can be converted to $K_d$ using conversion models.
-
-`bindcurve` is intended as a simple tool for Python-based workflows in Jupyter notebooks or similar tools. Even if you have never used Python before, you can fit your binding curve in less than 5 lines of code. The results can be conveniently plotted with another few lines of code or simply reported in a formatted output.
-
+`bindcurve` is an lmfit-backed Python package for fitting dose-response and binding curves.
 
 > [!NOTE]
-> Bindcurve is under development. Expect breaking changes to the API in future releases.
+> `bindcurve` is undergoing a major object-oriented refactor. Expect breaking API changes while the new architecture stabilizes.
 
+## Current scope
 
-## Documentation
-The `bindcurve` documentation can be found at https://choutkaj.github.io/bindcurve/.
+The current refactored API focuses on dose-response data and one implemented model:
+
+- `DoseResponseData`
+- `IC50Model`
+- generic `FitCalculator`
+- structured `FitResults`
+
+Additional dose-response, direct-binding, competitive-binding, and conversion models will be added after the core architecture is tested and stable.
 
 ## Installation
-`bindcurve` is installed from pip using
 
-```python
+```bash
 pip install bindcurve
 ```
 
-If you want to upgrade to the latest version, use
+For local development:
 
-```python
-pip install --upgrade bindcurve
+```bash
+python -m pip install -e .[test]
+pytest
 ```
 
 ## Basic usage
-`bindcurve` contains functions that are executed directly on Pandas DataFrames, which are used to store the data. The following example demonstrates the most basic usage. See the tutorials for more instructions and examples.
 
-### Fitting
+`bindcurve` expects dose-response observations in long-form data:
+
+```text
+compound_id | experiment_id | concentration | replicate_id | response
+```
+
+Only these columns are required:
+
+```text
+compound_id | concentration | response
+```
+
+If `experiment_id` or `replicate_id` is missing, `bindcurve` fills defaults.
+
 ```python
-# Import bindcurve
+import pandas as pd
 import bindcurve as bc
 
-# Load data from csv file
-input_data = bc.load_csv("path/to/your/file.csv")
+raw = pd.DataFrame(
+    {
+        "compound_id": ["cmpd_a", "cmpd_a", "cmpd_a", "cmpd_a"],
+        "experiment_id": ["exp1", "exp1", "exp1", "exp1"],
+        "concentration": [0.01, 0.1, 1.0, 10.0],
+        "response": [98.0, 85.0, 45.0, 5.0],
+    }
+)
 
-# This DataFrame will now contain preprocessed input data
-print(input_data)
+data = bc.DoseResponseData.from_dataframe(
+    raw,
+    concentration_unit="uM",
+    response_unit="percent",
+)
 
-# Fit IC50 from your data
-IC50_results = bc.fit_50(input_data, model="IC50")
-print(IC50_results)
+results = bc.fit(
+    data,
+    model="ic50",
+    fixed={"ymin": 0.0, "ymax": 100.0},
+)
 
-# Fit Kd from your data
-Kd_results = bc.fit_Kd_competition(input_data, model="comp_3st_specific", RT=0.05, LsT=0.005, Kds=0.0245)
-print(Kd_results)
+print(results.fits_to_dataframe())
+print(results.summary_to_dataframe())
 ```
-### Plotting
+
+## Default fitting strategy
+
+The default strategy is `per_experiment`.
+
+For each compound, `bindcurve`:
+
+1. splits observations by independent experiment;
+2. aggregates technical replicates at each concentration;
+3. fits one curve per independent experiment;
+4. summarizes fitted parameters across independent experiments.
+
+This avoids treating technical replicates as independent biological repeats.
+
+Alternative strategies are available through `FitSettings`:
+
 ```python
-# Import matplotlib
-import matplotlib.pyplot as plt
-
-# Initiate the plot
-plt.figure(figsize=(6, 5))
-
-# Plot your curves from the IC50_results dataframe
-bc.plot(input_data, IC50_results)
-
-# Just use matplotlib to set up and show the plot 
-plt.xlabel("your x label")
-plt.ylabel("your y label")
-plt.xscale("log")
-plt.legend()
-plt.show()
+bc.FitSettings(strategy="per_experiment")
+bc.FitSettings(strategy="pooled")
+bc.FitSettings(strategy="per_compound_summary")
 ```
 
+## Wide-format data
 
+Wide assay tables can be normalized with `from_wide_dataframe`:
+
+```python
+data = bc.DoseResponseData.from_wide_dataframe(
+    df,
+    compound_col="compound",
+    concentration_col="dose",
+    experiment_col="experiment",
+    replicate_cols=["rep_1", "rep_2", "rep_3"],
+)
+```
+
+## Units
+
+`bindcurve` is unitless by computation and unit-aware by annotation.
+
+The user is responsible for providing all concentration-like values in consistent units. Fitted concentration-like parameters are reported in the same unit label as the input concentrations.
+
+## Architecture
+
+See [`architecture.md`](architecture.md) for the intended design.
 
 ## How to cite
 
-`bindcurve` has a DOI available from Zenodo (see the badge at the top of this page). Please use the DOI or cite this repository directly.
+`bindcurve` has a DOI available from Zenodo. Please use the DOI or cite this repository directly.
 
 ## License
 
-`bindcurve` is published under the MIT license. 
+`bindcurve` is published under the MIT license.
