@@ -8,6 +8,8 @@ import bindcurve as bc
 def test_public_api_exports_new_objects():
     expected = {
         "BaseDoseResponseModel",
+        "CompetitiveFourStateSpecificKdModel",
+        "CompetitiveFourStateTotalKdModel",
         "CompetitiveThreeStateSpecificKdModel",
         "CompetitiveThreeStateTotalKdModel",
         "CompoundData",
