@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from bindcurve.modeling.base import BaseDoseResponseModel
 from bindcurve.modeling.binding import (
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
     DirectSimpleKdModel,
     DirectSpecificKdModel,
     DirectTotalKdModel,
@@ -15,6 +17,10 @@ _MODELS: dict[str, BaseDoseResponseModel] = {
     DirectSimpleKdModel.name: DirectSimpleKdModel(),
     DirectSpecificKdModel.name: DirectSpecificKdModel(),
     DirectTotalKdModel.name: DirectTotalKdModel(),
+    CompetitiveThreeStateSpecificKdModel.name: (
+        CompetitiveThreeStateSpecificKdModel()
+    ),
+    CompetitiveThreeStateTotalKdModel.name: CompetitiveThreeStateTotalKdModel(),
 }
 
 
