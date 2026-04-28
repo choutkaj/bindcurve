@@ -108,10 +108,11 @@ class FitCalculator:
         fixed: Mapping[str, float] | None = None,
         bounds: Mapping[str, tuple[float | None, float | None]] | None = None,
     ) -> FitResult:
-        x, y = compound.as_xy(
+        concentration, y = compound.as_xy(
             aggregate_replicates=self.settings.strategy != "pooled",
             aggregation=self.settings.replicate_aggregation,
         )
+        x = self.model.transform_x(concentration)
 
         guesses = self.model.guess(compound)
         parameters = self.model.make_lmfit_parameters(

@@ -4,7 +4,14 @@ from importlib.metadata import PackageNotFoundError, version
 
 from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting import FitCalculator, FitSettings, fit
-from bindcurve.modeling import BaseDoseResponseModel, IC50Model, ParameterSpec, get_model
+from bindcurve.modeling import (
+    BaseDoseResponseModel,
+    EC50Model,
+    IC50Model,
+    LogIC50Model,
+    ParameterSpec,
+    get_model,
+)
 from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
 
 try:
@@ -16,12 +23,14 @@ __all__ = [
     "BaseDoseResponseModel",
     "CompoundData",
     "DoseResponseData",
+    "EC50Model",
     "FitCalculator",
     "FitMetrics",
     "FitResult",
     "FitResults",
     "FitSettings",
     "IC50Model",
+    "LogIC50Model",
     "ParameterEstimate",
     "ParameterSpec",
     "__version__",
