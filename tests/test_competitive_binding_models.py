@@ -26,7 +26,16 @@ def receptor_free_three_state(ligand_total, *, RT, LsT, Kds, Kd, factor=1.0):
     return -(a / 3.0) + (2.0 / 3.0) * np.sqrt(discriminant) * np.cos(theta / 3.0)
 
 
-def comp_specific_curve(x, *, ymin=5.0, ymax=95.0, RT=0.05, LsT=0.005, Kds=0.02, Kd=1.6):
+def comp_specific_curve(
+    x,
+    *,
+    ymin=5.0,
+    ymax=95.0,
+    RT=0.05,
+    LsT=0.005,
+    Kds=0.02,
+    Kd=1.6,
+):
     receptor_free = receptor_free_three_state(x, RT=RT, LsT=LsT, Kds=Kds, Kd=Kd)
     fraction_tracer_bound = receptor_free / (Kds + receptor_free)
     return ymin + (ymax - ymin) * fraction_tracer_bound
@@ -58,7 +67,8 @@ def comp_total_curve(
 def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
     concentrations = np.logspace(-3, 2, 22)
     rows = []
-    for experiment_id, multiplier in {"exp1": 0.95, "exp2": 1.00, "exp3": 1.05}.items():
+    multipliers = {"exp1": 0.95, "exp2": 1.00, "exp3": 1.05}
+    for experiment_id, multiplier in multipliers.items():
         for concentration in concentrations:
             response = curve(concentration * multiplier)
             for replicate_id, noise in enumerate([-0.08, 0.0, 0.08], start=1):
@@ -94,7 +104,13 @@ def test_comp_3st_specific_recovers_kd_from_synthetic_data():
     results = bc.fit(
         data,
         model="comp_3st_specific",
-        fixed={"ymin": 5.0, "ymax": 95.0, "RT": 0.05, "LsT": 0.005, "Kds": 0.02},
+        fixed={
+            "ymin": 5.0,
+            "ymax": 95.0,
+            "RT": 0.05,
+            "LsT": 0.005,
+            "Kds": 0.02,
+        },
     )
     fits = results.fits_to_dataframe()
 
@@ -148,5 +164,11 @@ def test_comp_3st_total_requires_nonspecific_constant():
         bc.fit(
             data,
             model="comp_3st_total",
-            fixed={"ymin": 4.0, "ymax": 90.0, "RT": 0.05, "LsT": 0.005, "Kds": 0.02},
+            fixed={
+                "ymin": 4.0,
+                "ymax": 90.0,
+                "RT": 0.05,
+                "LsT": 0.005,
+                "Kds": 0.02,
+            },
         )
