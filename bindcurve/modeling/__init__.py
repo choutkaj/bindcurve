@@ -2,6 +2,8 @@
 
 from bindcurve.modeling.base import BaseDoseResponseModel
 from bindcurve.modeling.binding import (
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
     DirectSimpleKdModel,
     DirectSpecificKdModel,
     DirectTotalKdModel,
@@ -12,6 +14,8 @@ from bindcurve.modeling.registry import get_model
 
 __all__ = [
     "BaseDoseResponseModel",
+    "CompetitiveThreeStateSpecificKdModel",
+    "CompetitiveThreeStateTotalKdModel",
     "DirectSimpleKdModel",
     "DirectSpecificKdModel",
     "DirectTotalKdModel",
