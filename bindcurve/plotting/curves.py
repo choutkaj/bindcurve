@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from statistics import NormalDist
 from typing import Literal
 
 import matplotlib.pyplot as plt
@@ -211,12 +212,20 @@ def _matching_fits(
     return fits
 
 
-def _evaluate_fit(fit: FitResult, x: np.ndarray | float) -> np.ndarray:
+def _evaluate_model(
+    fit: FitResult,
+    x: np.ndarray | float,
+    parameters: dict[str, float],
+) -> np.ndarray:
     model = get_model(fit.model_name)
     x_array = np.asarray(x, dtype=float)
     x_transformed = model.transform_x(x_array)
-    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
     return model.evaluate(x_transformed, **parameters)
+
+
+def _evaluate_fit(fit: FitResult, x: np.ndarray | float) -> np.ndarray:
+    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
+    return _evaluate_model(fit, x, parameters)
 
 
 def _coerce_curve_points(points: Iterable[CurvePointSpec]) -> list[CurvePoint]:
@@ -238,6 +247,68 @@ def _coerce_curve_points(points: Iterable[CurvePointSpec]) -> list[CurvePoint]:
         else:
             coerced.append(CurvePoint(x=float(point), label=None))
     return coerced
+
+
+def _confidence_multiplier(confidence_level: float) -> float:
+    confidence_level = float(confidence_level)
+    if not 0.0 < confidence_level < 1.0:
+        raise ValueError("confidence_level must be between 0 and 1.")
+    return NormalDist().inv_cdf(0.5 + confidence_level / 2.0)
+
+
+def _get_lmfit_covariance(fit: FitResult) -> tuple[list[str], np.ndarray]:
+    lmfit_result = fit.lmfit_result
+    if lmfit_result is None:
+        raise ValueError("Cannot plot confidence bands without lmfit_result.")
+
+    covariance = getattr(lmfit_result, "covar", None)
+    if covariance is None:
+        raise ValueError("Cannot plot confidence bands without a covariance matrix.")
+
+    variable_names = list(getattr(lmfit_result, "var_names", []))
+    if not variable_names:
+        raise ValueError("Cannot plot confidence bands without lmfit variable names.")
+
+    covariance_array = np.asarray(covariance, dtype=float)
+    expected_shape = (len(variable_names), len(variable_names))
+    if covariance_array.shape != expected_shape:
+        raise ValueError(
+            "Covariance matrix shape does not match lmfit variable names: "
+            f"{covariance_array.shape} != {expected_shape}."
+        )
+    return variable_names, covariance_array
+
+
+def _fit_confidence_band(
+    fit: FitResult,
+    x: np.ndarray,
+    *,
+    confidence_level: float,
+    finite_difference_step: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    variable_names, covariance = _get_lmfit_covariance(fit)
+    z_value = _confidence_multiplier(confidence_level)
+    x = np.asarray(x, dtype=float)
+    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
+    y = np.asarray(_evaluate_model(fit, x, parameters), dtype=float)
+
+    jacobian = np.empty((x.size, len(variable_names)), dtype=float)
+    for index, name in enumerate(variable_names):
+        if name not in parameters:
+            raise ValueError(f"Fit result is missing varying parameter {name!r}.")
+        value = parameters[name]
+        step = finite_difference_step * max(1.0, abs(value))
+        plus_parameters = dict(parameters)
+        minus_parameters = dict(parameters)
+        plus_parameters[name] = value + step
+        minus_parameters[name] = value - step
+        y_plus = np.asarray(_evaluate_model(fit, x, plus_parameters), dtype=float)
+        y_minus = np.asarray(_evaluate_model(fit, x, minus_parameters), dtype=float)
+        jacobian[:, index] = (y_plus - y_minus) / (2.0 * step)
+
+    variance = np.einsum("ij,jk,ik->i", jacobian, covariance, jacobian)
+    band = z_value * np.sqrt(np.maximum(variance, 0.0))
+    return y, y - band, y + band
 
 
 def plot_fits(
@@ -278,6 +349,65 @@ def plot_fits(
             plot_label = str(fit.experiment_id or fit.model_name)
 
         ax.plot(grid, y, label=plot_label, **plot_kwargs)
+
+    if xscale is not None:
+        ax.set_xscale(xscale)
+    _set_axis_labels(data, ax)
+    return ax
+
+
+def plot_confidence_bands(
+    data: DoseResponseData,
+    results: FitResults,
+    *,
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    experiments: Iterable[str] | None = None,
+    x_grid: np.ndarray | None = None,
+    n_points: int = 300,
+    xscale: XScale = "log",
+    confidence_level: float = 0.95,
+    finite_difference_step: float = 1.0e-6,
+    label: str | None = None,
+    **fill_between_kwargs,
+) -> Axes:
+    """Plot approximate covariance-based confidence bands for fitted curves."""
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    grid = _make_x_grid(
+        data,
+        compound_id=resolved_compound_id,
+        x_grid=x_grid,
+        n_points=n_points,
+        xscale=xscale,
+    )
+    fits = _matching_fits(
+        results,
+        compound_id=resolved_compound_id,
+        experiments=experiments,
+    )
+
+    default_kwargs = {"alpha": 0.2, "linewidth": 0.0}
+    default_kwargs.update(fill_between_kwargs)
+
+    for fit in fits:
+        _, lower, upper = _fit_confidence_band(
+            fit,
+            grid,
+            confidence_level=confidence_level,
+            finite_difference_step=finite_difference_step,
+        )
+
+        band_kwargs = dict(default_kwargs)
+        if "label" not in band_kwargs:
+            band_label = label
+            if band_label is None:
+                experiment = fit.experiment_id or fit.model_name
+                percent = 100.0 * confidence_level
+                band_label = f"{experiment} {percent:g}% confidence band"
+            band_kwargs["label"] = band_label
+
+        ax.fill_between(grid, lower, upper, **band_kwargs)
 
     if xscale is not None:
         ax.set_xscale(xscale)
@@ -396,10 +526,13 @@ def plot_curves(
     x_grid: np.ndarray | None = None,
     n_points: int = 300,
     xscale: XScale = "log",
+    confidence_band: bool = False,
+    confidence_level: float = 0.95,
     show_asymptotes: bool = False,
     curve_points: Iterable[CurvePointSpec] | None = None,
     observation_kwargs: dict | None = None,
     fit_kwargs: dict | None = None,
+    confidence_band_kwargs: dict | None = None,
     asymptote_kwargs: dict | None = None,
     curve_point_kwargs: dict | None = None,
 ) -> Axes:
@@ -417,6 +550,19 @@ def plot_curves(
         experiments=experiments,
         **(observation_kwargs or {}),
     )
+    if confidence_band:
+        plot_confidence_bands(
+            data,
+            results,
+            compound_id=resolved_compound_id,
+            ax=ax,
+            experiments=experiments,
+            x_grid=x_grid,
+            n_points=n_points,
+            xscale=xscale,
+            confidence_level=confidence_level,
+            **(confidence_band_kwargs or {}),
+        )
     plot_fits(
         data,
         results,
