@@ -199,7 +199,13 @@ def test_comp_4st_specific_requires_kd3():
         bc.fit(
             data,
             model="comp_4st_specific",
-            fixed={"ymin": 5.0, "ymax": 95.0, "RT": 0.05, "LsT": 0.005, "Kds": 0.02},
+            fixed={
+                "ymin": 5.0,
+                "ymax": 95.0,
+                "RT": 0.05,
+                "LsT": 0.005,
+                "Kds": 0.02,
+            },
         )
 
 
