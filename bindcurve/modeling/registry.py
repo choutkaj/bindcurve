@@ -17,7 +17,9 @@ _MODELS: dict[str, BaseDoseResponseModel] = {
     DirectSimpleKdModel.name: DirectSimpleKdModel(),
     DirectSpecificKdModel.name: DirectSpecificKdModel(),
     DirectTotalKdModel.name: DirectTotalKdModel(),
-    CompetitiveThreeStateSpecificKdModel.name: CompetitiveThreeStateSpecificKdModel(),
+    CompetitiveThreeStateSpecificKdModel.name: (
+        CompetitiveThreeStateSpecificKdModel()
+    ),
     CompetitiveThreeStateTotalKdModel.name: CompetitiveThreeStateTotalKdModel(),
 }
 
