@@ -69,7 +69,9 @@ class FitCalculator:
         )
         return FitResults(fits=fits, summaries=summaries)
 
-    def _make_fit_inputs(self, compound: CompoundData) -> list[tuple[str | None, CompoundData]]:
+    def _make_fit_inputs(
+        self, compound: CompoundData
+    ) -> list[tuple[str | None, CompoundData]]:
         if self.settings.strategy == "per_experiment":
             return [
                 (experiment_id, compound.select_experiment(experiment_id))

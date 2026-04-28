@@ -28,9 +28,11 @@ class CompoundData:
         """Return sorted unique concentrations for this compound."""
         return np.sort(self.table["concentration"].unique())
 
-    def select_experiment(self, experiment_id: str) -> "CompoundData":
+    def select_experiment(self, experiment_id: str) -> CompoundData:
         """Return a view containing only one independent experiment."""
-        selected = self.table[self.table["experiment_id"].astype(str) == str(experiment_id)]
+        selected = self.table[
+            self.table["experiment_id"].astype(str) == str(experiment_id)
+        ]
         if selected.empty:
             raise KeyError(
                 f"Experiment {experiment_id!r} not found for compound "
@@ -108,7 +110,7 @@ class DoseResponseData:
         concentration_unit: str | None = None,
         response_unit: str | None = None,
         metadata: dict | None = None,
-    ) -> "DoseResponseData":
+    ) -> DoseResponseData:
         """Create a validated data object from a long-form DataFrame."""
         return cls(
             table=df,
@@ -129,7 +131,7 @@ class DoseResponseData:
         concentration_unit: str | None = None,
         response_unit: str | None = None,
         metadata: dict | None = None,
-    ) -> "DoseResponseData":
+    ) -> DoseResponseData:
         """Create data from a wide table with one column per replicate."""
         id_vars = [compound_col, concentration_col]
         if experiment_col is not None:
@@ -167,7 +169,7 @@ class DoseResponseData:
         response_unit: str | None = None,
         metadata: dict | None = None,
         **read_csv_kwargs,
-    ) -> "DoseResponseData":
+    ) -> DoseResponseData:
         """Create data from a long-form CSV file."""
         df = pd.read_csv(path, **read_csv_kwargs)
         return cls.from_dataframe(
@@ -184,7 +186,9 @@ class DoseResponseData:
 
     def select_compound(self, compound_id: str) -> CompoundData:
         """Return a view containing observations for one compound."""
-        selected = self.table[self.table["compound_id"].astype(str) == str(compound_id)]
+        selected = self.table[
+            self.table["compound_id"].astype(str) == str(compound_id)
+        ]
         if selected.empty:
             raise KeyError(f"Compound {compound_id!r} not found.")
         return CompoundData(

@@ -39,4 +39,6 @@ def get_model(name: str) -> BaseDoseResponseModel:
         return _MODELS[normalized]
     except KeyError as exc:
         available = ", ".join(sorted(_MODELS))
-        raise KeyError(f"Unknown model {name!r}. Available models: {available}") from exc
+        raise KeyError(
+            f"Unknown model {name!r}. Available models: {available}"
+        ) from exc

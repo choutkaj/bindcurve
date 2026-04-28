@@ -1,0 +1,31 @@
+include README.md
+include LICENSE
+include CITATION.cff
+include architecture.md
+include .python-version
+
+recursive-include bindcurve *.py
+recursive-include tests *.py
+
+prune .github
+prune algebra
+prune assets
+prune docs
+prune logo
+prune quarto_website
+prune tutorials
+
+prune __pycache__
+prune .pytest_cache
+prune .ruff_cache
+prune .uv-cache
+prune .venv
+prune .venv-smoke
+
+global-exclude *.py[cod]
+global-exclude *.ipynb
+global-exclude .DS_Store
+global-exclude *.svg
+global-exclude *.png
+global-exclude *.pptx
+global-exclude *.xlsx

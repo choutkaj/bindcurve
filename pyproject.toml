@@ -1,28 +1,59 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
+requires = ["setuptools>=80", "setuptools-scm[simple]>=9.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "bindcurve"
 dynamic = ["version"]
 requires-python = ">=3.10"
+description = "A Python package for fitting and plotting dose-response curves."
+readme = "README.md"
+keywords = ["dose-response", "curve-fitting", "binding", "biochemistry", "lmfit"]
+authors = [
+  {name = "Jan Choutka", email = "jan.choutka@uochb.cas.cz"},
+]
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
   "numpy",
   "pandas",
   "matplotlib",
   "lmfit",
 ]
-description = "A Python package for fitting and plotting dose-response and binding curves."
-readme = "README.md"
-authors = [
-  {name = "Jan Choutka", email = "jan.choutka@uochb.cas.cz"},
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Chemistry",
 ]
-license = "MIT"
 
-[project.optional-dependencies]
+[project.urls]
+Homepage = "https://github.com/choutkaj/bindcurve"
+Repository = "https://github.com/choutkaj/bindcurve"
+Issues = "https://github.com/choutkaj/bindcurve/issues"
+Documentation = "https://choutkaj.github.io/bindcurve/"
+
+[dependency-groups]
 test = [
   "pytest",
   "scipy",
+]
+lint = [
+  "ruff",
+]
+notebook = [
+  "ipykernel",
+  "jupyterlab",
+]
+dev = [
+  {include-group = "test"},
+  {include-group = "lint"},
+  {include-group = "notebook"},
 ]
 
 [tool.setuptools_scm]
@@ -32,10 +63,12 @@ include = ["bindcurve*"]
 
 [tool.ruff]
 line-length = 88
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = []
 
 [tool.pytest.ini_options]
+addopts = "-ra"
 testpaths = ["tests"]

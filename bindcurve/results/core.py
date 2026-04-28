@@ -52,7 +52,7 @@ class FitResult:
         model_name: str,
         experiment_id: str | None,
         message: str,
-    ) -> "FitResult":
+    ) -> FitResult:
         """Create a failed result container."""
         return cls(
             compound_id=compound_id,
@@ -146,9 +146,13 @@ def summarize_fit_parameters(
 
     for compound_id in compound_ids:
         compound_fits = [fit for fit in successful if fit.compound_id == compound_id]
-        parameter_names = sorted({name for fit in compound_fits for name in fit.parameters})
+        parameter_names = sorted(
+            {name for fit in compound_fits for name in fit.parameters}
+        )
         for name in parameter_names:
-            estimates = [fit.parameters[name] for fit in compound_fits if name in fit.parameters]
+            estimates = [
+                fit.parameters[name] for fit in compound_fits if name in fit.parameters
+            ]
             values = np.asarray([estimate.value for estimate in estimates], dtype=float)
             unit = estimates[0].unit if estimates else None
             sd = float(np.std(values, ddof=1)) if len(values) > 1 else None
@@ -157,7 +161,9 @@ def summarize_fit_parameters(
             if name in concentration_parameters and np.all(values > 0):
                 log_values = np.log10(values)
                 log10_mean = float(np.mean(log_values))
-                log10_sd = float(np.std(log_values, ddof=1)) if len(values) > 1 else None
+                log10_sd = (
+                    float(np.std(log_values, ddof=1)) if len(values) > 1 else None
+                )
                 summaries.append(
                     ParameterSummary(
                         compound_id=compound_id,

@@ -1,6 +1,12 @@
 __pycache__
 test.ipynb
 tempCodeRunnerFile.py
+.venv
+.venv-smoke
+.uv-cache
+.pytest_cache
+.ruff_cache
+pytest-cache-files-*
 build
 logo
 
@@ -8,4 +14,3 @@ logo
 bindcurve.egg-info
 build
 dist
-

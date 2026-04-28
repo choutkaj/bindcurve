@@ -23,11 +23,14 @@ class FitSettings:
     def __post_init__(self) -> None:
         if self.strategy not in {"per_experiment", "per_compound_summary", "pooled"}:
             raise ValueError(
-                "strategy must be 'per_experiment', 'per_compound_summary', or 'pooled'."
+                "strategy must be 'per_experiment', "
+                "'per_compound_summary', or 'pooled'."
             )
         if self.replicate_aggregation not in {"mean", "median"}:
             raise ValueError("replicate_aggregation must be 'mean' or 'median'.")
         if self.weighting != "none":
-            raise NotImplementedError("Only weighting='none' is implemented in this skeleton.")
+            raise NotImplementedError(
+                "Only weighting='none' is implemented in this skeleton."
+            )
         if self.errors not in {"raise", "collect"}:
             raise ValueError("errors must be 'raise' or 'collect'.")
