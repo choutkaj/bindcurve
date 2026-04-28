@@ -34,6 +34,7 @@ from bindcurve.plotting import (
     plot_curves,
     plot_fits,
     plot_observations,
+    plot_residuals,
 )
 from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
 
@@ -78,4 +79,5 @@ __all__ = [
     "plot_curves",
     "plot_fits",
     "plot_observations",
+    "plot_residuals",
 ]
