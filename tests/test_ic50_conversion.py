@@ -12,9 +12,8 @@ def legacy_cheng_prusoff(LsT, Kds, IC50):
 
 
 def legacy_cheng_prusoff_corr(LsT, Kds, y0, IC50):
-    return IC50 / (1.0 + (LsT * (y0 + 2.0) / (2.0 * Kds * (y0 + 1.0)) + y0)) + Kds * (
-        y0 / (y0 + 2.0)
-    )
+    denominator = 1.0 + (LsT * (y0 + 2.0) / (2.0 * Kds * (y0 + 1.0)) + y0)
+    return IC50 / denominator + Kds * (y0 / (y0 + 2.0))
 
 
 def legacy_coleska(RT, LsT, Kds, IC50):
@@ -83,11 +82,24 @@ def test_dataframe_conversion_with_confidence_limits():
         unit="uM",
     )
 
+    expected_kd = [
+        legacy_cheng_prusoff(2.0, 4.0, 10.0),
+        legacy_cheng_prusoff(2.0, 4.0, 20.0),
+    ]
+    expected_lower = [
+        legacy_cheng_prusoff(2.0, 4.0, 8.0),
+        legacy_cheng_prusoff(2.0, 4.0, 18.0),
+    ]
+    expected_upper = [
+        legacy_cheng_prusoff(2.0, 4.0, 12.0),
+        legacy_cheng_prusoff(2.0, 4.0, 22.0),
+    ]
+
     assert list(converted["compound_id"]) == ["cmpd_a", "cmpd_b"]
     assert list(converted["model"]) == ["cheng_prusoff", "cheng_prusoff"]
-    assert np.allclose(converted["Kd"], [legacy_cheng_prusoff(2.0, 4.0, 10.0), legacy_cheng_prusoff(2.0, 4.0, 20.0)])
-    assert np.allclose(converted["lower_Kd"], [legacy_cheng_prusoff(2.0, 4.0, 8.0), legacy_cheng_prusoff(2.0, 4.0, 18.0)])
-    assert np.allclose(converted["upper_Kd"], [legacy_cheng_prusoff(2.0, 4.0, 12.0), legacy_cheng_prusoff(2.0, 4.0, 22.0)])
+    assert np.allclose(converted["Kd"], expected_kd)
+    assert np.allclose(converted["lower_Kd"], expected_lower)
+    assert np.allclose(converted["upper_Kd"], expected_upper)
     assert set(converted["unit"]) == {"uM"}
 
 
@@ -110,8 +122,12 @@ def test_dataframe_conversion_supports_fit_results_column_names():
         upper_col="IC50_upper_ci",
     )
 
-    assert converted.loc[0, "lower_Kd"] == pytest.approx(legacy_cheng_prusoff(2.0, 4.0, 8.0))
-    assert converted.loc[0, "upper_Kd"] == pytest.approx(legacy_cheng_prusoff(2.0, 4.0, 12.0))
+    assert converted.loc[0, "lower_Kd"] == pytest.approx(
+        legacy_cheng_prusoff(2.0, 4.0, 8.0)
+    )
+    assert converted.loc[0, "upper_Kd"] == pytest.approx(
+        legacy_cheng_prusoff(2.0, 4.0, 12.0)
+    )
 
 
 def test_conversion_rejects_missing_required_constants():
