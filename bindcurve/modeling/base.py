@@ -16,15 +16,21 @@ class BaseDoseResponseModel(ABC):
     name: str
     parameter_specs: tuple[ParameterSpec, ...]
     concentration_parameters: frozenset[str] = frozenset()
+    log_concentration_parameters: frozenset[str] = frozenset()
     response_parameters: frozenset[str] = frozenset()
+    required_fixed_parameters: frozenset[str] = frozenset()
 
     @abstractmethod
     def evaluate(self, x: np.ndarray, **params: float) -> np.ndarray:
-        """Evaluate the model at concentrations ``x``."""
+        """Evaluate the model at transformed x values."""
 
     @abstractmethod
     def guess(self, compound: CompoundData) -> dict[str, float]:
         """Generate initial parameter guesses for one compound or experiment."""
+
+    def transform_x(self, concentration: np.ndarray) -> np.ndarray:
+        """Transform positive concentrations into the model's independent variable."""
+        return np.asarray(concentration, dtype=float)
 
     def make_lmfit_parameters(
         self,
@@ -46,6 +52,13 @@ class BaseDoseResponseModel(ABC):
         unknown_bounds = set(bounds) - known_names
         if unknown_bounds:
             raise KeyError(f"Unknown bounded parameter(s): {sorted(unknown_bounds)}")
+
+        missing_required = self.required_fixed_parameters - set(fixed)
+        if missing_required:
+            raise ValueError(
+                "Missing required fixed parameter(s) for "
+                f"{self.name!r}: {sorted(missing_required)}"
+            )
 
         for spec in self.parameter_specs:
             value = fixed.get(spec.name, guesses.get(spec.name, spec.initial))
@@ -92,6 +105,10 @@ class BaseDoseResponseModel(ABC):
         """Return the display unit for a model parameter."""
         if parameter_name in self.concentration_parameters:
             return concentration_unit
+        if parameter_name in self.log_concentration_parameters:
+            if concentration_unit is None:
+                return "log10(concentration)"
+            return f"log10({concentration_unit})"
         if parameter_name in self.response_parameters:
             return response_unit
         return None

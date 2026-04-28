@@ -4,7 +4,21 @@ from importlib.metadata import PackageNotFoundError, version
 
 from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting import FitCalculator, FitSettings, fit
-from bindcurve.modeling import BaseDoseResponseModel, IC50Model, ParameterSpec, get_model
+from bindcurve.modeling import (
+    BaseDoseResponseModel,
+    CompetitiveFourStateSpecificKdModel,
+    CompetitiveFourStateTotalKdModel,
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
+    DirectSimpleKdModel,
+    DirectSpecificKdModel,
+    DirectTotalKdModel,
+    EC50Model,
+    IC50Model,
+    LogIC50Model,
+    ParameterSpec,
+    get_model,
+)
 from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
 
 try:
@@ -14,14 +28,23 @@ except PackageNotFoundError:  # pragma: no cover - useful in editable source tre
 
 __all__ = [
     "BaseDoseResponseModel",
+    "CompetitiveFourStateSpecificKdModel",
+    "CompetitiveFourStateTotalKdModel",
+    "CompetitiveThreeStateSpecificKdModel",
+    "CompetitiveThreeStateTotalKdModel",
     "CompoundData",
+    "DirectSimpleKdModel",
+    "DirectSpecificKdModel",
+    "DirectTotalKdModel",
     "DoseResponseData",
+    "EC50Model",
     "FitCalculator",
     "FitMetrics",
     "FitResult",
     "FitResults",
     "FitSettings",
     "IC50Model",
+    "LogIC50Model",
     "ParameterEstimate",
     "ParameterSpec",
     "__version__",
