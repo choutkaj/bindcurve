@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 from typing import Literal
 
 import matplotlib.pyplot as plt
@@ -14,6 +15,16 @@ from bindcurve.results import FitResult, FitResults
 
 ErrorStyle = Literal["sem", "sd", None]
 XScale = Literal["log", "linear", None]
+AsymptoteName = Literal["ymin", "ymax"]
+CurvePointSpec = float | tuple[float, str] | dict[str, object]
+
+
+@dataclass(frozen=True)
+class CurvePoint:
+    """Point to annotate on a fitted curve."""
+
+    x: float
+    label: str | None = None
 
 
 def _get_axes(ax: Axes | None) -> Axes:
@@ -200,6 +211,35 @@ def _matching_fits(
     return fits
 
 
+def _evaluate_fit(fit: FitResult, x: np.ndarray | float) -> np.ndarray:
+    model = get_model(fit.model_name)
+    x_array = np.asarray(x, dtype=float)
+    x_transformed = model.transform_x(x_array)
+    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
+    return model.evaluate(x_transformed, **parameters)
+
+
+def _coerce_curve_points(points: Iterable[CurvePointSpec]) -> list[CurvePoint]:
+    coerced = []
+    for point in points:
+        if isinstance(point, dict):
+            if "x" not in point:
+                raise ValueError("Curve point dictionaries must contain an 'x' key.")
+            coerced.append(
+                CurvePoint(
+                    x=float(point["x"]),
+                    label=None if point.get("label") is None else str(point["label"]),
+                )
+            )
+        elif isinstance(point, tuple):
+            if len(point) != 2:
+                raise ValueError("Curve point tuples must be (x, label).")
+            coerced.append(CurvePoint(x=float(point[0]), label=str(point[1])))
+        else:
+            coerced.append(CurvePoint(x=float(point), label=None))
+    return coerced
+
+
 def plot_fits(
     data: DoseResponseData,
     results: FitResults,
@@ -231,12 +271,7 @@ def plot_fits(
     )
 
     for fit in fits:
-        model = get_model(fit.model_name)
-        x_transformed = model.transform_x(grid)
-        parameters = {
-            name: estimate.value for name, estimate in fit.parameters.items()
-        }
-        y = model.evaluate(x_transformed, **parameters)
+        y = _evaluate_fit(fit, grid)
 
         plot_label = label
         if plot_label is None:
@@ -246,6 +281,104 @@ def plot_fits(
 
     if xscale is not None:
         ax.set_xscale(xscale)
+    _set_axis_labels(data, ax)
+    return ax
+
+
+def plot_asymptotes(
+    data: DoseResponseData,
+    results: FitResults,
+    *,
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    experiments: Iterable[str] | None = None,
+    parameters: Sequence[AsymptoteName] = ("ymin", "ymax"),
+    label: bool = True,
+    **line_kwargs,
+) -> Axes:
+    """Plot model asymptotes as horizontal lines on an existing axes."""
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    fits = _matching_fits(
+        results,
+        compound_id=resolved_compound_id,
+        experiments=experiments,
+    )
+
+    default_kwargs = {"linestyle": "--", "linewidth": 1.0, "alpha": 0.7}
+    default_kwargs.update(line_kwargs)
+
+    n_drawn = 0
+    for fit in fits:
+        for parameter in parameters:
+            if parameter not in fit.parameters:
+                continue
+            asymptote_label = None
+            if label:
+                experiment = fit.experiment_id or fit.model_name
+                asymptote_label = f"{experiment} {parameter}"
+            ax.axhline(
+                fit.parameters[parameter].value,
+                label=asymptote_label,
+                **default_kwargs,
+            )
+            n_drawn += 1
+
+    if n_drawn == 0:
+        raise ValueError("No requested asymptote parameters were available to plot.")
+
+    _set_axis_labels(data, ax)
+    return ax
+
+
+def plot_curve_points(
+    data: DoseResponseData,
+    results: FitResults,
+    *,
+    points: Iterable[CurvePointSpec],
+    compound_id: str | None = None,
+    ax: Axes | None = None,
+    experiments: Iterable[str] | None = None,
+    annotate: bool = True,
+    annotation_offset: tuple[float, float] = (6.0, 6.0),
+    point_kwargs: dict | None = None,
+    annotation_kwargs: dict | None = None,
+) -> Axes:
+    """Plot arbitrary labeled points evaluated on fitted curves."""
+    ax = _get_axes(ax)
+    resolved_compound_id = _resolve_compound_id(data, compound_id)
+    fits = _matching_fits(
+        results,
+        compound_id=resolved_compound_id,
+        experiments=experiments,
+    )
+    curve_points = _coerce_curve_points(points)
+
+    default_point_kwargs = {"marker": "o", "zorder": 5}
+    default_point_kwargs.update(point_kwargs or {})
+    default_annotation_kwargs = {"textcoords": "offset points"}
+    default_annotation_kwargs.update(annotation_kwargs or {})
+
+    for fit in fits:
+        for point in curve_points:
+            y_value = float(np.asarray(_evaluate_fit(fit, point.x)))
+            ax.scatter([point.x], [y_value], **default_point_kwargs)
+
+            if not annotate or point.label is None:
+                continue
+
+            label = point.label
+            if len(fits) > 1:
+                experiment = fit.experiment_id or fit.model_name
+                label = f"{label} ({experiment})"
+
+            ax.annotate(
+                label,
+                xy=(point.x, y_value),
+                xytext=annotation_offset,
+                **default_annotation_kwargs,
+            )
+
     _set_axis_labels(data, ax)
     return ax
 
@@ -263,10 +396,14 @@ def plot_curves(
     x_grid: np.ndarray | None = None,
     n_points: int = 300,
     xscale: XScale = "log",
+    show_asymptotes: bool = False,
+    curve_points: Iterable[CurvePointSpec] | None = None,
     observation_kwargs: dict | None = None,
     fit_kwargs: dict | None = None,
+    asymptote_kwargs: dict | None = None,
+    curve_point_kwargs: dict | None = None,
 ) -> Axes:
-    """Plot observations and fitted curves onto one Matplotlib axes."""
+    """Plot observations, fitted curves, and optional model annotations."""
     ax = _get_axes(ax)
     resolved_compound_id = _resolve_compound_id(data, compound_id)
 
@@ -291,4 +428,23 @@ def plot_curves(
         xscale=xscale,
         **(fit_kwargs or {}),
     )
+    if show_asymptotes:
+        plot_asymptotes(
+            data,
+            results,
+            compound_id=resolved_compound_id,
+            ax=ax,
+            experiments=experiments,
+            **(asymptote_kwargs or {}),
+        )
+    if curve_points is not None:
+        plot_curve_points(
+            data,
+            results,
+            points=curve_points,
+            compound_id=resolved_compound_id,
+            ax=ax,
+            experiments=experiments,
+            **(curve_point_kwargs or {}),
+        )
     return ax
