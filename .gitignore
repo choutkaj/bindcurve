@@ -8,7 +8,7 @@ tempCodeRunnerFile.py
 .ruff_cache
 pytest-cache-files-*
 build
-logo
+/logo/
 
 # Distribution / packaging
 bindcurve.egg-info
