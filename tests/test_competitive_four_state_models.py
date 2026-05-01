@@ -7,7 +7,6 @@ import pytest
 import bindcurve as bc
 from bindcurve.modeling.competitive import (
     _competitive_four_state_coefficients,
-    _equivalent_receptor_bounds,
     _select_physical_root,
 )
 
@@ -97,7 +96,7 @@ def test_registry_contains_competitive_four_state_models():
     )
 
 
-def test_four_state_root_selector_returns_physical_transformed_root():
+def test_four_state_root_selector_returns_physical_free_receptor_root():
     kwargs = {
         "RT": 0.05,
         "LsT": 0.005,
@@ -106,31 +105,36 @@ def test_four_state_root_selector_returns_physical_transformed_root():
         "Kd3": 0.5,
     }
     coefficients = _competitive_four_state_coefficients(0.1, **kwargs)
-    lower_bound, upper_bound = _equivalent_receptor_bounds(
-        RT=kwargs["RT"],
-        LsT=kwargs["LsT"],
-        Kds=kwargs["Kds"],
-        Kd3=kwargs["Kd3"],
-    )
     root = _select_physical_root(
         coefficients,
-        lower_bound=lower_bound,
-        upper_bound=upper_bound,
+        lower_bound=0.0,
+        upper_bound=kwargs["RT"],
     )
 
-    assert lower_bound <= root <= upper_bound
+    assert 0.0 <= root <= kwargs["RT"]
     assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
 
 
-def test_four_state_root_bounds_can_extend_beyond_receptor_total():
-    lower_bound, upper_bound = _equivalent_receptor_bounds(
-        RT=0.05,
-        LsT=0.005,
-        Kds=0.02,
-        Kd3=0.001,
+def test_four_state_root_selector_handles_degenerate_quartic_case():
+    kwargs = {
+        "RT": 0.05,
+        "LsT": 0.005,
+        "Kds": 0.02,
+        "Kd": 0.8,
+        "Kd3": 0.02,
+    }
+    coefficients = _competitive_four_state_coefficients(0.1, **kwargs)
+
+    assert coefficients[0] == 0.0
+
+    root = _select_physical_root(
+        coefficients,
+        lower_bound=0.0,
+        upper_bound=kwargs["RT"],
     )
 
-    assert lower_bound < 0.05 < upper_bound
+    assert 0.0 <= root <= kwargs["RT"]
+    assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
 
 
 def test_four_state_root_selector_rejects_polynomial_with_no_physical_root():

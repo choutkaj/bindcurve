@@ -19,52 +19,6 @@ def _competition_guess(compound: CompoundData) -> dict[str, float]:
     return {"ymin": ymin, "ymax": ymax, "Kd": kd_guess}
 
 
-def _direct_bound_fraction(*, Kd: float, RT: float, LsT: float) -> float:
-    """Return the direct-binding bound tracer fraction for finite totals."""
-    discriminant = (Kd + LsT + RT) ** 2 - 4.0 * LsT * RT
-    return float((Kd + LsT + RT - np.sqrt(discriminant)) / (2.0 * LsT))
-
-
-def _equivalent_receptor_from_bound_fraction(
-    fraction_bound: float,
-    *,
-    Kds: float,
-) -> float:
-    """Transform FSB to the legacy four-state polynomial coordinate."""
-    return float(Kds * fraction_bound / (1.0 - fraction_bound))
-
-
-def _equivalent_receptor_bounds(
-    *,
-    RT: float,
-    LsT: float,
-    Kds: float,
-    Kd3: float,
-) -> tuple[float, float]:
-    """Return the physically feasible range for the transformed coordinate.
-
-    The four-state polynomial is expressed in the coordinate
-    ``r_equiv = Kds * FSB / (1 - FSB)``. This is equal to free receptor only in
-    three-state/complete competition. In incomplete competition, the physical
-    interval is determined by the initial direct-binding fraction, governed by
-    ``Kds``, and the asymptotic bound fraction, governed by ``Kd3``.
-    """
-    initial_fraction = _direct_bound_fraction(Kd=Kds, RT=RT, LsT=LsT)
-    asymptotic_fraction = _direct_bound_fraction(Kd=Kd3, RT=RT, LsT=LsT)
-    initial_coordinate = _equivalent_receptor_from_bound_fraction(
-        initial_fraction,
-        Kds=Kds,
-    )
-    asymptotic_coordinate = _equivalent_receptor_from_bound_fraction(
-        asymptotic_fraction,
-        Kds=Kds,
-    )
-    return (
-        min(initial_coordinate, asymptotic_coordinate),
-        max(initial_coordinate, asymptotic_coordinate),
-    )
-
-
 def _competitive_four_state_coefficients(
     ligand_total: float,
     *,
@@ -74,12 +28,15 @@ def _competitive_four_state_coefficients(
     Kd: float,
     Kd3: float,
 ) -> np.ndarray:
-    """Return quintic coefficients for the four-state competitive model.
+    """Return quintic coefficients for true free receptor in the four-state model.
 
-    The polynomial variable is not literal free receptor in the four-state
-    model. It is the transformed coordinate ``r_equiv = Kds * FSB / (1 - FSB)``.
-    This coordinate lets the model recover ``FSB`` as
-    ``FSB = r_equiv / (Kds + r_equiv)`` after solving the quintic.
+    The polynomial variable is literal free receptor concentration ``R``:
+
+    ``a*R**5 + b*R**4 + c*R**3 + d*R**2 + e*R + f = 0``.
+
+    After the physical root is selected in ``0 <= R <= RT``, the observable
+    tracer-bound fraction is computed from the actual four-state species
+    ``RS + RLS`` rather than from a transformed receptor-like coordinate.
 
     The total/nonspecific model should call this with an effective ``Kd`` of
     ``(1 + N) * Kd`` rather than maintaining a duplicated coefficient
@@ -87,17 +44,86 @@ def _competitive_four_state_coefficients(
     """
     LT = float(ligand_total)
 
-    a = -Kds**2 * Kd3**2
-    b = Kds**2 * Kd3 * (Kds * Kd - 3 * Kds * Kd3 + Kds * LT - 2 * Kds * LsT + Kds * RT - Kd * Kd3 - Kd3 * LT - Kd3 * LsT + Kd3 * RT)  # noqa: E501
-    c = Kds**2 * (3 * Kds**2 * Kd * Kd3 - 3 * Kds**2 * Kd3**2 + 3 * Kds**2 * Kd3 * LT - 4 * Kds**2 * Kd3 * LsT + 3 * Kds**2 * Kd3 * RT + Kds**2 * LT * LsT - Kds**2 * LT * RT - Kds**2 * LsT**2 + Kds**2 * LsT * RT - 3 * Kds * Kd * Kd3**2 + Kds * Kd * Kd3 * LsT - Kds * Kd * Kd3 * RT - 3 * Kds * Kd3**2 * LT - 2 * Kds * Kd3**2 * LsT + 3 * Kds * Kd3**2 * RT - Kds * Kd3 * LT * LsT + Kds * Kd3 * LT * RT - 2 * Kds * Kd3 * LsT**2 + 3 * Kds * Kd3 * LsT * RT - Kds * Kd3 * RT**2 - Kd * Kd3**2 * LsT + Kd * Kd3**2 * RT)  # noqa: E501
-    d = Kds**3 * (3 * Kds**2 * Kd * Kd3 - Kds**2 * Kd3**2 + 3 * Kds**2 * Kd3 * LT - 2 * Kds**2 * Kd3 * LsT + 3 * Kds**2 * Kd3 * RT + 2 * Kds**2 * LT * LsT - 3 * Kds**2 * LT * RT - Kds**2 * LsT**2 + 2 * Kds**2 * LsT * RT - 3 * Kds * Kd * Kd3**2 + 2 * Kds * Kd * Kd3 * LsT - 3 * Kds * Kd * Kd3 * RT - 3 * Kds * Kd3**2 * LT - Kds * Kd3**2 * LsT + 3 * Kds * Kd3**2 * RT - 2 * Kds * Kd3 * LT * LsT + 3 * Kds * Kd3 * LT * RT - 2 * Kds * Kd3 * LsT**2 + 6 * Kds * Kd3 * LsT * RT - 3 * Kds * Kd3 * RT**2 - Kds * LsT**3 + 2 * Kds * LsT**2 * RT - Kds * LsT * RT**2 - 2 * Kd * Kd3**2 * LsT + 3 * Kd * Kd3**2 * RT)  # noqa: E501
-    e = Kds**4 * (Kds**2 * Kd * Kd3 + Kds**2 * Kd3 * LT + Kds**2 * Kd3 * RT + Kds**2 * LT * LsT - 3 * Kds**2 * LT * RT + Kds**2 * LsT * RT - Kds * Kd * Kd3**2 + Kds * Kd * Kd3 * LsT - 3 * Kds * Kd * Kd3 * RT - Kds * Kd3**2 * LT + Kds * Kd3**2 * RT - Kds * Kd3 * LT * LsT + 3 * Kds * Kd3 * LT * RT + 3 * Kds * Kd3 * LsT * RT - 3 * Kds * Kd3 * RT**2 + 2 * Kds * LsT**2 * RT - 2 * Kds * LsT * RT**2 - Kd * Kd3**2 * LsT + 3 * Kd * Kd3**2 * RT)  # noqa: E501
-    f = Kds**5 * RT * (-Kds**2 * LT - Kds * Kd * Kd3 + Kds * Kd3 * LT - Kds * Kd3 * RT - Kds * LsT * RT + Kd * Kd3**2)  # noqa: E501
+    a = Kds - Kd3
+    b = (
+        -Kd3 * Kd
+        - Kd3 * Kds
+        - Kd3 * LT
+        + Kd3 * RT
+        - Kd3 * LsT
+        + Kd * Kds
+        + Kds**2
+        + Kds * LT
+        - 2.0 * Kds * RT
+        + Kds * LsT
+    )
+    c = (
+        Kd3 * Kd * RT
+        - Kd3 * Kd * LsT
+        - Kd3 * Kds * LT
+        + Kd3 * Kds * RT
+        + Kd * Kds**2
+        - 2.0 * Kd * Kds * RT
+        + 2.0 * Kd * Kds * LsT
+        + 2.0 * Kds**2 * LT
+        - 2.0 * Kds**2 * RT
+        - Kds * LT * RT
+        + Kds * LT * LsT
+        + Kds * RT**2
+        - Kds * RT * LsT
+    )
+    d = (
+        Kd3 * Kd**2 * Kds
+        + Kd3 * Kd * Kds**2
+        + Kd3 * Kd * Kds * LT
+        + Kd3 * Kd * Kds * LsT
+        + Kd * Kds**2 * LT
+        - 2.0 * Kd * Kds**2 * RT
+        + Kd * Kds**2 * LsT
+        + Kd * Kds * RT**2
+        - 2.0 * Kd * Kds * RT * LsT
+        + Kd * Kds * LsT**2
+        + Kds**2 * LT**2
+        - 2.0 * Kds**2 * LT * RT
+        + Kds**2 * RT**2
+    )
+    e = (
+        Kd3 * Kd**2 * Kds**2
+        - Kd3 * Kd**2 * Kds * RT
+        + Kd3 * Kd**2 * Kds * LsT
+        + Kd3 * Kd * Kds**2 * LT
+        - Kd3 * Kd * Kds**2 * RT
+        - Kd * Kds**2 * LT * RT
+        + Kd * Kds**2 * LT * LsT
+        + Kd * Kds**2 * RT**2
+        - Kd * Kds**2 * RT * LsT
+    )
+    f = -Kd3 * Kd**2 * Kds**2 * RT
 
     return np.array([a, b, c, d, e, f], dtype=float)
 
 
+def _trim_leading_near_zero(
+    coefficients: np.ndarray,
+    *,
+    relative_tolerance: float = 1.0e-14,
+) -> np.ndarray:
+    """Remove leading coefficients that are zero at working precision."""
+    coefficients = np.asarray(coefficients, dtype=float)
+    scale = float(np.max(np.abs(coefficients))) if coefficients.size else 0.0
+    if scale == 0.0:
+        return np.array([0.0], dtype=float)
+
+    threshold = relative_tolerance * scale
+    for index, coefficient in enumerate(coefficients):
+        if abs(float(coefficient)) > threshold:
+            return coefficients[index:]
+
+    return np.array([0.0], dtype=float)
+
+
 def _scaled_polynomial_residual(coefficients: np.ndarray, root: float) -> float:
+    coefficients = _trim_leading_near_zero(coefficients)
     degree = len(coefficients) - 1
     root_scale = max(1.0, abs(root))
     denominator = sum(
@@ -117,13 +143,14 @@ def _select_physical_root(
     imaginary_tolerance: float = 1.0e-7,
     interval_tolerance: float = 1.0e-8,
 ) -> float:
-    """Select the physical four-state transformed-coordinate root.
+    """Select the physical four-state free-receptor root.
 
     The physical root must be effectively real and lie in the feasible interval
-    for ``r_equiv = Kds * FSB / (1 - FSB)``. This interval is not generally
-    ``0 <= r_equiv <= RT``. Among feasible candidates, the root with the
-    smallest scaled polynomial residual is selected.
+    for literal free receptor concentration. For the four-state receptor
+    polynomial this interval is ``0 <= R <= RT``. Among feasible candidates, the
+    root with the smallest scaled polynomial residual is selected.
     """
+    coefficients = _trim_leading_near_zero(coefficients)
     roots = np.roots(coefficients)
     interval_scale = max(1.0, abs(lower_bound), abs(upper_bound))
     lower = lower_bound - interval_tolerance * interval_scale
@@ -140,9 +167,9 @@ def _select_physical_root(
 
     if not candidates:
         raise ValueError(
-            "No physical four-state root found in the feasible transformed "
-            f"coordinate interval {lower_bound} <= r_equiv <= {upper_bound}. "
-            f"Roots were: {roots!r}"
+            "No physical four-state root found in the feasible free-receptor "
+            f"interval {lower_bound} <= R <= {upper_bound}. Roots were: "
+            f"{roots!r}"
         )
 
     return min(
@@ -151,7 +178,7 @@ def _select_physical_root(
     )
 
 
-def _competitive_four_state_equivalent_receptor(
+def _competitive_four_state_receptor_free(
     ligand_total: np.ndarray,
     *,
     RT: float,
@@ -161,14 +188,11 @@ def _competitive_four_state_equivalent_receptor(
     Kd3: float,
 ) -> np.ndarray:
     ligand_total = np.asarray(ligand_total, dtype=float)
+    if RT == 0.0:
+        return np.zeros_like(ligand_total, dtype=float)
+
     flat_ligand_total = ligand_total.ravel()
-    lower_bound, upper_bound = _equivalent_receptor_bounds(
-        RT=RT,
-        LsT=LsT,
-        Kds=Kds,
-        Kd3=Kd3,
-    )
-    equivalent_receptor = []
+    receptor_free = []
 
     for concentration in flat_ligand_total:
         coefficients = _competitive_four_state_coefficients(
@@ -179,15 +203,65 @@ def _competitive_four_state_equivalent_receptor(
             Kd=Kd,
             Kd3=Kd3,
         )
-        equivalent_receptor.append(
+        receptor_free.append(
             _select_physical_root(
                 coefficients,
-                lower_bound=lower_bound,
-                upper_bound=upper_bound,
+                lower_bound=0.0,
+                upper_bound=RT,
             )
         )
 
-    return np.asarray(equivalent_receptor, dtype=float).reshape(ligand_total.shape)
+    return np.asarray(receptor_free, dtype=float).reshape(ligand_total.shape)
+
+
+def _competitive_four_state_fraction_tracer_bound(
+    receptor_free: np.ndarray,
+    ligand_total: np.ndarray,
+    *,
+    LsT: float,
+    Kds: float,
+    Kd: float,
+    Kd3: float,
+) -> np.ndarray:
+    """Return ``(RS + RLS) / LsT`` from true free receptor concentration.
+
+    For fixed free receptor ``R``, the tracer and competitor mass balances can
+    be reduced to a quadratic equation in free competitor concentration ``L``.
+    The tracer-bound fraction is then obtained from the actual four-state
+    species without explicitly constructing free tracer concentration.
+    """
+    receptor_free = np.asarray(receptor_free, dtype=float)
+    ligand_total = np.asarray(ligand_total, dtype=float)
+
+    a = 1.0 + receptor_free / Kds
+    b = 1.0 + receptor_free / Kd
+    c = receptor_free / (Kd * Kd3)
+
+    quadratic_a = b * c
+    quadratic_b = a * b + c * LsT - c * ligand_total
+    quadratic_c = -a * ligand_total
+
+    discriminant = np.maximum(
+        quadratic_b**2 - 4.0 * quadratic_a * quadratic_c,
+        0.0,
+    )
+    denominator = 2.0 * quadratic_a
+    fallback = np.divide(
+        ligand_total,
+        b,
+        out=np.zeros_like(ligand_total, dtype=float),
+        where=b != 0.0,
+    )
+    ligand_free = np.array(fallback, copy=True, dtype=float)
+    np.divide(
+        -quadratic_b + np.sqrt(discriminant),
+        denominator,
+        out=ligand_free,
+        where=np.abs(denominator) > np.finfo(float).tiny,
+    )
+
+    bound_tracer_ratio = receptor_free / Kds + c * ligand_free
+    return bound_tracer_ratio / (1.0 + bound_tracer_ratio)
 
 
 class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
@@ -219,7 +293,7 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
         Kd3: float,
         Kd: float,
     ) -> np.ndarray:
-        equivalent_receptor = _competitive_four_state_equivalent_receptor(
+        receptor_free = _competitive_four_state_receptor_free(
             x,
             RT=RT,
             LsT=LsT,
@@ -227,7 +301,14 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
             Kd=Kd,
             Kd3=Kd3,
         )
-        fraction_tracer_bound = equivalent_receptor / (Kds + equivalent_receptor)
+        fraction_tracer_bound = _competitive_four_state_fraction_tracer_bound(
+            receptor_free,
+            x,
+            LsT=LsT,
+            Kds=Kds,
+            Kd=Kd,
+            Kd3=Kd3,
+        )
         return ymin + (ymax - ymin) * fraction_tracer_bound
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
@@ -265,15 +346,23 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
         N: float,
         Kd: float,
     ) -> np.ndarray:
-        equivalent_receptor = _competitive_four_state_equivalent_receptor(
+        effective_kd = (1.0 + N) * Kd
+        receptor_free = _competitive_four_state_receptor_free(
             x,
             RT=RT,
             LsT=LsT,
             Kds=Kds,
-            Kd=(1.0 + N) * Kd,
+            Kd=effective_kd,
             Kd3=Kd3,
         )
-        fraction_tracer_bound = equivalent_receptor / (Kds + equivalent_receptor)
+        fraction_tracer_bound = _competitive_four_state_fraction_tracer_bound(
+            receptor_free,
+            x,
+            LsT=LsT,
+            Kds=Kds,
+            Kd=effective_kd,
+            Kd3=Kd3,
+        )
         return ymin + (ymax - ymin) * fraction_tracer_bound
 
     def guess(self, compound: CompoundData) -> dict[str, float]:

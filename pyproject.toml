@@ -49,6 +49,7 @@ lint = [
 notebook = [
   "ipykernel",
   "jupyterlab",
+  "sympy",
 ]
 dev = [
   {include-group = "test"},
