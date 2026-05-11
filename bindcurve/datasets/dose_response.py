@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 AggregationMethod = Literal["mean", "median"]
+CSVDataFormat = Literal["long", "replicate_wide", "replicate-wide"]
 
 
 @dataclass
@@ -145,10 +146,7 @@ class DoseResponseData:
         ).dropna(subset=["response"])
 
         long = long.rename(
-            columns={
-                compound_col: "compound_id",
-                concentration_col: "concentration",
-            }
+            columns={compound_col: "compound_id", concentration_col: "concentration"}
         )
         if experiment_col is not None:
             long = long.rename(columns={experiment_col: "experiment_id"})
@@ -165,19 +163,120 @@ class DoseResponseData:
         cls,
         path: str,
         *,
+        format: CSVDataFormat = "long",
+        compound_col: str = "compound_id",
+        concentration_col: str = "concentration",
+        response_col: str = "response",
+        experiment_col: str = "experiment_id",
+        replicate_col: str = "replicate_id",
+        replicate_prefix: str = "response_",
         concentration_unit: str | None = None,
         response_unit: str | None = None,
         metadata: dict | None = None,
         **read_csv_kwargs,
     ) -> DoseResponseData:
-        """Create data from a long-form CSV file."""
+        """Create data from a CSV file.
+
+        Supported formats are ``"long"`` and ``"replicate_wide"``. The
+        alias ``"replicate-wide"`` is accepted for ``"replicate_wide"``.
+        """
         df = pd.read_csv(path, **read_csv_kwargs)
-        return cls.from_dataframe(
+        normalized_format = format.replace("-", "_")
+
+        if normalized_format == "long":
+            long = cls._standardize_long_dataframe_columns(
+                df,
+                compound_col=compound_col,
+                concentration_col=concentration_col,
+                response_col=response_col,
+                experiment_col=experiment_col,
+                replicate_col=replicate_col,
+            )
+            return cls.from_dataframe(
+                long,
+                concentration_unit=concentration_unit,
+                response_unit=response_unit,
+                metadata=metadata,
+            )
+
+        if normalized_format == "replicate_wide":
+            cls._require_columns(
+                df,
+                columns=[compound_col, concentration_col],
+                format_name="replicate_wide",
+            )
+            replicate_cols = [
+                col for col in df.columns if str(col).startswith(replicate_prefix)
+            ]
+            if not replicate_cols:
+                raise ValueError(
+                    "No technical replicate columns found for replicate_wide "
+                    f"format. Expected at least one column starting with "
+                    f"{replicate_prefix!r}."
+                )
+            selected_experiment_col = (
+                experiment_col if experiment_col in df.columns else None
+            )
+            return cls.from_wide_dataframe(
+                df,
+                compound_col=compound_col,
+                concentration_col=concentration_col,
+                experiment_col=selected_experiment_col,
+                replicate_cols=replicate_cols,
+                concentration_unit=concentration_unit,
+                response_unit=response_unit,
+                metadata=metadata,
+            )
+
+        raise ValueError("format must be 'long' or 'replicate_wide'.")
+
+    @classmethod
+    def _standardize_long_dataframe_columns(
+        cls,
+        df: pd.DataFrame,
+        *,
+        compound_col: str,
+        concentration_col: str,
+        response_col: str,
+        experiment_col: str,
+        replicate_col: str,
+    ) -> pd.DataFrame:
+        """Rename user-provided long-form columns to the canonical schema."""
+        cls._require_columns(
             df,
-            concentration_unit=concentration_unit,
-            response_unit=response_unit,
-            metadata=metadata,
+            columns=[compound_col, concentration_col, response_col],
+            format_name="long",
         )
+        rename_map = {
+            compound_col: "compound_id",
+            concentration_col: "concentration",
+            response_col: "response",
+        }
+        if experiment_col in df.columns:
+            rename_map[experiment_col] = "experiment_id"
+        if replicate_col in df.columns:
+            rename_map[replicate_col] = "replicate_id"
+        return df.rename(
+            columns={
+                source: target
+                for source, target in rename_map.items()
+                if source != target
+            }
+        )
+
+    @staticmethod
+    def _require_columns(
+        df: pd.DataFrame,
+        *,
+        columns: list[str],
+        format_name: str,
+    ) -> None:
+        """Raise a clear error if required input columns are missing."""
+        missing = [column for column in columns if column not in df.columns]
+        if missing:
+            raise ValueError(
+                f"Missing required columns for {format_name} format: {missing}"
+            )
 
     @property
     def compounds(self) -> list[str]:
