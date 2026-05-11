@@ -1,37 +1,44 @@
 # Welcome to BindCurve
 
 [![PyPI Version](https://img.shields.io/pypi/v/bindcurve)](https://pypi.org/project/bindcurve/)
+[![Tests](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml)
+[![Python 3.10-3.12](https://img.shields.io/badge/python-3.10--3.12-blue.svg)](https://pypi.org/project/bindcurve/)
 [![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
 [![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 
-`bindcurve` is an lmfit-backed Python package for fitting dose-response and binding curves.
+`bindcurve` is an lmfit-backed Python package for fitting dose-response curves.
 
-> [!NOTE]
-> `bindcurve` is undergoing a major object-oriented refactor. Expect breaking API changes while the new architecture stabilizes.
+<p align="center">
+  <img src="assets/logo/logo1.png" alt="bindcurve logo" width="400">
+</p>
+
 
 ## Current scope
 
-The current refactored API focuses on dose-response data and one implemented model:
+The current API provides:
 
-- `DoseResponseData`
-- `IC50Model`
-- generic `FitCalculator`
-- structured `FitResults`
-
-Additional dose-response, direct-binding, competitive-binding, and conversion models will be added after the core architecture is tested and stable.
+- dose-response data ingestion and validation through `DoseResponseData`
+- logistic models such as `IC50Model`, `LogIC50Model`, and `EC50Model`
+- direct-binding models for simple, specific, and total Kd fitting
+- competitive three-state and four-state binding models
+- IC50-to-Kd conversion helpers
+- structured fit results and plotting helpers for reports and figures
 
 ## Installation
 
 ```bash
-pip install bindcurve
+uv add bindcurve
 ```
 
 For local development:
 
 ```bash
-python -m pip install -e .[test]
-pytest
+uv python install 3.12
+uv sync --group dev
+uv run pytest
 ```
+
+`bindcurve` supports Python 3.10, 3.11, and 3.12. Python 3.9 is not supported.
 
 ## Basic usage
 
@@ -118,6 +125,20 @@ data = bc.DoseResponseData.from_wide_dataframe(
 `bindcurve` is unitless by computation and unit-aware by annotation.
 
 The user is responsible for providing all concentration-like values in consistent units. Fitted concentration-like parameters are reported in the same unit label as the input concentrations.
+
+## Development
+
+Common development commands:
+
+```bash
+uv sync --group dev
+uv run pytest
+uv run ruff check
+uv build
+```
+
+The tutorial notebooks use the same `dev` environment, which includes `ipykernel`
+and Jupyter support.
 
 ## Architecture
 

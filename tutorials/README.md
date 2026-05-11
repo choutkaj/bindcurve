@@ -12,9 +12,9 @@ Recommended order:
 
 The examples generate synthetic data, so they do not require external files.
 
-Run from the repository root after installing the package in editable mode:
+Run from the repository root after syncing the development environment:
 
 ```bash
-python -m pip install -e .[test]
-jupyter lab tutorials/
+uv sync --group dev
+uv run jupyter lab tutorials/
 ```

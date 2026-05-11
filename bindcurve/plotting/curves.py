@@ -199,7 +199,9 @@ def _matching_fits(
     compound_id: str,
     experiments: Iterable[str] | None,
 ) -> list[FitResult]:
-    requested = None if experiments is None else {str(experiment) for experiment in experiments}
+    requested = (
+        None if experiments is None else {str(experiment) for experiment in experiments}
+    )
     fits = []
     for fit in results.successful():
         if fit.compound_id != compound_id:
@@ -322,13 +324,18 @@ def _residual_table_for_fit(
         fit_table = table[table["experiment_id"].astype(str) == str(fit.experiment_id)]
 
     if fit_table.empty:
-        return pd.DataFrame(columns=["concentration", "response", "predicted", "residual"])
+        return pd.DataFrame(
+            columns=["concentration", "response", "predicted", "residual"]
+        )
 
     if aggregate:
         fit_table = _aggregate_observations(fit_table, by_experiment=False)
 
     plotted = fit_table.copy()
-    predicted = np.asarray(_evaluate_fit(fit, plotted["concentration"].to_numpy()), dtype=float)
+    predicted = np.asarray(
+        _evaluate_fit(fit, plotted["concentration"].to_numpy()),
+        dtype=float,
+    )
     plotted["predicted"] = predicted
     plotted["residual"] = plotted["response"].to_numpy(dtype=float) - predicted
     return plotted
