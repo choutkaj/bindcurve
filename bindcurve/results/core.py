@@ -3,13 +3,17 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, Literal, TypeAlias
 
 import numpy as np
 import pandas as pd
 from scipy.stats import t as student_t
 
 from bindcurve.modeling.parameters import ConcentrationParameterSpec
+from bindcurve.quality import ResultQualityThresholds, summarize_quality_flags
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 ReportRepresentation = Literal["linear", "log", "both"]
 ReportUncertainty = Literal["sd", "sem", "ci95"]
@@ -381,6 +385,92 @@ class FitResults:
 
         return pd.DataFrame(rows, columns=["compound_id", "report"])
 
+    def quality_report(
+        self,
+        *,
+        parameter: str = "auto",
+        compounds: str | Iterable[str] | None = None,
+        thresholds: ResultQualityThresholds | None = None,
+    ) -> pd.DataFrame:
+        """Return compound-level fit and summary QC metrics."""
+        selected_compounds = _resolve_requested_compounds(self.fit_results, compounds)
+        if not selected_compounds:
+            return pd.DataFrame()
+
+        resolved_thresholds = thresholds or ResultQualityThresholds()
+        parameter_name = _resolve_quality_parameter(
+            self.fit_results,
+            self.summaries,
+            parameter=parameter,
+            compound_ids=selected_compounds,
+        )
+        concentration_lookup = {
+            (summary.compound_id, summary.parameter): summary
+            for summary in self.summaries
+            if isinstance(summary, ConcentrationSummary)
+        }
+        rows: list[dict[str, object]] = []
+        for compound_id in selected_compounds:
+            compound_fits = [
+                fit
+                for fit in self.fit_results
+                if str(fit.compound_id) == str(compound_id)
+            ]
+            rows.append(
+                _compound_result_quality_row(
+                    compound_id,
+                    compound_fits,
+                    concentration_lookup.get((compound_id, parameter_name)),
+                    parameter_name=parameter_name,
+                    thresholds=resolved_thresholds,
+                )
+            )
+
+        columns = [
+            "compound_id",
+            "status",
+            "N_flag_orange",
+            "N_flag_red",
+            "flags",
+            "parameter",
+            "N_exp",
+            "N_fit_success",
+            "N_fit_failed",
+            "fit_success_fraction",
+            "R_squared_median",
+            "R_squared_min",
+            "Chi_squared_total",
+            "redchi_median",
+            "covariance_missing_fraction",
+            "stderr_missing_fraction",
+            "parameter_at_bound_fraction",
+            "inter_log10_sd",
+            "inter_log10_sem",
+            "inter_log10_ci95_width",
+            "inter_sd_fold",
+            "inter_ci95_fold",
+        ]
+        return pd.DataFrame(rows, columns=columns)
+
+    def quality_dashboard(
+        self,
+        *,
+        parameter: str = "auto",
+        compounds: str | Iterable[str] | None = None,
+        thresholds: ResultQualityThresholds | None = None,
+        figsize: tuple[float, float] | None = None,
+    ) -> Figure:
+        """Return a graphical dashboard summarizing results-level QC."""
+        from bindcurve.plotting.quality import plot_results_quality_dashboard
+
+        return plot_results_quality_dashboard(
+            self,
+            parameter=parameter,
+            compounds=compounds,
+            thresholds=thresholds,
+            figsize=figsize,
+        )
+
 
 def _ordered_compound_ids(fits: list[FitResult]) -> list[str]:
     compound_ids: list[str] = []
@@ -588,6 +678,53 @@ def _resolve_report_parameter(
     return requested
 
 
+def _resolve_quality_parameter(
+    fits: list[FitResult],
+    summaries: list[SummaryRecord],
+    *,
+    parameter: str,
+    compound_ids: list[str],
+) -> str:
+    selected_summaries = [
+        summary
+        for summary in summaries
+        if isinstance(summary, ConcentrationSummary)
+        and summary.compound_id in compound_ids
+    ]
+    selected_fits = [
+        fit for fit in fits if str(fit.compound_id) in compound_ids
+    ]
+    summary_available = {summary.parameter for summary in selected_summaries}
+    modeled_available = _available_concentration_parameters_from_models(selected_fits)
+    available = summary_available | modeled_available
+
+    if parameter == "auto":
+        reportable = {
+            summary.parameter for summary in selected_summaries if summary.reportable
+        }
+        if not reportable:
+            reportable = _available_concentration_parameters_from_models(
+                selected_fits,
+                reportable_only=True,
+            )
+        if not reportable:
+            raise ValueError("No reportable concentration quantity is available.")
+        if len(reportable) > 1:
+            raise ValueError(
+                "Multiple reportable concentration quantities are available; "
+                f"specify parameter explicitly. Candidates: {sorted(reportable)}"
+            )
+        return sorted(reportable)[0]
+
+    requested = str(parameter)
+    if requested not in available:
+        raise KeyError(
+            f"Unknown concentration quality parameter {requested!r}. "
+            f"Available parameters: {sorted(available)}"
+        )
+    return requested
+
+
 def _validate_rounding_places(
     rounding: RoundingMode,
     places_mean: int,
@@ -744,6 +881,266 @@ def _format_concentration_report(
     if include_n_exp:
         report = f"{report}, N_exp = {summary.N_exp}"
     return report
+
+
+def _compound_result_quality_row(
+    compound_id: str,
+    compound_fits: list[FitResult],
+    concentration_summary: ConcentrationSummary | None,
+    *,
+    parameter_name: str,
+    thresholds: ResultQualityThresholds,
+) -> dict[str, object]:
+    successful = [fit for fit in compound_fits if fit.success]
+    N_exp = _compound_N_exp(compound_fits)
+    N_fit_success = len(successful)
+    N_fit_failed = len(compound_fits) - N_fit_success
+    fit_success_fraction = (
+        float(N_fit_success / len(compound_fits)) if compound_fits else np.nan
+    )
+
+    covariance_missing_fraction = _fraction_of_fits(
+        successful,
+        lambda fit: fit.lmfit_result is None
+        or getattr(fit.lmfit_result, "covar", None) is None,
+    )
+    stderr_missing_fraction = _fraction_of_fits(
+        successful,
+        _fit_has_missing_stderr,
+    )
+    parameter_at_bound_fraction = _fraction_of_fits(
+        successful,
+        lambda fit: _fit_has_parameter_at_bound(
+            fit,
+            rel_tol=thresholds.bound_tolerance_rel,
+            abs_tol=thresholds.bound_tolerance_abs,
+        ),
+    )
+
+    r_squared_values = [
+        float(fit.metrics.r_squared)
+        for fit in successful
+        if fit.metrics is not None and fit.metrics.r_squared is not None
+    ]
+    redchi_values = [
+        float(fit.metrics.redchi)
+        for fit in successful
+        if fit.metrics is not None
+    ]
+    chisqr_values = [
+        float(fit.metrics.chisqr)
+        for fit in successful
+        if fit.metrics is not None
+    ]
+
+    inter_log10_sd = (
+        concentration_summary.log10_sd if concentration_summary is not None else None
+    )
+    inter_log10_sem = (
+        concentration_summary.log10_sem if concentration_summary is not None else None
+    )
+    inter_log10_ci95_width = (
+        None
+        if concentration_summary is None
+        else _ci95_width_on_log_scale(concentration_summary)
+    )
+    inter_sd_fold = (
+        None
+        if concentration_summary is None
+        else _summary_interval_fold(concentration_summary, "sd")
+    )
+    inter_ci95_fold = (
+        None
+        if concentration_summary is None
+        else _summary_interval_fold(concentration_summary, "ci95")
+    )
+
+    flags: list[tuple[str, str]] = []
+    if N_fit_success == 0:
+        flags.append(("red", "no successful fits"))
+    if N_fit_failed > 0:
+        flags.append(("orange", "fit failures present"))
+    if concentration_summary is None:
+        flags.append(("red", "selected concentration summary unavailable"))
+    if N_exp < 2:
+        flags.append(("red", "fewer than 2 independent experiments"))
+    elif N_exp < thresholds.min_experiments_green:
+        flags.append(("orange", f"only {N_exp} independent experiments"))
+    if covariance_missing_fraction is not None and covariance_missing_fraction > 0.0:
+        flags.append(("orange", "missing covariance for at least one successful fit"))
+    if stderr_missing_fraction is not None and stderr_missing_fraction > 0.0:
+        flags.append(
+            (
+                "orange",
+                "missing parameter standard errors for at least one successful fit",
+            )
+        )
+    if parameter_at_bound_fraction is not None and parameter_at_bound_fraction > 0.0:
+        flags.append(
+            (
+                "orange",
+                "at least one successful fit has a varying parameter at a bound",
+            )
+        )
+    _append_quality_threshold_flag(
+        flags,
+        value=inter_ci95_fold,
+        orange_threshold=thresholds.max_inter_ci95_fold_orange,
+        red_threshold=thresholds.max_inter_ci95_fold_red,
+        orange_message="wide inter-experiment CI95 fold range",
+        red_message="very wide inter-experiment CI95 fold range",
+    )
+
+    status, N_flag_orange, N_flag_red, flag_text = summarize_quality_flags(flags)
+    return {
+        "compound_id": compound_id,
+        "status": status,
+        "N_flag_orange": N_flag_orange,
+        "N_flag_red": N_flag_red,
+        "flags": flag_text,
+        "parameter": parameter_name,
+        "N_exp": N_exp,
+        "N_fit_success": N_fit_success,
+        "N_fit_failed": N_fit_failed,
+        "fit_success_fraction": fit_success_fraction,
+        "R_squared_median": _nanmedian_or_none(r_squared_values),
+        "R_squared_min": _nanmin_or_none(r_squared_values),
+        "Chi_squared_total": None if not chisqr_values else float(sum(chisqr_values)),
+        "redchi_median": _nanmedian_or_none(redchi_values),
+        "covariance_missing_fraction": covariance_missing_fraction,
+        "stderr_missing_fraction": stderr_missing_fraction,
+        "parameter_at_bound_fraction": parameter_at_bound_fraction,
+        "inter_log10_sd": inter_log10_sd,
+        "inter_log10_sem": inter_log10_sem,
+        "inter_log10_ci95_width": inter_log10_ci95_width,
+        "inter_sd_fold": inter_sd_fold,
+        "inter_ci95_fold": inter_ci95_fold,
+    }
+
+
+def _available_concentration_parameters_from_models(
+    fits: list[FitResult],
+    *,
+    reportable_only: bool = False,
+) -> set[str]:
+    if not fits:
+        return set()
+
+    from bindcurve.modeling import get_model
+
+    parameters: set[str] = set()
+    model_names = {fit.model_name for fit in fits}
+    for model_name in model_names:
+        model = get_model(model_name)
+        for spec in model.concentration_parameter_specs:
+            if reportable_only and not spec.reportable:
+                continue
+            parameters.add(spec.parameter)
+    return parameters
+
+
+def _compound_N_exp(fits: list[FitResult]) -> int:
+    experiment_ids = {
+        str(fit.experiment_id)
+        for fit in fits
+        if fit.experiment_id is not None
+    }
+    if experiment_ids:
+        return len(experiment_ids)
+    return len(fits)
+
+
+def _fraction_of_fits(
+    fits: list[FitResult],
+    predicate: Any,
+) -> float | None:
+    if not fits:
+        return None
+    matches = sum(1 for fit in fits if predicate(fit))
+    return float(matches / len(fits))
+
+
+def _fit_has_missing_stderr(fit: FitResult) -> bool:
+    varying = [estimate for estimate in fit.parameters.values() if estimate.vary]
+    if not varying:
+        return False
+    return any(estimate.stderr is None for estimate in varying)
+
+
+def _fit_has_parameter_at_bound(
+    fit: FitResult,
+    *,
+    rel_tol: float,
+    abs_tol: float,
+) -> bool:
+    if fit.lmfit_result is None:
+        return False
+    for parameter in fit.lmfit_result.params.values():
+        if not parameter.vary:
+            continue
+        value = float(parameter.value)
+        lower = float(parameter.min)
+        upper = float(parameter.max)
+        if math.isfinite(lower) and math.isclose(
+            value,
+            lower,
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
+        ):
+            return True
+        if math.isfinite(upper) and math.isclose(
+            value,
+            upper,
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
+        ):
+            return True
+    return False
+
+
+def _ci95_width_on_log_scale(summary: ConcentrationSummary) -> float | None:
+    if summary.log10_ci95_lower is None or summary.log10_ci95_upper is None:
+        return None
+    return float(summary.log10_ci95_upper - summary.log10_ci95_lower)
+
+
+def _summary_interval_fold(
+    summary: ConcentrationSummary,
+    uncertainty: ReportUncertainty,
+) -> float | None:
+    lower, upper = summary.linear_interval(uncertainty)
+    if lower is None or upper is None or lower <= 0.0:
+        return None
+    return float(upper / lower)
+
+
+def _nanmedian_or_none(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(np.nanmedian(np.asarray(values, dtype=float)))
+
+
+def _nanmin_or_none(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(np.nanmin(np.asarray(values, dtype=float)))
+
+
+def _append_quality_threshold_flag(
+    flags: list[tuple[str, str]],
+    *,
+    value: float | None,
+    orange_threshold: float,
+    red_threshold: float,
+    orange_message: str,
+    red_message: str,
+) -> None:
+    if value is None:
+        return
+    if value > red_threshold:
+        flags.append(("red", red_message))
+    elif value > orange_threshold:
+        flags.append(("orange", orange_message))
 
 
 def summarize_fit_parameters(

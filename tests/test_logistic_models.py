@@ -10,20 +10,6 @@ def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.7, hill_slope=-1.2):
     return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
 
 
-def logic50_curve(
-    concentration,
-    *,
-    ymin=0.0,
-    ymax=100.0,
-    logic50=0.25,
-    hill_slope=-1.15,
-):
-    log_concentration = np.log10(concentration)
-    return ymin + (ymax - ymin) / (
-        1.0 + 10 ** ((logic50 - log_concentration) * hill_slope)
-    )
-
-
 def make_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
     concentrations = np.logspace(-2, 2, 16)
     rows = []
@@ -45,9 +31,8 @@ def make_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
     )
 
 
-def test_model_registry_contains_logistic_family():
+def test_model_registry_contains_ic50_model():
     assert isinstance(bc.get_model("ic50"), bc.IC50Model)
-    assert isinstance(bc.get_model("logic50"), bc.LogIC50Model)
 
 
 def test_ic50_model_fits_synthetic_inhibition_data():
@@ -64,33 +49,23 @@ def test_ec50_model_is_not_registered():
     with np.testing.assert_raises_regex(KeyError, "Unknown model 'ec50'"):
         bc.get_model("ec50")
 
-
-def test_logic50_model_fits_synthetic_log_concentration_data():
-    data = make_data(logic50_curve)
-    results = bc.fit(data, model="logic50", fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits()
-
-    assert len(fits) == 3
-    assert np.allclose(fits["logIC50"].mean(), 0.25, atol=0.08)
-    assert np.allclose(fits["hill_slope"].mean(), -1.15, rtol=0.12)
-
-
-def test_logic50_summary_stays_on_linear_log_parameter_scale():
-    data = make_data(logic50_curve)
-    results = bc.fit(data, model="logic50", fixed={"ymin": 0.0, "ymax": 100.0})
+def test_ic50_summary_exposes_derived_log_face_in_parameters():
+    data = make_data(ic50_curve)
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     summary = results.summary()
     parameters = results.parameters()
 
     assert len(summary) == 1
     assert summary.loc[0, "N_exp"] == 3
-    assert np.isclose(summary.loc[0, "IC50"], 10**0.25, rtol=0.20)
+    assert np.isclose(summary.loc[0, "IC50"], 1.7, rtol=0.10)
     assert "logIC50" not in summary.columns
     assert (
         summary.loc[0, "IC50_SD_lower"]
         < summary.loc[0, "IC50"]
         < summary.loc[0, "IC50_SD_upper"]
     )
-    logic50_parameters = parameters[parameters["parameter"] == "IC50"].iloc[0]
-    assert logic50_parameters["summary_type"] == "concentration"
-    assert logic50_parameters["log_parameter"] == "logIC50"
-    assert np.isclose(logic50_parameters["log10_mean"], 0.25, atol=0.08)
+    ic50_parameters = parameters[parameters["parameter"] == "IC50"].iloc[0]
+    assert ic50_parameters["summary_type"] == "concentration"
+    assert ic50_parameters["log_parameter"] == "logIC50"
+    assert np.isclose(ic50_parameters["center"], 1.7, rtol=0.10)
+    assert np.isclose(ic50_parameters["log10_mean"], np.log10(1.7), atol=0.06)

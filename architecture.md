@@ -33,6 +33,7 @@ bindcurve/
     __init__.py
     settings.py
     calculator.py
+  quality.py
   results/
     __init__.py
     core.py
@@ -147,8 +148,7 @@ BindCurve distinguishes two summary families:
 
 `ConcentrationSummary` is used for positive concentration quantities. These quantities are canonical on the `log10` scale:
 
-- if a model fits a linear quantity such as `IC50`, BindCurve transforms each experiment-level estimate to `log10(IC50)` before summarization
-- if a model fits a log quantity such as `logIC50`, that fitted value is already the canonical stored representation
+- BindCurve transforms each positive experiment-level concentration estimate such as `IC50` or `Kd` to `log10` before summarization
 
 For one concentration quantity across `N_exp` experiment-level fits, BindCurve stores:
 
@@ -310,6 +310,11 @@ The wide summary intentionally exposes only the linear face of concentration qua
   - or `mean [lower, upper]` for `CI95`
 - both representations together in one formatted string if requested
 
+`quality_report()` is the quality-control layer. It is intentionally separate from `report()`:
+
+- `DoseResponseData.quality_report()` evaluates assay structure and technical replicate behavior.
+- `FitResults.quality_report()` evaluates fit stability and cross-experiment concentration uncertainty.
+
 ## Failure handling
 
 Silent failures are not allowed.
@@ -327,6 +332,79 @@ FitSettings(errors="collect")
 ```
 
 In collect mode, failed fits are returned as `FitResult` objects with `success = False` and a failure message.
+
+## Quality control
+
+BindCurve separates quality control into two levels:
+
+- `data-level QC`: implemented by `DoseResponseData.quality_report()`
+- `results-level QC`: implemented by `FitResults.quality_report()`
+
+This separation is intentional.
+
+Technical replicate behavior belongs to the raw data layer because it depends on the spread of `y_ecr` values inside one `(experiment, concentration)` cell. Fit stability and cross-experiment agreement belong to the results layer because they depend on experiment-level fitted curves and concentration summaries.
+
+### Data-level QC
+
+`DoseResponseData.quality_report()` keeps one row per compound and reports:
+
+- experiment count `N_exp`
+- observation count `N_obs`
+- concentration-grid completeness
+- replicate-count balance
+- fraction of single-replicate cells
+- intra-experiment noise scaled by experiment response range
+
+Its goal is to answer:
+
+- do I have enough independent experiments?
+- is my experiment-concentration grid complete?
+- are technical replicates present and reasonably consistent?
+
+The key intra-experiment noise metrics are:
+
+- median `response_sd / experiment_response_range`
+- 90th percentile `response_sd / experiment_response_range`
+
+These are descriptive heuristics, not model-based inference.
+
+### Results-level QC
+
+`FitResults.quality_report()` also keeps one row per compound and reports:
+
+- number of successful and failed fits
+- fit-success fraction
+- descriptive fit metrics such as `R_squared`, `Chi_squared`, and `redchi`
+- covariance availability
+- missing parameter standard errors
+- parameters landing on bounds
+- inter-experiment concentration uncertainty from `ConcentrationSummary`
+
+For concentration quantities, the relevant uncertainty metrics come from the canonical `log10` summary:
+
+- `log10_sd`
+- `log10_sem`
+- `log10_ci95_width`
+- derived linear fold ranges such as `CI95_upper / CI95_lower`
+
+BindCurve may flag very wide concentration intervals, but it should not flag linear asymmetry by itself. Asymmetry is expected when log-scale uncertainty is back-transformed to the linear concentration scale.
+
+### QC verdicts
+
+Both QC methods produce:
+
+- explicit numeric metrics
+- a traffic-light `status` of `green`, `orange`, or `red`
+- a readable semicolon-separated `flags` string
+
+These thresholds are heuristics. They are intended to highlight likely problems, not to serve as universal hard rules across every assay type and model.
+
+Both container types may also expose a graphical `quality_dashboard()` method:
+
+- `DoseResponseData.quality_dashboard()` is the visual companion to data-level QC and should show compound-level status plus per-experiment replicate structure and replicate noise.
+- `FitResults.quality_dashboard()` is the visual companion to results-level QC and should show compound-level status plus per-experiment fitted concentration estimates and per-fit diagnostic details.
+
+The dashboard layer should consume the same underlying QC metrics as `quality_report()` rather than inventing a second QC logic path.
 
 ## Plotting
 

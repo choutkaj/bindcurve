@@ -5,35 +5,35 @@ import numpy as np
 import bindcurve as bc
 
 
-def test_logic50_predict_and_evaluate_components_use_raw_concentration_axis():
+def test_ic50_predict_and_evaluate_components_use_raw_concentration_axis():
     concentration = np.logspace(-2, 2, 11)
-    model = bc.get_model("logic50")
+    model = bc.get_model("ic50")
 
     evaluation = model.evaluate_components(
         concentration,
         ymin=0.0,
         ymax=100.0,
-        logIC50=0.25,
+        IC50=10**0.25,
         hill_slope=-1.15,
     )
     predicted = model.predict(
         concentration,
         ymin=0.0,
         ymax=100.0,
-        logIC50=0.25,
+        IC50=10**0.25,
         hill_slope=-1.15,
     )
     direct = model.evaluate(
         model.transform_x(concentration),
         ymin=0.0,
         ymax=100.0,
-        logIC50=0.25,
+        IC50=10**0.25,
         hill_slope=-1.15,
     )
 
     assert isinstance(evaluation, bc.ModelEvaluation)
     assert np.allclose(evaluation.concentration, concentration)
-    assert np.allclose(evaluation.transformed_x, np.log10(concentration))
+    assert np.allclose(evaluation.transformed_x, concentration)
     assert np.allclose(evaluation.response, predicted)
     assert np.allclose(predicted, direct)
     assert "fraction_response" in evaluation.components
@@ -159,4 +159,3 @@ def test_comp_4st_specific_evaluate_components_returns_species_balances():
         atol=1.0e-9,
     )
     assert np.allclose(evaluation.response, components["fraction_tracer_bound"])
-

@@ -18,7 +18,7 @@
 The current API provides:
 
 - dose-response data ingestion and validation through `DoseResponseData`
-- logistic models such as `IC50Model` and `LogIC50Model`
+- a logistic `IC50Model`
 - direct-binding models for simple, specific, and total Kd fitting
 - competitive three-state and four-state binding models
 - IC50-to-Kd conversion helpers

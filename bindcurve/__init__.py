@@ -21,7 +21,6 @@ from bindcurve.modeling import (
     DirectSpecificKdModel,
     DirectTotalKdModel,
     IC50Model,
-    LogIC50Model,
     ModelEvaluation,
     ParameterSpec,
     get_model,
@@ -37,6 +36,7 @@ from bindcurve.plotting import (
     plot_observations,
     plot_residuals,
 )
+from bindcurve.quality import DataQualityThresholds, ResultQualityThresholds
 from bindcurve.results import (
     ConcentrationSummary,
     FitMetrics,
@@ -60,6 +60,7 @@ __all__ = [
     "ConcentrationSummary",
     "CompoundData",
     "CurvePoint",
+    "DataQualityThresholds",
     "DirectSimpleKdModel",
     "DirectSpecificKdModel",
     "DirectTotalKdModel",
@@ -71,11 +72,11 @@ __all__ = [
     "FitSettings",
     "IC50ConversionResult",
     "IC50Model",
-    "LogIC50Model",
     "ModelEvaluation",
     "ParameterEstimate",
     "ParameterSummary",
     "ParameterSpec",
+    "ResultQualityThresholds",
     "__version__",
     "cheng_prusoff",
     "cheng_prusoff_corrected",
