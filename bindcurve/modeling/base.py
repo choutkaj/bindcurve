@@ -16,8 +16,6 @@ class BaseDoseResponseModel(ABC):
     name: str
     parameter_specs: tuple[ParameterSpec, ...]
     concentration_parameters: frozenset[str] = frozenset()
-    log_concentration_parameters: frozenset[str] = frozenset()
-    response_parameters: frozenset[str] = frozenset()
     required_fixed_parameters: frozenset[str] = frozenset()
 
     @abstractmethod
@@ -94,21 +92,3 @@ class BaseDoseResponseModel(ABC):
         if weights is not None:
             residual = residual * weights
         return residual
-
-    def parameter_unit(
-        self,
-        parameter_name: str,
-        *,
-        concentration_unit: str | None,
-        response_unit: str | None,
-    ) -> str | None:
-        """Return the display unit for a model parameter."""
-        if parameter_name in self.concentration_parameters:
-            return concentration_unit
-        if parameter_name in self.log_concentration_parameters:
-            if concentration_unit is None:
-                return "log10(concentration)"
-            return f"log10({concentration_unit})"
-        if parameter_name in self.response_parameters:
-            return response_unit
-        return None

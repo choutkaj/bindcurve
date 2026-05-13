@@ -53,13 +53,11 @@ def test_scalar_conversion_returns_result_container():
         IC50=10.0,
         LsT=2.0,
         Kds=4.0,
-        unit="uM",
     )
 
     assert isinstance(result, bc.IC50ConversionResult)
     assert result.compound_id is None
     assert result.Kd == pytest.approx(legacy_cheng_prusoff(2.0, 4.0, 10.0))
-    assert result.unit == "uM"
 
 
 def test_dataframe_conversion_with_confidence_limits():
@@ -79,7 +77,6 @@ def test_dataframe_conversion_with_confidence_limits():
         Kds=4.0,
         lower_col="lower_IC50",
         upper_col="upper_IC50",
-        unit="uM",
     )
 
     expected_kd = [
@@ -100,7 +97,6 @@ def test_dataframe_conversion_with_confidence_limits():
     assert np.allclose(converted["Kd"], expected_kd)
     assert np.allclose(converted["lower_Kd"], expected_lower)
     assert np.allclose(converted["upper_Kd"], expected_upper)
-    assert set(converted["unit"]) == {"uM"}
 
 
 def test_dataframe_conversion_supports_fit_results_column_names():

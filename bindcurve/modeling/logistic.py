@@ -8,7 +8,7 @@ from bindcurve.modeling.parameters import ParameterSpec
 
 
 def _aggregate_for_guess(compound: CompoundData) -> tuple[np.ndarray, np.ndarray]:
-    table = compound.aggregate_replicates(method="mean")
+    table = compound.aggregate_replicates()
     concentration = table["concentration"].to_numpy(dtype=float)
     response = table["response"].to_numpy(dtype=float)
     return concentration, response
@@ -38,11 +38,10 @@ class IC50Model(BaseDoseResponseModel):
 
     name = "ic50"
     concentration_parameters = frozenset({"IC50"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("IC50", min=0.0, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("IC50", min=0.0),
         ParameterSpec("hill_slope", initial=-1.0),
     )
 
@@ -72,50 +71,6 @@ class IC50Model(BaseDoseResponseModel):
         }
 
 
-class EC50Model(BaseDoseResponseModel):
-    """Four-parameter EC50 / Hill dose-response model.
-
-    This model is mathematically identical to :class:`IC50Model`, but the fitted
-    midpoint parameter is named ``EC50`` for activation or response-increase
-    experiments.
-    """
-
-    name = "ec50"
-    concentration_parameters = frozenset({"EC50"})
-    response_parameters = frozenset({"ymin", "ymax"})
-    parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("EC50", min=0.0, unit_kind="concentration"),
-        ParameterSpec("hill_slope", initial=1.0),
-    )
-
-    def evaluate(
-        self,
-        x: np.ndarray,
-        *,
-        ymin: float,
-        ymax: float,
-        EC50: float,
-        hill_slope: float,
-    ) -> np.ndarray:
-        x = np.asarray(x, dtype=float)
-        return ymin + (ymax - ymin) / (1.0 + (EC50 / x) ** hill_slope)
-
-    def guess(self, compound: CompoundData) -> dict[str, float]:
-        concentration, response = _aggregate_for_guess(compound)
-        ymin, ymax, midpoint = _asymptote_and_midpoint_guess(response)
-        midpoint_index = int(np.nanargmin(np.abs(response - midpoint)))
-        ec50 = float(concentration[midpoint_index])
-
-        return {
-            "ymin": ymin,
-            "ymax": ymax,
-            "EC50": ec50,
-            "hill_slope": _hill_slope_guess(response),
-        }
-
-
 class LogIC50Model(BaseDoseResponseModel):
     """Four-parameter logIC50 model fitted on log10 concentration.
 
@@ -128,12 +83,10 @@ class LogIC50Model(BaseDoseResponseModel):
     """
 
     name = "logic50"
-    log_concentration_parameters = frozenset({"logIC50"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("logIC50", unit_kind="log_concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("logIC50"),
         ParameterSpec("hill_slope", initial=-1.0),
     )
 

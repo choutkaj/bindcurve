@@ -21,7 +21,6 @@ class IC50ConversionResult:
     upper_IC50: float | None = None
     lower_Kd: float | None = None
     upper_Kd: float | None = None
-    unit: str | None = None
 
 
 def _require_positive(name: str, value: float) -> float:
@@ -142,7 +141,6 @@ def convert_ic50_to_kd(
     ic50_col: str = "IC50",
     lower_col: str | None = None,
     upper_col: str | None = None,
-    unit: str | None = None,
 ) -> IC50ConversionResult | pd.DataFrame:
     """Convert scalar or DataFrame IC50 values to Kd.
 
@@ -172,7 +170,6 @@ def convert_ic50_to_kd(
             model=model,
             IC50=float(IC50),
             Kd=converted,
-            unit=unit,
         )
 
     if ic50_col not in data.columns:
@@ -225,7 +222,6 @@ def convert_ic50_to_kd(
                 upper_IC50=upper_ic50,
                 lower_Kd=lower_kd,
                 upper_Kd=upper_kd,
-                unit=unit,
             ).__dict__
         )
 

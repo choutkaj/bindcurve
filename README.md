@@ -18,7 +18,7 @@
 The current API provides:
 
 - dose-response data ingestion and validation through `DoseResponseData`
-- logistic models such as `IC50Model`, `LogIC50Model`, and `EC50Model`
+- logistic models such as `IC50Model` and `LogIC50Model`
 - direct-binding models for simple, specific, and total Kd fitting
 - competitive three-state and four-state binding models
 - IC50-to-Kd conversion helpers
@@ -71,8 +71,6 @@ raw = pd.DataFrame(
 
 data = bc.DoseResponseData.from_dataframe(
     raw,
-    concentration_unit="uM",
-    response_unit="percent",
 )
 
 results = bc.fit(
@@ -85,34 +83,29 @@ print(results.fits_to_dataframe())
 print(results.summary_to_dataframe())
 ```
 
-## Default fitting strategy
+## Canonical fitting pipeline
 
-The default strategy is `per_experiment`.
+`bindcurve` uses one canonical fitting pipeline.
 
-For each compound, `bindcurve`:
+For each compound, it:
 
 1. splits observations by independent experiment;
-2. aggregates technical replicates at each concentration;
+2. averages technical replicates within each experiment at each concentration using the arithmetic mean;
 3. fits one curve per independent experiment;
 4. summarizes fitted parameters across independent experiments.
 
 This avoids treating technical replicates as independent biological repeats.
 
-Alternative strategies are available through `FitSettings`:
-
-```python
-bc.FitSettings(strategy="per_experiment")
-bc.FitSettings(strategy="pooled")
-bc.FitSettings(strategy="per_compound_summary")
-```
+At the high-level plotting layer, markers and fitted curves are coupled into one logical series by default: they share one legend label and one base color. `plot_fits()` can optionally draw covariance-based pointwise confidence bands around each experiment-level fitted mean curve. `plot_compounds()` draws grand-mean observations across experiments plus a separate plotting-only master fit, uses SD/SEM error bars instead of confidence bands to show inter-experiment uncertainty, and leaves asymptotes / curve points to their dedicated plotting helpers.
 
 ## Wide-format data
 
-Wide assay tables can be normalized with `from_wide_dataframe`:
+Wide assay tables can be normalized with `from_dataframe(..., format="wide")`:
 
 ```python
-data = bc.DoseResponseData.from_wide_dataframe(
+data = bc.DoseResponseData.from_dataframe(
     df,
+    format="wide",
     compound_col="compound",
     concentration_col="dose",
     experiment_col="experiment",
@@ -120,11 +113,24 @@ data = bc.DoseResponseData.from_wide_dataframe(
 )
 ```
 
-## Units
+`DoseResponseData` can also be serialized back to tabular or JSON representations:
 
-`bindcurve` is unitless by computation and unit-aware by annotation.
+```python
+long_df = data.to_dataframe()
+wide_df = data.to_dataframe(format="wide")
 
-The user is responsible for providing all concentration-like values in consistent units. Fitted concentration-like parameters are reported in the same unit label as the input concentrations.
+data.to_csv("dose_response_long.csv")
+data.to_csv("dose_response_wide.csv", format="wide")
+
+json_text = data.to_json(format="wide", indent=2)
+reloaded = bc.DoseResponseData.from_json(json_text)
+```
+
+## Numerical scale
+
+`bindcurve` is unitless.
+
+The user is responsible for providing all concentration-like values on a consistent numerical scale. Fitted values such as `IC50` and `Kd` are returned on that same scale.
 
 ## Development
 

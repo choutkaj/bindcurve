@@ -49,8 +49,6 @@ def make_saturation_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
                 )
     return bc.DoseResponseData.from_dataframe(
         pd.DataFrame(rows),
-        concentration_unit="uM",
-        response_unit="percent",
     )
 
 
@@ -72,7 +70,6 @@ def test_dir_simple_recovers_kds_from_synthetic_data():
     assert len(fits) == 3
     assert fits["success"].all()
     assert np.allclose(fits["Kds"].mean(), 1.4, rtol=0.12)
-    assert set(fits["Kds_unit"]) == {"uM"}
 
 
 def test_dir_specific_recovers_kds_from_synthetic_data():
@@ -87,8 +84,6 @@ def test_dir_specific_recovers_kds_from_synthetic_data():
     assert len(fits) == 3
     assert fits["success"].all()
     assert np.allclose(fits["Kds"].mean(), 1.8, rtol=0.12)
-    assert set(fits["Kds_unit"]) == {"uM"}
-    assert set(fits["LsT_unit"]) == {"uM"}
     assert not fits["LsT"].isna().any()
 
 
@@ -104,9 +99,6 @@ def test_dir_total_recovers_kds_from_synthetic_data():
     assert len(fits) == 3
     assert fits["success"].all()
     assert np.allclose(fits["Kds"].mean(), 2.2, rtol=0.12)
-    assert set(fits["Kds_unit"]) == {"uM"}
-    assert set(fits["LsT_unit"]) == {"uM"}
-    assert set(fits["Ns_unit"]) == {None}
 
 
 def test_missing_required_direct_binding_constant_raises():

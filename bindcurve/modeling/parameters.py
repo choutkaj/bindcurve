@@ -14,5 +14,4 @@ class ParameterSpec:
     min: float = -np.inf
     max: float = np.inf
     vary: bool = True
-    unit_kind: str | None = None
     description: str | None = None

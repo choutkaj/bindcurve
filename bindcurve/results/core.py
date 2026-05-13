@@ -14,7 +14,6 @@ class ParameterEstimate:
     name: str
     value: float
     stderr: float | None = None
-    unit: str | None = None
     vary: bool = True
 
 
@@ -73,11 +72,10 @@ class ParameterSummary:
 
     compound_id: str
     parameter: str
-    n: int
+    N_exp: int
     mean: float
     sd: float | None
     sem: float | None
-    unit: str | None = None
     summary_scale: str = "linear"
     geometric_mean: float | None = None
     log10_mean: float | None = None
@@ -125,7 +123,6 @@ class FitResults:
             for name, estimate in fit.parameters.items():
                 row[name] = estimate.value
                 row[f"{name}_stderr"] = estimate.stderr
-                row[f"{name}_unit"] = estimate.unit
             rows.append(row)
         return pd.DataFrame(rows)
 
@@ -154,7 +151,6 @@ def summarize_fit_parameters(
                 fit.parameters[name] for fit in compound_fits if name in fit.parameters
             ]
             values = np.asarray([estimate.value for estimate in estimates], dtype=float)
-            unit = estimates[0].unit if estimates else None
             sd = float(np.std(values, ddof=1)) if len(values) > 1 else None
             sem = float(sd / np.sqrt(len(values))) if sd is not None else None
 
@@ -168,11 +164,10 @@ def summarize_fit_parameters(
                     ParameterSummary(
                         compound_id=compound_id,
                         parameter=name,
-                        n=len(values),
+                        N_exp=len(values),
                         mean=float(np.mean(values)),
                         sd=sd,
                         sem=sem,
-                        unit=unit,
                         summary_scale="log10",
                         geometric_mean=float(10**log10_mean),
                         log10_mean=log10_mean,
@@ -184,11 +179,10 @@ def summarize_fit_parameters(
                     ParameterSummary(
                         compound_id=compound_id,
                         parameter=name,
-                        n=len(values),
+                        N_exp=len(values),
                         mean=float(np.mean(values)),
                         sd=sd,
                         sem=sem,
-                        unit=unit,
                     )
                 )
     return summaries

@@ -30,7 +30,7 @@ def make_multi_experiment_data() -> bc.DoseResponseData:
     return bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
 
 
-def test_per_experiment_strategy_is_default():
+def test_fit_runs_one_curve_per_experiment():
     data = make_multi_experiment_data()
     results = bc.fit(data, fixed={"ymin": 0.0, "ymax": 100.0})
     fits = results.fits_to_dataframe()
@@ -40,31 +40,12 @@ def test_per_experiment_strategy_is_default():
     assert fits["n_data"].eq(12).all()
 
 
-def test_pooled_strategy_fits_all_raw_observations_once():
-    data = make_multi_experiment_data()
-    settings = bc.FitSettings(strategy="pooled")
-    results = bc.fit(data, settings=settings, fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits_to_dataframe()
-
-    assert len(fits) == 1
-    assert fits.loc[0, "experiment_id"] is None
-    assert fits.loc[0, "n_data"] == 72
-    assert fits.loc[0, "success"]
+def test_fitsettings_no_longer_accepts_strategy():
+    with pytest.raises(TypeError, match="strategy"):
+        bc.FitSettings(strategy="per_experiment")
 
 
-def test_per_compound_summary_strategy_fits_one_aggregated_curve():
-    data = make_multi_experiment_data()
-    settings = bc.FitSettings(strategy="per_compound_summary")
-    results = bc.fit(data, settings=settings, fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits_to_dataframe()
-
-    assert len(fits) == 1
-    assert fits.loc[0, "experiment_id"] == "compound_summary"
-    assert fits.loc[0, "n_data"] == 12
-    assert fits.loc[0, "success"]
-
-
-def test_from_wide_dataframe_normalizes_to_long_form():
+def test_from_dataframe_accepts_wide_format():
     wide = pd.DataFrame(
         {
             "compound": ["cmpd_a", "cmpd_a", "cmpd_b", "cmpd_b"],
@@ -75,14 +56,13 @@ def test_from_wide_dataframe_normalizes_to_long_form():
         }
     )
 
-    data = bc.DoseResponseData.from_wide_dataframe(
+    data = bc.DoseResponseData.from_dataframe(
         wide,
+        format="wide",
         compound_col="compound",
         concentration_col="dose",
         experiment_col="experiment",
         replicate_cols=["rep_1", "rep_2"],
-        concentration_unit="uM",
-        response_unit="percent",
     )
 
     assert set(data.table.columns) >= {
@@ -94,8 +74,6 @@ def test_from_wide_dataframe_normalizes_to_long_form():
     }
     assert len(data.table) == 8
     assert data.compounds == ["cmpd_a", "cmpd_b"]
-    assert data.concentration_unit == "uM"
-    assert data.response_unit == "percent"
 
 
 def test_missing_optional_ids_are_filled():

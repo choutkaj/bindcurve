@@ -8,7 +8,7 @@ from bindcurve.modeling.parameters import ParameterSpec
 
 
 def _aggregate_for_guess(compound: CompoundData) -> tuple[np.ndarray, np.ndarray]:
-    table = compound.aggregate_replicates(method="mean")
+    table = compound.aggregate_replicates()
     concentration = table["concentration"].to_numpy(dtype=float)
     response = table["response"].to_numpy(dtype=float)
     return concentration, response
@@ -74,11 +74,10 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
 
     name = "dir_simple"
     concentration_parameters = frozenset({"Kds"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("Kds", min=0.0, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("Kds", min=0.0),
     )
 
     def evaluate(
@@ -103,12 +102,11 @@ class DirectSpecificKdModel(BaseDoseResponseModel):
     name = "dir_specific"
     required_fixed_parameters = frozenset({"LsT"})
     concentration_parameters = frozenset({"Kds", "LsT"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("LsT", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("Kds", min=0.0, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("LsT", min=0.0, vary=False),
+        ParameterSpec("Kds", min=0.0),
     )
 
     def evaluate(
@@ -137,13 +135,12 @@ class DirectTotalKdModel(BaseDoseResponseModel):
     name = "dir_total"
     required_fixed_parameters = frozenset({"LsT", "Ns"})
     concentration_parameters = frozenset({"Kds", "LsT"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("LsT", min=0.0, vary=False, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("LsT", min=0.0, vary=False),
         ParameterSpec("Ns", min=0.0, vary=False),
-        ParameterSpec("Kds", min=0.0, unit_kind="concentration"),
+        ParameterSpec("Kds", min=0.0),
     )
 
     def evaluate(
@@ -173,14 +170,13 @@ class CompetitiveThreeStateSpecificKdModel(BaseDoseResponseModel):
     name = "comp_3st_specific"
     required_fixed_parameters = frozenset({"RT", "LsT", "Kds"})
     concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("RT", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("LsT", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("Kds", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("Kd", min=0.0, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("RT", min=0.0, vary=False),
+        ParameterSpec("LsT", min=0.0, vary=False),
+        ParameterSpec("Kds", min=0.0, vary=False),
+        ParameterSpec("Kd", min=0.0),
     )
 
     def evaluate(
@@ -214,15 +210,14 @@ class CompetitiveThreeStateTotalKdModel(BaseDoseResponseModel):
     name = "comp_3st_total"
     required_fixed_parameters = frozenset({"RT", "LsT", "Kds", "N"})
     concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd"})
-    response_parameters = frozenset({"ymin", "ymax"})
     parameter_specs = (
-        ParameterSpec("ymin", unit_kind="response"),
-        ParameterSpec("ymax", unit_kind="response"),
-        ParameterSpec("RT", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("LsT", min=0.0, vary=False, unit_kind="concentration"),
-        ParameterSpec("Kds", min=0.0, vary=False, unit_kind="concentration"),
+        ParameterSpec("ymin"),
+        ParameterSpec("ymax"),
+        ParameterSpec("RT", min=0.0, vary=False),
+        ParameterSpec("LsT", min=0.0, vary=False),
+        ParameterSpec("Kds", min=0.0, vary=False),
         ParameterSpec("N", min=0.0, vary=False),
-        ParameterSpec("Kd", min=0.0, unit_kind="concentration"),
+        ParameterSpec("Kd", min=0.0),
     )
 
     def evaluate(

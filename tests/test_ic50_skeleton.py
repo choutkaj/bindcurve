@@ -34,8 +34,6 @@ def make_synthetic_data() -> bc.DoseResponseData:
 
     return bc.DoseResponseData.from_dataframe(
         pd.DataFrame(rows),
-        concentration_unit="uM",
-        response_unit="percent",
     )
 
 
@@ -68,8 +66,6 @@ def test_default_strategy_fits_one_curve_per_independent_experiment():
 
     assert np.allclose(cmpd_a["IC50"].mean(), 1.5, rtol=0.15)
     assert np.allclose(cmpd_b["IC50"].mean(), 4.0, rtol=0.15)
-    assert set(cmpd_a["IC50_unit"]) == {"uM"}
-    assert set(cmpd_a["ymin_unit"]) == {"percent"}
 
 
 def test_summary_uses_log_scale_for_ic50():
@@ -77,9 +73,13 @@ def test_summary_uses_log_scale_for_ic50():
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     summary = results.summary_to_dataframe()
 
+    assert "N_exp" in summary.columns
+    assert "n" not in summary.columns
+
     ic50_summary = summary[summary["parameter"] == "IC50"]
 
     assert len(ic50_summary) == 2
+    assert ic50_summary["N_exp"].eq(3).all()
     assert set(ic50_summary["summary_scale"]) == {"log10"}
     assert ic50_summary["geometric_mean"].notna().all()
 

@@ -80,8 +80,6 @@ def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData
                 )
     return bc.DoseResponseData.from_dataframe(
         pd.DataFrame(rows),
-        concentration_unit="uM",
-        response_unit="percent",
     )
 
 
@@ -163,8 +161,6 @@ def test_comp_4st_specific_recovers_kd_from_synthetic_data():
     assert len(fits) == 3
     assert fits["success"].all()
     assert np.allclose(fits["Kd"].mean(), 1.6, rtol=0.18)
-    assert set(fits["Kd_unit"]) == {"uM"}
-    assert set(fits["Kd3_unit"]) == {"uM"}
 
 
 def test_comp_4st_total_recovers_kd_from_synthetic_data():
@@ -187,8 +183,6 @@ def test_comp_4st_total_recovers_kd_from_synthetic_data():
     assert len(fits) == 3
     assert fits["success"].all()
     assert np.allclose(fits["Kd"].mean(), 2.4, rtol=0.18)
-    assert set(fits["Kd_unit"]) == {"uM"}
-    assert set(fits["N_unit"]) == {None}
 
 
 def test_comp_4st_total_with_zero_n_matches_specific_model():

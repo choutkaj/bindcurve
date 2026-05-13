@@ -40,9 +40,8 @@ class FitCalculator:
         for compound_id in compound_ids:
             try:
                 compound = data.select_compound(compound_id)
-                fit_inputs = self._make_fit_inputs(compound)
-
-                for experiment_id, fit_data in fit_inputs:
+                for experiment_id in compound.experiments:
+                    fit_data = compound.select_experiment(experiment_id)
                     fits.append(
                         self._fit_one(
                             fit_data,
@@ -69,39 +68,6 @@ class FitCalculator:
         )
         return FitResults(fits=fits, summaries=summaries)
 
-    def _make_fit_inputs(
-        self, compound: CompoundData
-    ) -> list[tuple[str | None, CompoundData]]:
-        if self.settings.strategy == "per_experiment":
-            return [
-                (experiment_id, compound.select_experiment(experiment_id))
-                for experiment_id in compound.experiments
-            ]
-
-        if self.settings.strategy == "pooled":
-            return [(None, compound)]
-
-        if self.settings.strategy == "per_compound_summary":
-            summary = compound.aggregate_replicates(
-                method=self.settings.replicate_aggregation
-            )
-            summary["compound_id"] = compound.compound_id
-            summary["experiment_id"] = "compound_summary"
-            summary["replicate_id"] = "summary"
-            return [
-                (
-                    "compound_summary",
-                    CompoundData(
-                        compound_id=compound.compound_id,
-                        table=summary,
-                        concentration_unit=compound.concentration_unit,
-                        response_unit=compound.response_unit,
-                    ),
-                )
-            ]
-
-        raise ValueError(f"Unsupported strategy: {self.settings.strategy}")
-
     def _fit_one(
         self,
         compound: CompoundData,
@@ -110,10 +76,7 @@ class FitCalculator:
         fixed: Mapping[str, float] | None = None,
         bounds: Mapping[str, tuple[float | None, float | None]] | None = None,
     ) -> FitResult:
-        concentration, y = compound.as_xy(
-            aggregate_replicates=self.settings.strategy != "pooled",
-            aggregation=self.settings.replicate_aggregation,
-        )
+        concentration, y = compound.as_xy(aggregate_replicates=True)
         x = self.model.transform_x(concentration)
 
         guesses = self.model.guess(compound)
@@ -143,11 +106,6 @@ class FitCalculator:
                 name=name,
                 value=float(parameter.value),
                 stderr=None if parameter.stderr is None else float(parameter.stderr),
-                unit=self.model.parameter_unit(
-                    name,
-                    concentration_unit=compound.concentration_unit,
-                    response_unit=compound.response_unit,
-                ),
                 vary=bool(parameter.vary),
             )
             for name, parameter in lmfit_result.params.items()

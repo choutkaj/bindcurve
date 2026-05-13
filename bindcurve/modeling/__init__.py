@@ -12,7 +12,7 @@ from bindcurve.modeling.competitive import (
     CompetitiveFourStateSpecificKdModel,
     CompetitiveFourStateTotalKdModel,
 )
-from bindcurve.modeling.logistic import EC50Model, IC50Model, LogIC50Model
+from bindcurve.modeling.logistic import IC50Model, LogIC50Model
 from bindcurve.modeling.parameters import ParameterSpec
 from bindcurve.modeling.registry import get_model
 
@@ -25,7 +25,6 @@ __all__ = [
     "DirectSimpleKdModel",
     "DirectSpecificKdModel",
     "DirectTotalKdModel",
-    "EC50Model",
     "IC50Model",
     "LogIC50Model",
     "ParameterSpec",
