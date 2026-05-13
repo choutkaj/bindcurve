@@ -83,9 +83,14 @@ def test_logic50_summary_stays_on_linear_log_parameter_scale():
 
     assert len(summary) == 1
     assert summary.loc[0, "N_exp"] == 3
-    assert np.isclose(summary.loc[0, "logIC50"], 0.25, atol=0.08)
-    assert summary.loc[0, "logIC50_SD"] > 0.0
-    assert summary.loc[0, "logIC50_SEM"] > 0.0
-    logic50_parameters = parameters[parameters["parameter"] == "logIC50"].iloc[0]
-    assert logic50_parameters["summary_scale"] == "linear"
-    assert logic50_parameters["geometric_mean"] is None
+    assert np.isclose(summary.loc[0, "IC50"], 10**0.25, rtol=0.20)
+    assert "logIC50" not in summary.columns
+    assert (
+        summary.loc[0, "IC50_SD_lower"]
+        < summary.loc[0, "IC50"]
+        < summary.loc[0, "IC50_SD_upper"]
+    )
+    logic50_parameters = parameters[parameters["parameter"] == "IC50"].iloc[0]
+    assert logic50_parameters["summary_type"] == "concentration"
+    assert logic50_parameters["log_parameter"] == "logIC50"
+    assert np.isclose(logic50_parameters["log10_mean"], 0.25, atol=0.08)

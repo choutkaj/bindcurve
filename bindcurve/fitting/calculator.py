@@ -64,9 +64,9 @@ class FitCalculator:
 
         summaries = summarize_fit_parameters(
             fits,
-            concentration_parameters=self.model.concentration_parameters,
+            concentration_parameter_specs=self.model.concentration_parameter_specs,
         )
-        return FitResults(fits=fits, summaries=summaries)
+        return FitResults(fit_results=fits, summaries=summaries)
 
     def _fit_one(
         self,

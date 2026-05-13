@@ -81,6 +81,7 @@ results = bc.fit(
 
 print(results.fits())
 print(results.summary())
+print(results.report(unit="uM"))
 ```
 
 ## Canonical fitting pipeline

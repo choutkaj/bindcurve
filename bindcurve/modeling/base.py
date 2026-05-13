@@ -8,7 +8,7 @@ import lmfit
 import numpy as np
 
 from bindcurve.datasets import CompoundData
-from bindcurve.modeling.parameters import ParameterSpec
+from bindcurve.modeling.parameters import ConcentrationParameterSpec, ParameterSpec
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,7 @@ class BaseDoseResponseModel(ABC):
     name: str
     parameter_specs: tuple[ParameterSpec, ...]
     concentration_parameters: frozenset[str] = frozenset()
+    concentration_parameter_specs: tuple[ConcentrationParameterSpec, ...] = ()
     required_fixed_parameters: frozenset[str] = frozenset()
 
     @abstractmethod
@@ -71,7 +72,11 @@ class BaseDoseResponseModel(ABC):
         response = np.asarray(self.evaluate(x, **params), dtype=float)
         components = {
             name: np.asarray(values, dtype=float)
-            for name, values in self.component_arrays(concentration, x, **params).items()
+            for name, values in self.component_arrays(
+                concentration,
+                x,
+                **params,
+            ).items()
         }
         return ModelEvaluation(
             concentration=concentration,

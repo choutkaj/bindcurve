@@ -315,7 +315,7 @@ def _master_fit_results(
     filtered_table = data.table[data.table["compound_id"].astype(str).isin(compound_ids)]
     filtered_table = _filter_experiments(filtered_table, experiments)
     if filtered_table.empty:
-        return FitResults(fits=[])
+        return FitResults(fit_results=[])
 
     source_fits = _matching_fits(
         results,
@@ -324,7 +324,7 @@ def _master_fit_results(
     )
     model_name = _infer_model_name(source_fits)
     if model_name is None:
-        return FitResults(fits=[])
+        return FitResults(fit_results=[])
 
     master_rows = []
     for compound_id in compound_ids:
@@ -338,7 +338,7 @@ def _master_fit_results(
         )
 
     if not master_rows:
-        return FitResults(fits=[])
+        return FitResults(fit_results=[])
 
     summary_data = DoseResponseData.from_dataframe(
         pd.concat(master_rows, ignore_index=True),
@@ -1136,7 +1136,7 @@ def plot_compounds(
             experiments=None,
         )
         if show_curves
-        else FitResults(fits=[])
+        else FitResults(fit_results=[])
     )
     series = _build_compound_series(
         data,

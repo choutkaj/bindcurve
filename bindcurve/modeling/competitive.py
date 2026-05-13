@@ -4,7 +4,7 @@ import numpy as np
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
-from bindcurve.modeling.parameters import ParameterSpec
+from bindcurve.modeling.parameters import ConcentrationParameterSpec, ParameterSpec
 
 
 def _competition_guess(compound: CompoundData) -> dict[str, float]:
@@ -437,6 +437,38 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
     name = "comp_4st_specific"
     required_fixed_parameters = frozenset({"RT", "LsT", "Kds", "Kd3"})
     concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd", "Kd3"})
+    concentration_parameter_specs = (
+        ConcentrationParameterSpec(
+            parameter="RT",
+            fitted_parameter="RT",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="LsT",
+            fitted_parameter="LsT",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kds",
+            fitted_parameter="Kds",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kd3",
+            fitted_parameter="Kd3",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kd",
+            fitted_parameter="Kd",
+            fitted_scale="linear",
+            reportable=True,
+        ),
+    )
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
@@ -495,6 +527,38 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
     name = "comp_4st_total"
     required_fixed_parameters = frozenset({"RT", "LsT", "Kds", "Kd3", "N"})
     concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd", "Kd3"})
+    concentration_parameter_specs = (
+        ConcentrationParameterSpec(
+            parameter="RT",
+            fitted_parameter="RT",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="LsT",
+            fitted_parameter="LsT",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kds",
+            fitted_parameter="Kds",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kd3",
+            fitted_parameter="Kd3",
+            fitted_scale="linear",
+            reportable=False,
+        ),
+        ConcentrationParameterSpec(
+            parameter="Kd",
+            fitted_parameter="Kd",
+            fitted_scale="linear",
+            reportable=True,
+        ),
+    )
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),

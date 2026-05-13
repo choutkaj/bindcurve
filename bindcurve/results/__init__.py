@@ -1,5 +1,19 @@
 """Structured fit result containers."""
 
-from bindcurve.results.core import FitMetrics, FitResult, FitResults, ParameterEstimate
+from bindcurve.results.core import (
+    ConcentrationSummary,
+    FitMetrics,
+    FitResult,
+    FitResults,
+    ParameterEstimate,
+    ParameterSummary,
+)
 
-__all__ = ["FitMetrics", "FitResult", "FitResults", "ParameterEstimate"]
+__all__ = [
+    "ConcentrationSummary",
+    "FitMetrics",
+    "FitResult",
+    "FitResults",
+    "ParameterEstimate",
+    "ParameterSummary",
+]

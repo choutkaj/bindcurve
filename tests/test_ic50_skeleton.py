@@ -79,8 +79,14 @@ def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     assert "N_obs" in summary.columns
     assert "n" not in summary.columns
     assert "IC50" in summary.columns
-    assert "IC50_SD" in summary.columns
-    assert "IC50_SEM" in summary.columns
+    assert "IC50_SD_lower" in summary.columns
+    assert "IC50_SD_upper" in summary.columns
+    assert "IC50_SEM_lower" in summary.columns
+    assert "IC50_SEM_upper" in summary.columns
+    assert "IC50_CI95_lower" in summary.columns
+    assert "IC50_CI95_upper" in summary.columns
+    assert "IC50_SD" not in summary.columns
+    assert "IC50_SEM" not in summary.columns
     assert "R_squared" in summary.columns
     assert "Chi_squared" in summary.columns
 
@@ -93,8 +99,9 @@ def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     assert cmpd_b["N_obs"] == 36
     assert np.isclose(cmpd_a["IC50"], 1.5, rtol=0.15)
     assert np.isclose(cmpd_b["IC50"], 4.0, rtol=0.15)
-    assert cmpd_a["IC50_SD"] > 0.0
-    assert cmpd_a["IC50_SEM"] > 0.0
+    assert cmpd_a["IC50_SD_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_SD_upper"]
+    assert cmpd_a["IC50_SEM_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_SEM_upper"]
+    assert cmpd_a["IC50_CI95_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_CI95_upper"]
     assert 0.0 <= cmpd_a["R_squared"] <= 1.0
     assert cmpd_a["Chi_squared"] >= 0.0
 
@@ -105,14 +112,36 @@ def test_parameters_keeps_detailed_parameter_rows():
     parameters = results.parameters()
 
     assert len(parameters) == 8
-    assert {"compound_id", "parameter", "N_exp", "mean", "sd", "sem"} <= set(
+    assert {"compound_id", "parameter", "N_exp", "summary_type"} <= set(
         parameters.columns
     )
     ic50_parameters = parameters[parameters["parameter"] == "IC50"]
     assert len(ic50_parameters) == 2
     assert ic50_parameters["N_exp"].eq(3).all()
-    assert set(ic50_parameters["summary_scale"]) == {"log10"}
-    assert ic50_parameters["geometric_mean"].notna().all()
+    assert set(ic50_parameters["summary_type"]) == {"concentration"}
+    assert ic50_parameters["center"].notna().all()
+    assert ic50_parameters["log10_mean"].notna().all()
+    assert ic50_parameters["log_parameter"].eq("logIC50").all()
+
+
+def test_report_formats_geometric_center_and_intervals():
+    data = make_synthetic_data()
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+
+    report = results.report(
+        uncertainty="sem",
+        rounding="decimals",
+        places_mean=2,
+        places_uncertainty=3,
+        unit="uM",
+        include_n_exp=True,
+    )
+
+    assert list(report.columns) == ["compound_id", "report"]
+    assert list(report["compound_id"]) == ["cmpd_a", "cmpd_b"]
+    assert report.loc[0, "report"].endswith("uM, N_exp = 3")
+    assert "[" in report.loc[0, "report"]
+    assert "±" not in report.loc[0, "report"]
 
 
 def test_collect_errors_returns_failed_result():

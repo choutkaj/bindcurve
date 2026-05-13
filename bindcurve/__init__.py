@@ -37,7 +37,14 @@ from bindcurve.plotting import (
     plot_observations,
     plot_residuals,
 )
-from bindcurve.results import FitMetrics, FitResult, FitResults, ParameterEstimate
+from bindcurve.results import (
+    ConcentrationSummary,
+    FitMetrics,
+    FitResult,
+    FitResults,
+    ParameterEstimate,
+    ParameterSummary,
+)
 
 try:
     __version__ = version("bindcurve")
@@ -50,6 +57,7 @@ __all__ = [
     "CompetitiveFourStateTotalKdModel",
     "CompetitiveThreeStateSpecificKdModel",
     "CompetitiveThreeStateTotalKdModel",
+    "ConcentrationSummary",
     "CompoundData",
     "CurvePoint",
     "DirectSimpleKdModel",
@@ -66,6 +74,7 @@ __all__ = [
     "LogIC50Model",
     "ModelEvaluation",
     "ParameterEstimate",
+    "ParameterSummary",
     "ParameterSpec",
     "__version__",
     "cheng_prusoff",

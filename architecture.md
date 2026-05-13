@@ -131,17 +131,46 @@ BindCurve distinguishes two uncertainty regimes:
 
 In BindCurve, inter-experiment uncertainty is treated as the primary biological uncertainty. Intra-experiment uncertainty is still useful for diagnostics and plotting, but it is not the main uncertainty used to summarize compound-level potency or affinity.
 
-## Parameter summarization
+## Statistical summaries
 
-Concentration-like fitted parameters such as `IC50`, `Kd`, `Kds`, and `Kd3` should be summarized across independent experiments on the log10 scale when all estimates are positive.
+BindCurve distinguishes two summary families:
 
-The package should report both simple linear summaries and geometric means for concentration-like parameters.
+- `ParameterSummary`: native additive summaries for parameters such as `ymin`, `ymax`, and `hill_slope`.
+- `ConcentrationSummary`: geometric summaries for positive concentration-like quantities such as `IC50`, `Kd`, `Ki`, `Kds`, and `Kd3`.
+
+`ParameterSummary` is used for parameters whose natural statistical home is their fitted scale. For one parameter across `N_exp` experiment-level fits, BindCurve stores:
+
+- arithmetic `mean`
+- sample `SD`
+- `SEM = SD / sqrt(N_exp)`
+- two-sided `CI95 = mean ± t_(0.975, N_exp - 1) * SEM`
+
+`ConcentrationSummary` is used for positive concentration quantities. These quantities are canonical on the `log10` scale:
+
+- if a model fits a linear quantity such as `IC50`, BindCurve transforms each experiment-level estimate to `log10(IC50)` before summarization
+- if a model fits a log quantity such as `logIC50`, that fitted value is already the canonical stored representation
+
+For one concentration quantity across `N_exp` experiment-level fits, BindCurve stores:
+
+- `log10_mean`
+- sample `log10_sd`
+- `log10_sem`
+- two-sided `log10_ci95`
+
+The linear face is derived from those log10 statistics:
+
+- `center = 10 ** log10_mean`
+- `SD interval = [10 ** (log10_mean - log10_sd), 10 ** (log10_mean + log10_sd)]`
+- `SEM interval = [10 ** (log10_mean - log10_sem), 10 ** (log10_mean + log10_sem)]`
+- `CI95 interval = [10 ** log10_ci95_lower, 10 ** log10_ci95_upper]`
+
+This means concentration uncertainty is asymmetric on the linear scale after back-transformation. BindCurve therefore never treats concentration uncertainty as additive `IC50 ± x`.
 
 In short:
 
-- response aggregation and plotting use arithmetic means;
-- positive concentration-like parameter summaries across experiments use geometric means;
-- non-concentration parameters such as `ymin`, `ymax`, and `hill_slope` use arithmetic means.
+- response aggregation and plotting use arithmetic means
+- native additive parameters use arithmetic summaries on their fitted scale
+- positive concentration quantities use canonical `log10` summaries and derived linear intervals
 
 ## Models
 
@@ -231,12 +260,55 @@ Results are structured objects:
 ParameterEstimate
 FitMetrics
 FitResult
+ParameterSummary
+ConcentrationSummary
 FitResults
 ```
 
 `FitResult` represents one fitted curve: one compound in one independent experiment.
 
-`FitResults` is a collection of `FitResult` objects and provides dataframe exports for individual fits and compound-level summaries. `summary()` returns one row per compound with `N_exp`, total aggregated observations `N_obs`, alternating parameter value / SD / SEM columns, and compound-level `R_squared` / `Chi_squared` summary metrics. `parameters()` returns the more detailed long-form parameter summary table.
+`FitResults` is a collection of `FitResult` objects plus summary records derived across experiments. It exposes:
+
+- `fit_summary()` and `fits()` as per-experiment fit tables
+- `parameters()` as the detailed long-form summary table
+- `summary()` as the one-row-per-compound wide summary table
+- `report()` as the manuscript-oriented formatted report table
+
+`parameters()` stores both summary families explicitly:
+
+- native `ParameterSummary` rows contain `mean`, `SD`, `SEM`, and `CI95`
+- `ConcentrationSummary` rows contain both the canonical log10 face and the derived linear face
+
+`summary()` keeps one row per compound with:
+
+- `compound_id`
+- `N_exp`
+- total aggregated observations `N_obs`
+- native additive columns:
+  - `<param>`
+  - `<param>_SD`
+  - `<param>_SEM`
+  - `<param>_CI95_lower`
+  - `<param>_CI95_upper`
+- concentration interval columns:
+  - `<param>`
+  - `<param>_SD_lower`, `<param>_SD_upper`
+  - `<param>_SEM_lower`, `<param>_SEM_upper`
+  - `<param>_CI95_lower`, `<param>_CI95_upper`
+- compound-level `R_squared`
+- compound-level `Chi_squared`
+
+The wide summary intentionally exposes only the linear face of concentration quantities. Log-scale concentration summaries remain available in `parameters()` and in `report(representation="log"|"both")`.
+
+`report()` is the manuscript-facing layer. For one selected concentration quantity, it can render:
+
+- linear representation:
+  - `center [lower, upper]`
+- log representation:
+  - `mean ± SD`
+  - `mean ± SEM`
+  - or `mean [lower, upper]` for `CI95`
+- both representations together in one formatted string if requested
 
 ## Failure handling
 
