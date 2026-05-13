@@ -1,6 +1,6 @@
 """Dose-response model definitions and registry."""
 
-from bindcurve.modeling.base import BaseDoseResponseModel
+from bindcurve.modeling.base import BaseDoseResponseModel, ModelEvaluation
 from bindcurve.modeling.binding import (
     CompetitiveThreeStateSpecificKdModel,
     CompetitiveThreeStateTotalKdModel,
@@ -27,6 +27,7 @@ __all__ = [
     "DirectTotalKdModel",
     "IC50Model",
     "LogIC50Model",
+    "ModelEvaluation",
     "ParameterSpec",
     "get_model",
 ]

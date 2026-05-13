@@ -236,7 +236,7 @@ FitResults
 
 `FitResult` represents one fitted curve: one compound in one independent experiment.
 
-`FitResults` is a collection of `FitResult` objects and provides dataframe exports for individual fits and compound-level summaries. In compound-level summary tables, the count of independent experiment-level estimates is reported as `N_exp`.
+`FitResults` is a collection of `FitResult` objects and provides dataframe exports for individual fits and compound-level summaries. `summary()` returns one row per compound with `N_exp`, total aggregated observations `N_obs`, alternating parameter value / SD / SEM columns, and compound-level `R_squared` / `Chi_squared` summary metrics. `parameters()` returns the more detailed long-form parameter summary table.
 
 ## Failure handling
 

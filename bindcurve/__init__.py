@@ -22,6 +22,7 @@ from bindcurve.modeling import (
     DirectTotalKdModel,
     IC50Model,
     LogIC50Model,
+    ModelEvaluation,
     ParameterSpec,
     get_model,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "IC50ConversionResult",
     "IC50Model",
     "LogIC50Model",
+    "ModelEvaluation",
     "ParameterEstimate",
     "ParameterSpec",
     "__version__",

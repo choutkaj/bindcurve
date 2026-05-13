@@ -2,12 +2,27 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 import lmfit
 import numpy as np
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.parameters import ParameterSpec
+
+
+@dataclass(frozen=True)
+class ModelEvaluation:
+    """Observable response plus any model-specific component arrays."""
+
+    concentration: np.ndarray
+    transformed_x: np.ndarray
+    response: np.ndarray
+    components: dict[str, np.ndarray] = field(default_factory=dict)
+
+    def component(self, name: str) -> np.ndarray:
+        """Return one named component array."""
+        return self.components[name]
 
 
 class BaseDoseResponseModel(ABC):
@@ -29,6 +44,41 @@ class BaseDoseResponseModel(ABC):
     def transform_x(self, concentration: np.ndarray) -> np.ndarray:
         """Transform positive concentrations into the model's independent variable."""
         return np.asarray(concentration, dtype=float)
+
+    def predict(self, concentration: np.ndarray, **params: float) -> np.ndarray:
+        """Evaluate the observable response on the raw concentration axis."""
+        concentration = np.asarray(concentration, dtype=float)
+        x = self.transform_x(concentration)
+        return np.asarray(self.evaluate(x, **params), dtype=float)
+
+    def component_arrays(
+        self,
+        concentration: np.ndarray,
+        x: np.ndarray,
+        **params: float,
+    ) -> dict[str, np.ndarray]:
+        """Return model-specific component arrays on the raw concentration axis."""
+        return {}
+
+    def evaluate_components(
+        self,
+        concentration: np.ndarray,
+        **params: float,
+    ) -> ModelEvaluation:
+        """Evaluate the observable response and any model-specific components."""
+        concentration = np.asarray(concentration, dtype=float)
+        x = self.transform_x(concentration)
+        response = np.asarray(self.evaluate(x, **params), dtype=float)
+        components = {
+            name: np.asarray(values, dtype=float)
+            for name, values in self.component_arrays(concentration, x, **params).items()
+        }
+        return ModelEvaluation(
+            concentration=concentration,
+            transformed_x=x,
+            response=response,
+            components=components,
+        )
 
     def make_lmfit_parameters(
         self,

@@ -340,6 +340,28 @@ class DoseResponseData:
         Path(path).write_text(json_text, encoding="utf-8")
         return None
 
+    def summary(self) -> pd.DataFrame:
+        """Represent compound-level dataset summaries as a DataFrame."""
+        rows: list[dict[str, object]] = []
+
+        for compound_id in self.compounds:
+            compound_table = self.select_compound(compound_id).table
+
+            rows.append(
+                {
+                    "compound_id": compound_id,
+                    "N_exp": int(compound_table["experiment_id"].nunique()),
+                    "N_obs": int(len(compound_table)),
+                    "N_conc_total": int(compound_table["concentration"].nunique()),
+                    "concentration_min": float(compound_table["concentration"].min()),
+                    "concentration_max": float(compound_table["concentration"].max()),
+                    "response_min": float(compound_table["response"].min()),
+                    "response_max": float(compound_table["response"].max()),
+                }
+            )
+
+        return pd.DataFrame(rows)
+
     @classmethod
     def _standardize_long_dataframe_columns(
         cls,

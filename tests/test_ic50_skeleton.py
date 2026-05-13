@@ -54,7 +54,7 @@ def test_default_strategy_fits_one_curve_per_independent_experiment():
     data = make_synthetic_data()
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 6
     assert set(fits["compound_id"]) == {"cmpd_a", "cmpd_b"}
@@ -68,20 +68,51 @@ def test_default_strategy_fits_one_curve_per_independent_experiment():
     assert np.allclose(cmpd_b["IC50"].mean(), 4.0, rtol=0.15)
 
 
-def test_summary_uses_log_scale_for_ic50():
+def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     data = make_synthetic_data()
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
-    summary = results.summary_to_dataframe()
+    summary = results.summary()
 
+    assert len(summary) == 2
+    assert "compound_id" in summary.columns
     assert "N_exp" in summary.columns
+    assert "N_obs" in summary.columns
     assert "n" not in summary.columns
+    assert "IC50" in summary.columns
+    assert "IC50_SD" in summary.columns
+    assert "IC50_SEM" in summary.columns
+    assert "R_squared" in summary.columns
+    assert "Chi_squared" in summary.columns
 
-    ic50_summary = summary[summary["parameter"] == "IC50"]
+    cmpd_a = summary[summary["compound_id"] == "cmpd_a"].iloc[0]
+    cmpd_b = summary[summary["compound_id"] == "cmpd_b"].iloc[0]
 
-    assert len(ic50_summary) == 2
-    assert ic50_summary["N_exp"].eq(3).all()
-    assert set(ic50_summary["summary_scale"]) == {"log10"}
-    assert ic50_summary["geometric_mean"].notna().all()
+    assert cmpd_a["N_exp"] == 3
+    assert cmpd_b["N_exp"] == 3
+    assert cmpd_a["N_obs"] == 36
+    assert cmpd_b["N_obs"] == 36
+    assert np.isclose(cmpd_a["IC50"], 1.5, rtol=0.15)
+    assert np.isclose(cmpd_b["IC50"], 4.0, rtol=0.15)
+    assert cmpd_a["IC50_SD"] > 0.0
+    assert cmpd_a["IC50_SEM"] > 0.0
+    assert 0.0 <= cmpd_a["R_squared"] <= 1.0
+    assert cmpd_a["Chi_squared"] >= 0.0
+
+
+def test_parameters_keeps_detailed_parameter_rows():
+    data = make_synthetic_data()
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    parameters = results.parameters()
+
+    assert len(parameters) == 8
+    assert {"compound_id", "parameter", "N_exp", "mean", "sd", "sem"} <= set(
+        parameters.columns
+    )
+    ic50_parameters = parameters[parameters["parameter"] == "IC50"]
+    assert len(ic50_parameters) == 2
+    assert ic50_parameters["N_exp"].eq(3).all()
+    assert set(ic50_parameters["summary_scale"]) == {"log10"}
+    assert ic50_parameters["geometric_mean"].notna().all()
 
 
 def test_collect_errors_returns_failed_result():

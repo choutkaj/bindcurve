@@ -25,6 +25,16 @@ def _hill_slope_guess(response: np.ndarray) -> float:
     return 1.0 if response[-1] > response[0] else -1.0
 
 
+def _fraction_response_from_ic50(
+    concentration: np.ndarray,
+    *,
+    IC50: float,
+    hill_slope: float,
+) -> np.ndarray:
+    concentration = np.asarray(concentration, dtype=float)
+    return 1.0 / (1.0 + (IC50 / concentration) ** hill_slope)
+
+
 class IC50Model(BaseDoseResponseModel):
     """Four-parameter IC50 / Hill dose-response model.
 
@@ -55,7 +65,26 @@ class IC50Model(BaseDoseResponseModel):
         hill_slope: float,
     ) -> np.ndarray:
         x = np.asarray(x, dtype=float)
-        return ymin + (ymax - ymin) / (1.0 + (IC50 / x) ** hill_slope)
+        fraction_response = _fraction_response_from_ic50(
+            x,
+            IC50=IC50,
+            hill_slope=hill_slope,
+        )
+        return ymin + (ymax - ymin) * fraction_response
+
+    def component_arrays(
+        self,
+        concentration: np.ndarray,
+        x: np.ndarray,
+        **params: float,
+    ) -> dict[str, np.ndarray]:
+        return {
+            "fraction_response": _fraction_response_from_ic50(
+                concentration,
+                IC50=float(params["IC50"]),
+                hill_slope=float(params["hill_slope"]),
+            )
+        }
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
         concentration, response = _aggregate_for_guess(compound)
@@ -104,7 +133,20 @@ class LogIC50Model(BaseDoseResponseModel):
         hill_slope: float,
     ) -> np.ndarray:
         x = np.asarray(x, dtype=float)
-        return ymin + (ymax - ymin) / (1.0 + 10 ** ((logIC50 - x) * hill_slope))
+        fraction_response = 1.0 / (1.0 + 10 ** ((logIC50 - x) * hill_slope))
+        return ymin + (ymax - ymin) * fraction_response
+
+    def component_arrays(
+        self,
+        concentration: np.ndarray,
+        x: np.ndarray,
+        **params: float,
+    ) -> dict[str, np.ndarray]:
+        logIC50 = float(params["logIC50"])
+        hill_slope = float(params["hill_slope"])
+        return {
+            "fraction_response": 1.0 / (1.0 + 10 ** ((logIC50 - x) * hill_slope))
+        }
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
         concentration, response = _aggregate_for_guess(compound)

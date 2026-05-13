@@ -65,7 +65,7 @@ def test_dir_simple_recovers_kds_from_synthetic_data():
         model="dir_simple",
         fixed={"ymin": 2.0, "ymax": 88.0},
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -79,7 +79,7 @@ def test_dir_specific_recovers_kds_from_synthetic_data():
         model="dir_specific",
         fixed={"ymin": 3.0, "ymax": 91.0, "LsT": 0.35},
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -94,7 +94,7 @@ def test_dir_total_recovers_kds_from_synthetic_data():
         model="dir_total",
         fixed={"ymin": 4.0, "ymax": 86.0, "LsT": 0.4, "Ns": 0.25},
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert fits["success"].all()

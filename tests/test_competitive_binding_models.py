@@ -110,7 +110,7 @@ def test_comp_3st_specific_recovers_kd_from_synthetic_data():
             "Kds": 0.02,
         },
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -131,7 +131,7 @@ def test_comp_3st_total_recovers_kd_from_synthetic_data():
             "N": 0.35,
         },
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert fits["success"].all()

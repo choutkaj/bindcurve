@@ -26,6 +26,7 @@ def test_public_api_exports_new_objects():
         "IC50ConversionResult",
         "IC50Model",
         "LogIC50Model",
+        "ModelEvaluation",
         "ParameterEstimate",
         "ParameterSpec",
         "cheng_prusoff",

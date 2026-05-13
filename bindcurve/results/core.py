@@ -97,7 +97,7 @@ class FitResults:
         """Return failed fits."""
         return [fit for fit in self.fits if not fit.success]
 
-    def fits_to_dataframe(self) -> pd.DataFrame:
+    def fits(self) -> pd.DataFrame:
         """Represent individual fits as a DataFrame."""
         rows: list[dict[str, object]] = []
         for fit in self.fits:
@@ -126,9 +126,106 @@ class FitResults:
             rows.append(row)
         return pd.DataFrame(rows)
 
-    def summary_to_dataframe(self) -> pd.DataFrame:
-        """Represent compound-level parameter summaries as a DataFrame."""
+    def parameters(self) -> pd.DataFrame:
+        """Represent per-parameter summaries as a long-form DataFrame."""
         return pd.DataFrame([summary.__dict__ for summary in self.summaries])
+
+    def summary(self) -> pd.DataFrame:
+        """Represent compound-level summaries as one row per compound."""
+        successful = self.successful()
+        if not successful:
+            return pd.DataFrame()
+
+        compound_ids: list[str] = []
+        seen_compounds: set[str] = set()
+        parameter_order: list[str] = []
+        seen_parameters: set[str] = set()
+
+        for fit in successful:
+            if fit.compound_id not in seen_compounds:
+                seen_compounds.add(fit.compound_id)
+                compound_ids.append(fit.compound_id)
+            for name in fit.parameters:
+                if name not in seen_parameters:
+                    seen_parameters.add(name)
+                    parameter_order.append(name)
+
+        summary_lookup = {
+            (summary.compound_id, summary.parameter): summary for summary in self.summaries
+        }
+        rows: list[dict[str, object]] = []
+
+        for compound_id in compound_ids:
+            compound_fits = [fit for fit in successful if fit.compound_id == compound_id]
+            row: dict[str, object] = {
+                "compound_id": compound_id,
+                "N_exp": len(compound_fits),
+                "N_obs": _compound_n_obs(compound_fits),
+            }
+
+            for name in parameter_order:
+                summary = summary_lookup.get((compound_id, name))
+                if summary is None:
+                    row[name] = np.nan
+                    row[f"{name}_SD"] = np.nan
+                    row[f"{name}_SEM"] = np.nan
+                    continue
+
+                row[name] = _summary_value(summary)
+                row[f"{name}_SD"] = (
+                    np.nan if summary.sd is None else float(summary.sd)
+                )
+                row[f"{name}_SEM"] = (
+                    np.nan if summary.sem is None else float(summary.sem)
+                )
+
+            row["R_squared"] = _compound_r_squared(compound_fits)
+            row["Chi_squared"] = _compound_chi_squared(compound_fits)
+            rows.append(row)
+
+        columns = ["compound_id", "N_exp", "N_obs"]
+        for name in parameter_order:
+            columns.extend([name, f"{name}_SD", f"{name}_SEM"])
+        columns.extend(["R_squared", "Chi_squared"])
+        return pd.DataFrame(rows, columns=columns)
+
+
+def _summary_value(summary: ParameterSummary) -> float:
+    if summary.geometric_mean is not None:
+        return float(summary.geometric_mean)
+    return float(summary.mean)
+
+
+def _compound_n_obs(fits: list[FitResult]) -> int | None:
+    n_data = [fit.metrics.n_data for fit in fits if fit.metrics is not None]
+    if not n_data:
+        return None
+    return int(sum(n_data))
+
+
+def _compound_r_squared(fits: list[FitResult]) -> float | None:
+    weighted_values: list[tuple[int, float]] = []
+    for fit in fits:
+        if fit.metrics is None or fit.metrics.r_squared is None:
+            continue
+        weighted_values.append((fit.metrics.n_data, float(fit.metrics.r_squared)))
+    if not weighted_values:
+        return None
+    total_weight = sum(weight for weight, _ in weighted_values)
+    if total_weight == 0:
+        return None
+    return float(
+        sum(weight * value for weight, value in weighted_values) / total_weight
+    )
+
+
+def _compound_chi_squared(fits: list[FitResult]) -> float | None:
+    values = [
+        float(fit.metrics.chisqr) for fit in fits if fit.metrics is not None
+    ]
+    if not values:
+        return None
+    return float(sum(values))
 
 
 def summarize_fit_parameters(

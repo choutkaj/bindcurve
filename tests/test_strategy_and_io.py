@@ -33,7 +33,7 @@ def make_multi_experiment_data() -> bc.DoseResponseData:
 def test_fit_runs_one_curve_per_experiment():
     data = make_multi_experiment_data()
     results = bc.fit(data, fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert set(fits["experiment_id"]) == {"exp1", "exp2", "exp3"}
@@ -91,6 +91,57 @@ def test_missing_optional_ids_are_filled():
     assert list(data.table["replicate_id"]) == ["replicate_1", "replicate_1"]
 
 
+def test_summary_returns_one_row_per_compound():
+    data = make_multi_experiment_data()
+    extra = pd.DataFrame(
+        [
+            {
+                "compound_id": "cmpd_b",
+                "experiment_id": "exp1",
+                "concentration": 0.1,
+                "replicate_id": "rep1",
+                "response": 88.0,
+            },
+            {
+                "compound_id": "cmpd_b",
+                "experiment_id": "exp1",
+                "concentration": 1.0,
+                "replicate_id": "rep1",
+                "response": 44.0,
+            },
+        ]
+    )
+    data = bc.DoseResponseData.from_dataframe(pd.concat([data.table, extra]))
+
+    summary = data.summary()
+
+    assert list(summary["compound_id"]) == ["cmpd_a", "cmpd_b"]
+    assert list(summary.columns) == [
+        "compound_id",
+        "N_exp",
+        "N_obs",
+        "N_conc_total",
+        "concentration_min",
+        "concentration_max",
+        "response_min",
+        "response_max",
+    ]
+
+    cmpd_a = summary.loc[summary["compound_id"] == "cmpd_a"].iloc[0]
+    assert cmpd_a["N_exp"] == 3
+    assert cmpd_a["N_obs"] == 72
+    assert cmpd_a["N_conc_total"] == 12
+    assert cmpd_a["concentration_min"] == pytest.approx(1e-2)
+    assert cmpd_a["concentration_max"] == pytest.approx(1e2)
+
+    cmpd_b = summary.loc[summary["compound_id"] == "cmpd_b"].iloc[0]
+    assert cmpd_b["N_exp"] == 1
+    assert cmpd_b["N_obs"] == 2
+    assert cmpd_b["N_conc_total"] == 2
+    assert cmpd_b["concentration_min"] == pytest.approx(0.1)
+    assert cmpd_b["concentration_max"] == pytest.approx(1.0)
+
+
 def test_errors_raise_is_default_for_unknown_compound():
     data = make_multi_experiment_data()
 
@@ -105,7 +156,7 @@ def test_fixed_parameters_and_bounds_are_respected():
         fixed={"ymin": 0.0, "ymax": 100.0},
         bounds={"IC50": (0.1, 10.0), "hill_slope": (-3.0, -0.1)},
     )
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert fits["ymin"].eq(0.0).all()
     assert fits["ymax"].eq(100.0).all()

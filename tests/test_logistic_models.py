@@ -53,7 +53,7 @@ def test_model_registry_contains_logistic_family():
 def test_ic50_model_fits_synthetic_inhibition_data():
     data = make_data(ic50_curve)
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert np.allclose(fits["IC50"].mean(), 1.7, rtol=0.10)
@@ -68,7 +68,7 @@ def test_ec50_model_is_not_registered():
 def test_logic50_model_fits_synthetic_log_concentration_data():
     data = make_data(logic50_curve)
     results = bc.fit(data, model="logic50", fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits_to_dataframe()
+    fits = results.fits()
 
     assert len(fits) == 3
     assert np.allclose(fits["logIC50"].mean(), 0.25, atol=0.08)
@@ -78,10 +78,14 @@ def test_logic50_model_fits_synthetic_log_concentration_data():
 def test_logic50_summary_stays_on_linear_log_parameter_scale():
     data = make_data(logic50_curve)
     results = bc.fit(data, model="logic50", fixed={"ymin": 0.0, "ymax": 100.0})
-    summary = results.summary_to_dataframe()
-    assert summary["N_exp"].eq(3).all()
-    logic50_summary = summary[summary["parameter"] == "logIC50"].iloc[0]
+    summary = results.summary()
+    parameters = results.parameters()
 
-    assert logic50_summary["summary_scale"] == "linear"
-    assert logic50_summary["geometric_mean"] is None
-    assert np.isclose(logic50_summary["mean"], 0.25, atol=0.08)
+    assert len(summary) == 1
+    assert summary.loc[0, "N_exp"] == 3
+    assert np.isclose(summary.loc[0, "logIC50"], 0.25, atol=0.08)
+    assert summary.loc[0, "logIC50_SD"] > 0.0
+    assert summary.loc[0, "logIC50_SEM"] > 0.0
+    logic50_parameters = parameters[parameters["parameter"] == "logIC50"].iloc[0]
+    assert logic50_parameters["summary_scale"] == "linear"
+    assert logic50_parameters["geometric_mean"] is None

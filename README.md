@@ -79,8 +79,8 @@ results = bc.fit(
     fixed={"ymin": 0.0, "ymax": 100.0},
 )
 
-print(results.fits_to_dataframe())
-print(results.summary_to_dataframe())
+print(results.fits())
+print(results.summary())
 ```
 
 ## Canonical fitting pipeline
@@ -125,6 +125,43 @@ data.to_csv("dose_response_wide.csv", format="wide")
 json_text = data.to_json(format="wide", indent=2)
 reloaded = bc.DoseResponseData.from_json(json_text)
 ```
+
+For a quick compound-level overview of the input dataset:
+
+```python
+summary = data.summary()
+print(summary[["compound_id", "N_exp", "N_conc_total"]])
+```
+
+## Direct model evaluation
+
+You can also evaluate any registered model directly without fitting data:
+
+```python
+import numpy as np
+import bindcurve as bc
+
+model = bc.get_model("comp_3st_specific")
+grid = np.logspace(-4, 1, 200)
+
+evaluation = model.evaluate_components(
+    grid,
+    ymin=0.0,
+    ymax=1.0,
+    RT=0.05,
+    LsT=0.005,
+    Kds=0.02,
+    Kd=1.6,
+)
+
+response = evaluation.response
+free_receptor = evaluation.components["R_free"]
+tracer_bound = evaluation.components["RLstar"]
+```
+
+`predict(...)` returns only the observable response, while
+`evaluate_components(...)` returns a `ModelEvaluation` object with the response
+plus any model-specific component arrays.
 
 ## Numerical scale
 
