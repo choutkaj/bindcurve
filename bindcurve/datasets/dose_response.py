@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from numbers import Integral
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -372,6 +373,62 @@ class DoseResponseData:
 
         return pd.DataFrame(rows)
 
+    def keep_only(
+        self,
+        selectors: str | int | Iterable[str | int],
+    ) -> DoseResponseData:
+        """Return a new dataset containing only the selected compounds."""
+        selected_compounds = self._resolve_compound_selectors(selectors)
+        filtered = self.table[
+            self.table["compound_id"].astype(str).isin(selected_compounds)
+        ].copy()
+        if filtered.empty:
+            raise ValueError("Filtering removed all compounds from the dataset.")
+        return type(self)(
+            table=filtered,
+            metadata=self.metadata.copy(),
+        )
+
+    def remove(
+        self,
+        selectors: str | int | Iterable[str | int],
+    ) -> DoseResponseData:
+        """Return a new dataset with the selected compounds removed."""
+        removed_compounds = set(self._resolve_compound_selectors(selectors))
+        filtered = self.table[
+            ~self.table["compound_id"].astype(str).isin(removed_compounds)
+        ].copy()
+        if filtered.empty:
+            raise ValueError("Filtering removed all compounds from the dataset.")
+        return type(self)(
+            table=filtered,
+            metadata=self.metadata.copy(),
+        )
+
+    @classmethod
+    def concatenate(
+        cls,
+        *datasets: DoseResponseData,
+    ) -> DoseResponseData:
+        """Return a new dataset created by concatenating multiple datasets."""
+        if len(datasets) < 2:
+            raise ValueError("concatenate() requires at least 2 datasets.")
+        for dataset in datasets:
+            if not isinstance(dataset, DoseResponseData):
+                raise TypeError(
+                    "concatenate() accepts only DoseResponseData objects."
+                )
+
+        _validate_concatenation_inputs(datasets)
+        combined = pd.concat(
+            [dataset.table for dataset in datasets],
+            ignore_index=True,
+        )
+        return cls(
+            table=combined,
+            metadata={},
+        )
+
     def quality_report(
         self,
         *,
@@ -623,6 +680,40 @@ class DoseResponseData:
             table=selected.copy(),
         )
 
+    def _resolve_compound_selectors(
+        self,
+        selectors: str | int | Iterable[str | int],
+    ) -> list[str]:
+        available_compounds = self.compounds
+        available_set = set(available_compounds)
+        resolved: list[str] = []
+        seen: set[str] = set()
+
+        for selector in _coerce_compound_selectors(selectors):
+            if isinstance(selector, str):
+                compound_id = selector
+                if compound_id not in available_set:
+                    raise KeyError(f"Compound {compound_id!r} not found.")
+            elif _is_compound_index(selector):
+                index = int(selector)
+                if index < 0:
+                    index += len(available_compounds)
+                if index < 0 or index >= len(available_compounds):
+                    raise IndexError(
+                        f"Compound index {int(selector)} is out of range."
+                    )
+                compound_id = available_compounds[index]
+            else:
+                raise TypeError(
+                    "Compound selectors must be strings or integers."
+                )
+
+            if compound_id not in seen:
+                seen.add(compound_id)
+                resolved.append(compound_id)
+
+        return resolved
+
     def _normalize_columns(self) -> None:
         missing = self.REQUIRED_COLUMNS - set(self.table.columns)
         if missing:
@@ -811,3 +902,40 @@ def _append_threshold_flag(
         flags.append(("red", red_message))
     elif value > orange_threshold:
         flags.append(("orange", orange_message))
+
+
+def _coerce_compound_selectors(
+    selectors: str | int | Iterable[str | int],
+) -> list[str | int]:
+    if isinstance(selectors, str) or _is_compound_index(selectors):
+        return [selectors]
+    if not isinstance(selectors, Iterable):
+        raise TypeError(
+            "Compound selectors must be strings or integers, or iterables of them."
+        )
+    return list(selectors)
+
+
+def _is_compound_index(value: object) -> bool:
+    return isinstance(value, Integral) and not isinstance(value, bool)
+
+
+def _validate_concatenation_inputs(
+    datasets: Iterable[DoseResponseData],
+) -> None:
+    seen_experiments_by_compound: dict[str, set[str]] = {}
+
+    for dataset in datasets:
+        experiment_keys = dataset.table[
+            ["compound_id", "experiment_id"]
+        ].drop_duplicates()
+        for row in experiment_keys.itertuples(index=False):
+            compound_id = str(row.compound_id)
+            experiment_id = str(row.experiment_id)
+            seen = seen_experiments_by_compound.setdefault(compound_id, set())
+            if experiment_id in seen:
+                raise ValueError(
+                    "Cannot concatenate datasets because compound "
+                    f"{compound_id!r} reuses experiment_id {experiment_id!r}."
+                )
+            seen.add(experiment_id)

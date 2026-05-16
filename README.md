@@ -8,9 +8,7 @@
 
 `bindcurve` is an lmfit-backed Python package for fitting dose-response curves.
 
-<p align="center">
-  <img src="assets/logo/logo1.png" alt="bindcurve logo" width="400">
-</p>
+
 
 
 ## Current scope
@@ -132,6 +130,14 @@ For a quick compound-level overview of the input dataset:
 ```python
 summary = data.summary()
 print(summary[["compound_id", "N_exp", "N_conc_total"]])
+```
+
+For simple compound-level data manipulation:
+
+```python
+subset = data.keep_only(["cmpd_a", 2])
+trimmed = data.remove("cmpd_b")
+merged = bc.DoseResponseData.concatenate(data_1, data_2)
 ```
 
 ## Direct model evaluation

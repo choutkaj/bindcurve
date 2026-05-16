@@ -97,12 +97,6 @@ def _aggregate_grand_mean(experiment_means: pd.DataFrame) -> pd.DataFrame:
     )
     return aggregated.sort_values("concentration")
 
-
-def _set_axis_labels(data: DoseResponseData, ax: Axes) -> None:
-    ax.set_xlabel("concentration")
-    ax.set_ylabel("response")
-
-
 def plot_observations(
     data: DoseResponseData,
     *,
@@ -204,7 +198,6 @@ def plot_observations(
                 **default_kwargs,
             )
 
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -848,7 +841,6 @@ def plot_fit_lines(
 
     if xscale is not None:
         ax.set_xscale(xscale)
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -920,7 +912,6 @@ def plot_confidence_bands(
 
     if xscale is not None:
         ax.set_xscale(xscale)
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -985,8 +976,6 @@ def plot_residuals(
 
     if xscale is not None:
         ax.set_xscale(xscale)
-    ax.set_xlabel("concentration")
-    ax.set_ylabel("residual")
     return ax
 
 
@@ -1035,7 +1024,6 @@ def plot_asymptotes(
     if n_drawn == 0:
         raise ValueError("No requested asymptote parameters were available to plot.")
 
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -1090,7 +1078,6 @@ def plot_curve_points(
                 **default_annotation_kwargs,
             )
 
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -1199,7 +1186,6 @@ def plot_compounds(
 
     if xscale is not None:
         ax.set_xscale(xscale)
-    _set_axis_labels(data, ax)
     return ax
 
 
@@ -1310,7 +1296,6 @@ def plot_fits(
 
     if xscale is not None:
         ax.set_xscale(xscale)
-    _set_axis_labels(data, ax)
     return ax
 
 

@@ -118,13 +118,15 @@ def make_unbalanced_data() -> bc.DoseResponseData:
 def test_plot_observations_draws_on_existing_axes():
     data = make_data()
     fig, ax = plt.subplots()
+    ax.set_xlabel("dose")
+    ax.set_ylabel("signal")
 
     returned_ax = bc.plot_observations(data, ax=ax)
 
     assert returned_ax is ax
     assert len(ax.collections) > 0
-    assert ax.get_xlabel() == "concentration"
-    assert ax.get_ylabel() == "response"
+    assert ax.get_xlabel() == "dose"
+    assert ax.get_ylabel() == "signal"
     plt.close(fig)
 
 
@@ -146,10 +148,14 @@ def test_plot_fits_couples_series_labels_and_colors():
     data = make_data()
     results = make_results(data)
     fig, ax = plt.subplots()
+    ax.set_xlabel("dose")
+    ax.set_ylabel("signal")
 
     returned_ax = bc.plot_fits(data, results, ax=ax, n_points=50)
 
     assert returned_ax is ax
+    assert ax.get_xlabel() == "dose"
+    assert ax.get_ylabel() == "signal"
     assert legend_labels(ax) == ["exp1", "exp2"]
     assert len(observation_lines(ax)) == 2
     assert len(curve_lines(ax)) == 2
@@ -566,6 +572,8 @@ def test_plot_residuals_draws_aggregated_residuals_and_zero_line():
     data = make_data()
     results = make_results(data)
     fig, ax = plt.subplots()
+    ax.set_xlabel("dose")
+    ax.set_ylabel("delta")
 
     returned_ax = bc.plot_residuals(data, results, ax=ax, experiments=["exp1"])
 
@@ -573,8 +581,8 @@ def test_plot_residuals_draws_aggregated_residuals_and_zero_line():
     assert len(ax.collections) == 1
     assert len(ax.lines) == 1
     assert ax.lines[0].get_ydata()[0] == 0.0
-    assert ax.get_xlabel() == "concentration"
-    assert ax.get_ylabel() == "residual"
+    assert ax.get_xlabel() == "dose"
+    assert ax.get_ylabel() == "delta"
     assert ax.get_xscale() == "log"
     plt.close(fig)
 
