@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bindcurve"
 dynamic = ["version"]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.15"
 description = "A Python package for fitting and plotting dose-response curves."
 readme = "README.md"
 keywords = ["dose-response", "curve-fitting", "binding", "biochemistry", "lmfit"]
@@ -30,6 +30,8 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Chemistry",
 ]
 

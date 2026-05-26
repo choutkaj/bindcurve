@@ -2,7 +2,7 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/bindcurve)](https://pypi.org/project/bindcurve/)
 [![Tests](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml)
-[![Python 3.10-3.12](https://img.shields.io/badge/python-3.10--3.12-blue.svg)](https://pypi.org/project/bindcurve/)
+[![Python 3.10-3.14](https://img.shields.io/badge/python-3.10--3.14-blue.svg)](https://pypi.org/project/bindcurve/)
 [![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
 [![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 
@@ -31,12 +31,12 @@ uv add bindcurve
 For local development:
 
 ```bash
-uv python install 3.12
+uv python install 3.14
 uv sync --group dev
 uv run pytest
 ```
 
-`bindcurve` supports Python 3.10, 3.11, and 3.12. Python 3.9 is not supported.
+`bindcurve` supports Python 3.10, 3.11, 3.12, 3.13, and 3.14. Python 3.9 is not supported.
 
 ## Basic usage
 
