@@ -4,7 +4,11 @@ import numpy as np
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
-from bindcurve.modeling.parameters import ConcentrationParameterSpec, ParameterSpec
+from bindcurve.modeling.parameters import (
+    STRICTLY_POSITIVE_PARAMETER_MIN,
+    ConcentrationParameterSpec,
+    ParameterSpec,
+)
 
 
 def _aggregate_for_guess(compound: CompoundData) -> tuple[np.ndarray, np.ndarray]:
@@ -283,7 +287,7 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("Kds", min=0.0),
+        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN),
     )
 
     def evaluate(
@@ -344,8 +348,8 @@ class DirectSpecificKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("LsT", min=0.0, vary=False),
-        ParameterSpec("Kds", min=0.0),
+        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN),
     )
 
     def evaluate(
@@ -405,9 +409,9 @@ class DirectTotalKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("LsT", min=0.0, vary=False),
+        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
         ParameterSpec("Ns", min=0.0, vary=False),
-        ParameterSpec("Kds", min=0.0),
+        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN),
     )
 
     def evaluate(
@@ -482,10 +486,10 @@ class CompetitiveThreeStateSpecificKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("RT", min=0.0, vary=False),
-        ParameterSpec("LsT", min=0.0, vary=False),
-        ParameterSpec("Kds", min=0.0, vary=False),
-        ParameterSpec("Kd", min=0.0),
+        ParameterSpec("RT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("Kd", min=STRICTLY_POSITIVE_PARAMETER_MIN),
     )
 
     def evaluate(
@@ -562,11 +566,11 @@ class CompetitiveThreeStateTotalKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("RT", min=0.0, vary=False),
-        ParameterSpec("LsT", min=0.0, vary=False),
-        ParameterSpec("Kds", min=0.0, vary=False),
+        ParameterSpec("RT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
         ParameterSpec("N", min=0.0, vary=False),
-        ParameterSpec("Kd", min=0.0),
+        ParameterSpec("Kd", min=STRICTLY_POSITIVE_PARAMETER_MIN),
     )
 
     def evaluate(

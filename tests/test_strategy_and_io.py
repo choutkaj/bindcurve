@@ -282,3 +282,53 @@ def test_fixed_parameters_and_bounds_are_respected():
     assert fits["ymax"].eq(100.0).all()
     assert fits["IC50"].between(0.1, 10.0).all()
     assert fits["hill_slope"].between(-3.0, -0.1).all()
+
+
+def test_concentration_parameter_specs_are_strictly_positive():
+    models = [
+        bc.IC50Model(),
+        bc.DirectSimpleKdModel(),
+        bc.DirectSpecificKdModel(),
+        bc.DirectTotalKdModel(),
+        bc.CompetitiveThreeStateSpecificKdModel(),
+        bc.CompetitiveThreeStateTotalKdModel(),
+        bc.CompetitiveFourStateSpecificKdModel(),
+        bc.CompetitiveFourStateTotalKdModel(),
+    ]
+
+    for model in models:
+        specs = {spec.name: spec for spec in model.parameter_specs}
+        for name in model.concentration_parameters:
+            assert specs[name].min > 0.0
+
+
+def test_fixed_zero_concentration_parameter_is_rejected():
+    data = make_multi_experiment_data()
+
+    with pytest.raises(ValueError, match="IC50.*strictly positive"):
+        bc.fit(
+            data,
+            fixed={"ymin": 0.0, "ymax": 100.0, "IC50": 0.0},
+        )
+
+
+def test_zero_lower_bound_for_concentration_parameter_is_rejected():
+    data = make_multi_experiment_data()
+
+    with pytest.raises(ValueError, match="Lower bound.*IC50.*strictly positive"):
+        bc.fit(
+            data,
+            fixed={"ymin": 0.0, "ymax": 100.0},
+            bounds={"IC50": (0.0, 10.0)},
+        )
+
+
+def test_zero_nonspecific_factor_is_allowed():
+    model = bc.DirectTotalKdModel()
+
+    parameters = model.make_lmfit_parameters(
+        {"Kds": 1.0},
+        fixed={"ymin": 0.0, "ymax": 1.0, "LsT": 1.0, "Ns": 0.0},
+    )
+
+    assert parameters["Ns"].value == 0.0

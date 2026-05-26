@@ -8,7 +8,11 @@ import lmfit
 import numpy as np
 
 from bindcurve.datasets import CompoundData
-from bindcurve.modeling.parameters import ConcentrationParameterSpec, ParameterSpec
+from bindcurve.modeling.parameters import (
+    STRICTLY_POSITIVE_PARAMETER_MIN,
+    ConcentrationParameterSpec,
+    ParameterSpec,
+)
 
 
 @dataclass(frozen=True)
@@ -124,11 +128,30 @@ class BaseDoseResponseModel(ABC):
             if upper is None:
                 upper = spec.max
 
+            value = float(value)
+            lower = float(lower)
+            upper = float(upper)
+
+            if spec.min >= STRICTLY_POSITIVE_PARAMETER_MIN:
+                if lower <= 0.0:
+                    raise ValueError(
+                        f"Lower bound for {spec.name!r} must be strictly positive."
+                    )
+                if value <= 0.0:
+                    raise ValueError(
+                        f"Initial or fixed value for {spec.name!r} must be "
+                        "strictly positive."
+                    )
+                if upper <= 0.0:
+                    raise ValueError(
+                        f"Upper bound for {spec.name!r} must be strictly positive."
+                    )
+
             parameters.add(
                 spec.name,
-                value=float(value),
-                min=float(lower),
-                max=float(upper),
+                value=value,
+                min=lower,
+                max=upper,
                 vary=spec.name not in fixed and spec.vary,
             )
 

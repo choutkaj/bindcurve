@@ -5,6 +5,8 @@ from typing import Literal
 
 import numpy as np
 
+STRICTLY_POSITIVE_PARAMETER_MIN = np.finfo(float).tiny
+
 
 @dataclass(frozen=True)
 class ParameterSpec:

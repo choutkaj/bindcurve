@@ -4,7 +4,11 @@ import numpy as np
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
-from bindcurve.modeling.parameters import ConcentrationParameterSpec, ParameterSpec
+from bindcurve.modeling.parameters import (
+    STRICTLY_POSITIVE_PARAMETER_MIN,
+    ConcentrationParameterSpec,
+    ParameterSpec,
+)
 
 
 def _aggregate_for_guess(compound: CompoundData) -> tuple[np.ndarray, np.ndarray]:
@@ -60,7 +64,7 @@ class IC50Model(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("IC50", min=0.0),
+        ParameterSpec("IC50", min=STRICTLY_POSITIVE_PARAMETER_MIN),
         ParameterSpec("hill_slope", initial=-1.0),
     )
 
