@@ -48,13 +48,17 @@ def make_results(data: bc.DoseResponseData) -> bc.FitResults:
 
 def make_summary_results(data: bc.DoseResponseData) -> bc.FitResults:
     experiment_means = (
-        data.table.groupby(["compound_id", "experiment_id", "concentration"], as_index=False)[
-            "response"
-        ]
+        data.table.groupby(
+            ["compound_id", "experiment_id", "concentration"],
+            as_index=False,
+        )["response"]
         .mean()
     )
     grand_mean = (
-        experiment_means.groupby(["compound_id", "concentration"], as_index=False)["response"]
+        experiment_means.groupby(
+            ["compound_id", "concentration"],
+            as_index=False,
+        )["response"]
         .mean()
     )
     grand_mean["experiment_id"] = "grand_mean"
@@ -79,11 +83,19 @@ def errorbar_half_heights(ax: plt.Axes, *, container_index: int = 0) -> np.ndarr
 
 
 def legend_labels(ax: plt.Axes) -> list[str]:
-    return [label for label in ax.get_legend_handles_labels()[1] if not label.startswith("_")]
+    return [
+        label
+        for label in ax.get_legend_handles_labels()[1]
+        if not label.startswith("_")
+    ]
 
 
 def observation_lines(ax: plt.Axes) -> list[Line2D]:
-    return [container.lines[0] for container in ax.containers if container.lines[0] is not None]
+    return [
+        container.lines[0]
+        for container in ax.containers
+        if container.lines[0] is not None
+    ]
 
 
 def curve_lines(ax: plt.Axes) -> list[Line2D]:
@@ -213,8 +225,14 @@ def test_plot_compounds_aggregates_experiments_with_master_fit():
     assert legend_labels(ax) == ["cmpd_a"]
     assert len(observation_lines(ax)) == 1
     assert len(curve_lines(ax)) == 1
-    np.testing.assert_allclose(curve_lines(ax)[0].get_xdata(), expected_ax.lines[0].get_xdata())
-    np.testing.assert_allclose(curve_lines(ax)[0].get_ydata(), expected_ax.lines[0].get_ydata())
+    np.testing.assert_allclose(
+        curve_lines(ax)[0].get_xdata(),
+        expected_ax.lines[0].get_xdata(),
+    )
+    np.testing.assert_allclose(
+        curve_lines(ax)[0].get_ydata(),
+        expected_ax.lines[0].get_ydata(),
+    )
     plt.close(fig)
     plt.close(expected_fig)
 
@@ -321,7 +339,12 @@ def test_plot_fits_supports_multi_compound_data_by_default():
     fig, ax = plt.subplots()
     bc.plot_fits(multi, results, ax=ax, n_points=50)
 
-    assert legend_labels(ax) == ["cmpd_a exp1", "cmpd_a exp2", "cmpd_b exp1", "cmpd_b exp2"]
+    assert legend_labels(ax) == [
+        "cmpd_a exp1",
+        "cmpd_a exp2",
+        "cmpd_b exp1",
+        "cmpd_b exp2",
+    ]
     assert len(observation_lines(ax)) == 4
     assert len(curve_lines(ax)) == 4
     plt.close(fig)
@@ -472,7 +495,11 @@ def test_plot_fits_can_add_confidence_band():
     assert len(ax.collections) >= 2
     assert legend_labels(ax) == ["exp1"]
     assert all(collection.get_label() != "band" for collection in ax.collections)
-    bands = [collection for collection in ax.collections if isinstance(collection, PolyCollection)]
+    bands = [
+        collection
+        for collection in ax.collections
+        if isinstance(collection, PolyCollection)
+    ]
     assert len(bands) == 1
     assert bands[0].get_alpha() == pytest.approx(0.25)
     assert np.max(bands[0].get_linewidths()) == pytest.approx(0.8)
