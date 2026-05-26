@@ -103,7 +103,6 @@ def test_results_quality_dashboard_handles_failed_fit_and_preserves_order():
             compound_id="cmpd_a",
             model_name="ic50",
             experiment_id="exp4",
-            message="failed",
         )
     )
     merged = bc.FitResults(

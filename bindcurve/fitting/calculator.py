@@ -40,7 +40,20 @@ class FitCalculator:
         for compound_id in compound_ids:
             try:
                 compound = data.select_compound(compound_id)
-                for experiment_id in compound.experiments:
+            except Exception:
+                if self.settings.errors == "raise":
+                    raise
+                fits.append(
+                    FitResult.failed(
+                        compound_id=str(compound_id),
+                        model_name=self.model.name,
+                        experiment_id=None,
+                    )
+                )
+                continue
+
+            for experiment_id in compound.experiments:
+                try:
                     fit_data = compound.select_experiment(experiment_id)
                     fits.append(
                         self._fit_one(
@@ -50,17 +63,16 @@ class FitCalculator:
                             bounds=bounds,
                         )
                     )
-            except Exception as exc:
-                if self.settings.errors == "raise":
-                    raise
-                fits.append(
-                    FitResult.failed(
-                        compound_id=str(compound_id),
-                        model_name=self.model.name,
-                        experiment_id=None,
-                        message=str(exc),
+                except Exception:
+                    if self.settings.errors == "raise":
+                        raise
+                    fits.append(
+                        FitResult.failed(
+                            compound_id=str(compound_id),
+                            model_name=self.model.name,
+                            experiment_id=experiment_id,
+                        )
                     )
-                )
 
         summaries = summarize_fit_parameters(
             fits,
@@ -126,7 +138,6 @@ class FitCalculator:
             experiment_id=experiment_id,
             model_name=self.model.name,
             success=bool(lmfit_result.success),
-            message=lmfit_result.message,
             parameters=estimates,
             metrics=metrics,
             lmfit_result=lmfit_result,

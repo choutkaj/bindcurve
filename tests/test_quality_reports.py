@@ -174,7 +174,6 @@ def test_results_quality_report_orange_for_partial_fit_failure():
             compound_id="cmpd_a",
             model_name="ic50",
             experiment_id="exp4",
-            message="failed",
         )
     )
 
@@ -192,13 +191,11 @@ def test_results_quality_report_red_for_all_failed_fits():
                 compound_id="cmpd_a",
                 model_name="ic50",
                 experiment_id="exp1",
-                message="failed",
             ),
             bc.FitResult.failed(
                 compound_id="cmpd_a",
                 model_name="ic50",
                 experiment_id="exp2",
-                message="failed",
             ),
         ],
         summaries=[],

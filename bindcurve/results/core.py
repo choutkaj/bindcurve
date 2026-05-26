@@ -51,7 +51,6 @@ class FitResult:
     model_name: str
     experiment_id: str | None = None
     success: bool = True
-    message: str | None = None
     parameters: dict[str, ParameterEstimate] = field(default_factory=dict)
     metrics: FitMetrics | None = None
     lmfit_result: Any | None = None
@@ -63,7 +62,6 @@ class FitResult:
         compound_id: str,
         model_name: str,
         experiment_id: str | None,
-        message: str,
     ) -> FitResult:
         """Create a failed result container."""
         return cls(
@@ -71,7 +69,6 @@ class FitResult:
             model_name=model_name,
             experiment_id=experiment_id,
             success=False,
-            message=message,
         )
 
     def parameter(self, name: str) -> ParameterEstimate:
@@ -176,7 +173,6 @@ class FitResults:
                 "experiment_id": fit.experiment_id,
                 "model": fit.model_name,
                 "success": fit.success,
-                "message": fit.message,
             }
             if fit.metrics is not None:
                 row.update(

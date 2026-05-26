@@ -84,6 +84,13 @@ def test_report_omits_missing_uncertainty_for_single_experiment():
     assert "±" not in report.loc[0, "report"]
 
 
+def test_fit_summary_omits_message_column():
+    data = make_single_experiment_data()
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+
+    assert "message" not in results.fit_summary().columns
+
+
 def test_report_auto_raises_for_multiple_reportable_quantities():
     fit = bc.FitResult(compound_id="cmpd_a", model_name="mock", success=True)
     summaries = [

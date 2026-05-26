@@ -19,6 +19,7 @@ dependencies = [
   "pandas",
   "matplotlib",
   "lmfit",
+  "scipy",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -41,7 +42,6 @@ Documentation = "https://choutkaj.github.io/bindcurve/"
 [dependency-groups]
 test = [
   "pytest",
-  "scipy",
 ]
 lint = [
   "ruff",

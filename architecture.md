@@ -331,7 +331,7 @@ Optional behavior:
 FitSettings(errors="collect")
 ```
 
-In collect mode, failed fits are returned as `FitResult` objects with `success = False` and a failure message.
+In collect mode, failed fits are returned as `FitResult` objects with `success = False`.
 
 ## Quality control
 

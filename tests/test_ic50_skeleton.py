@@ -156,3 +156,29 @@ def test_collect_errors_returns_failed_result():
 
     assert len(results.failed()) == 1
     assert results.failed()[0].success is False
+
+
+def test_collect_errors_continues_after_experiment_failure():
+    class FailsForExp2Model(bc.IC50Model):
+        name = "fails_for_exp2"
+
+        def guess(self, compound: bc.CompoundData) -> dict[str, float]:
+            experiment_id = str(compound.table["experiment_id"].iloc[0])
+            if experiment_id == "exp2":
+                raise RuntimeError("synthetic experiment failure")
+            return super().guess(compound)
+
+    data = make_synthetic_data().keep_only("cmpd_a")
+    results = bc.fit(
+        data,
+        model=FailsForExp2Model(),
+        settings=bc.FitSettings(errors="collect"),
+        fixed={"ymin": 0.0, "ymax": 100.0},
+    )
+
+    successful_experiments = {fit.experiment_id for fit in results.successful()}
+    failed_experiments = {fit.experiment_id for fit in results.failed()}
+
+    assert successful_experiments == {"exp1", "exp3"}
+    assert failed_experiments == {"exp2"}
+    assert len(results.fit_results) == 3
