@@ -162,11 +162,7 @@ class BaseDoseResponseModel(ABC):
         parameters: lmfit.Parameters,
         x: np.ndarray,
         y: np.ndarray,
-        weights: np.ndarray | None = None,
     ) -> np.ndarray:
         """Return residuals in lmfit convention."""
         values = {name: parameter.value for name, parameter in parameters.items()}
-        residual = self.evaluate(x, **values) - y
-        if weights is not None:
-            residual = residual * weights
-        return residual
+        return self.evaluate(x, **values) - y

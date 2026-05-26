@@ -60,7 +60,7 @@ compound_id | concentration | response
 Optional columns:
 
 ```text
-experiment_id | replicate_id | weight | metadata...
+experiment_id | replicate_id | metadata...
 ```
 
 If `experiment_id` or `replicate_id` is missing, `DoseResponseData` fills sensible defaults.
@@ -245,7 +245,6 @@ Example:
 
 ```python
 FitSettings(
-    weighting="none",
     lmfit_method="leastsq",
     errors="raise",
 )

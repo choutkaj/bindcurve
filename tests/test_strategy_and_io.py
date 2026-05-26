@@ -68,6 +68,11 @@ def test_fitsettings_no_longer_accepts_strategy():
         bc.FitSettings(strategy="per_experiment")
 
 
+def test_fitsettings_no_longer_accepts_weighting():
+    with pytest.raises(TypeError, match="weighting"):
+        bc.FitSettings(weighting="none")
+
+
 def test_from_dataframe_accepts_wide_format():
     wide = pd.DataFrame(
         {

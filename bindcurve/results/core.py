@@ -538,18 +538,18 @@ def _compound_n_obs(fits: list[FitResult]) -> int | None:
 
 
 def _compound_r_squared(fits: list[FitResult]) -> float | None:
-    weighted_values: list[tuple[int, float]] = []
+    n_data_values: list[tuple[int, float]] = []
     for fit in fits:
         if fit.metrics is None or fit.metrics.r_squared is None:
             continue
-        weighted_values.append((fit.metrics.n_data, float(fit.metrics.r_squared)))
-    if not weighted_values:
+        n_data_values.append((fit.metrics.n_data, float(fit.metrics.r_squared)))
+    if not n_data_values:
         return None
-    total_weight = sum(weight for weight, _ in weighted_values)
-    if total_weight == 0:
+    total_n_data = sum(n_data for n_data, _ in n_data_values)
+    if total_n_data == 0:
         return None
     return float(
-        sum(weight * value for weight, value in weighted_values) / total_weight
+        sum(n_data * value for n_data, value in n_data_values) / total_n_data
     )
 
 
