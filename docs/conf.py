@@ -55,6 +55,13 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
 }
 
+# Taylor & Francis serves these verified article pages to browsers but returns
+# HTTP 403 to Sphinx's automated link checker.
+linkcheck_ignore = [
+    r"https://doi\.org/10\.3109/10799898809049010",
+    r"https://doi\.org/10\.3109/10799898909066075",
+]
+
 # HTML output
 html_theme = "pydata_sphinx_theme"
 html_title = "bindcurve documentation"

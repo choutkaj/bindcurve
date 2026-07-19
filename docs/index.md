@@ -27,6 +27,13 @@ Task-oriented documentation for the main workflows.
 Executable, end-to-end examples.
 :::
 
+:::{grid-item-card} Theory
+:link: theory/index
+:link-type: doc
+
+Mathematical definitions and equilibrium models.
+:::
+
 :::{grid-item-card} API reference
 :link: api/index
 :link-type: doc
@@ -43,5 +50,6 @@ Reference documentation for the public Python API.
 getting-started
 user-guide/index
 tutorials/index
+theory/index
 api/index
 ```
