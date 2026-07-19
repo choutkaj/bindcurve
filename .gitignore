@@ -10,6 +10,10 @@ pytest-cache-files-*
 build
 /logo/
 
+# Documentation builds
+docs/_build/
+docs/.jupyter_cache/
+
 # Distribution / packaging
 bindcurve.egg-info
 build

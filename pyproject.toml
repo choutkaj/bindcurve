@@ -53,6 +53,14 @@ notebook = [
   "jupyterlab",
   "sympy",
 ]
+docs = [
+  "myst-nb>=1.2,<2",
+  "pydata-sphinx-theme>=0.16,<1",
+  "sphinx>=8.1,<8.2; python_version < '3.11'",
+  "sphinx>=8.2,<10; python_version >= '3.11'",
+  "sphinx-copybutton>=0.5,<1",
+  "sphinx-design>=0.6,<1",
+]
 dev = [
   {include-group = "test"},
   {include-group = "lint"},

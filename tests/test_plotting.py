@@ -128,7 +128,7 @@ def test_plot_fits_supports_explicit_styling_args():
     plt.close(fig)
 
 
-def test_plot_compounds_uses_derived_summary_parameters_without_refitting():
+def test_plot_compounds_averages_experiment_level_predictions_without_refitting():
     data = make_data()
     results = make_results(data)
     fig, ax = plt.subplots()
@@ -139,10 +139,21 @@ def test_plot_compounds_uses_derived_summary_parameters_without_refitting():
     assert len(observation_lines(ax)) == 1
     assert len(curve_lines(ax)) == 1
     curve = curve_lines(ax)[0]
-    expected = results.model.evaluate(
-        np.asarray(curve.get_xdata(), dtype=float),
-        **results.parameter_values("cmpd_a"),
+    grid = np.asarray(curve.get_xdata(), dtype=float)
+    predictions = np.stack(
+        [
+            fit.model.evaluate(
+                grid,
+                **{
+                    name: estimate.value
+                    for name, estimate in fit.parameters.items()
+                },
+            )
+            for fit in results.successful()
+            if fit.compound_id == "cmpd_a"
+        ]
     )
+    expected = np.mean(predictions, axis=0)
     np.testing.assert_allclose(
         curve.get_ydata(),
         expected,

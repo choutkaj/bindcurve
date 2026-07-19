@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -26,7 +26,7 @@ class CurveSeries:
     compound_id: str
     observation_groups: list[pd.DataFrame]
     fit: FitResult | None = None
-    parameters: Mapping[str, float] | None = None
+    fits: tuple[FitResult, ...] = ()
     color: object | None = None
 
 

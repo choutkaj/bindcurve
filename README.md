@@ -2,14 +2,15 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/bindcurve)](https://pypi.org/project/bindcurve/)
 [![Tests](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml/badge.svg)](https://github.com/choutkaj/bindcurve/actions/workflows/tests.yml)
+[![Documentation](https://github.com/choutkaj/bindcurve/actions/workflows/docs.yml/badge.svg)](https://choutkaj.github.io/bindcurve/)
 [![Python 3.10-3.14](https://img.shields.io/badge/python-3.10--3.14-blue.svg)](https://pypi.org/project/bindcurve/)
 [![DOI](https://zenodo.org/badge/870812773.svg)](https://doi.org/10.5281/zenodo.15776819)
 [![License: MIT](https://img.shields.io/github/license/choutkaj/bindcurve)](https://github.com/choutkaj/bindcurve/blob/main/LICENSE)
 
 `bindcurve` is an lmfit-backed Python package for fitting dose-response curves.
 
-
-
+The canonical documentation is available at
+[choutkaj.github.io/bindcurve](https://choutkaj.github.io/bindcurve/).
 
 ## Current scope
 
@@ -189,6 +190,14 @@ uv build
 
 The tutorial notebooks use the same `dev` environment, which includes `ipykernel`
 and Jupyter support.
+
+To build and check the documentation locally:
+
+```bash
+uv sync --group docs
+uv run sphinx-build -W --keep-going -b html docs docs/_build/html
+uv run sphinx-build -W --keep-going -b linkcheck docs docs/_build/linkcheck
+```
 
 ## Architecture
 

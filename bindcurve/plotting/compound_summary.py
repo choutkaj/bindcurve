@@ -10,6 +10,7 @@ from bindcurve.plotting.common import (
     CurveSeries,
     DoseRepresentation,
     XScale,
+    _evaluate_fit,
     _get_axes,
     _make_plot_grid_from_table,
     _normalize_dose_representation,
@@ -38,18 +39,19 @@ def _build_compound_series(
             compound_id=str(compound_id),
             dose_representation=dose_representation,
         )
-        try:
-            parameters = results.parameter_values(str(compound_id))
-        except KeyError:
-            parameters = None
-        if not observation_groups and parameters is None:
+        fits = tuple(
+            fit
+            for fit in results.successful()
+            if str(fit.compound_id) == str(compound_id)
+        )
+        if not observation_groups and not fits:
             continue
         series.append(
             CurveSeries(
                 label=str(compound_id),
                 compound_id=str(compound_id),
                 observation_groups=observation_groups,
-                parameters=parameters,
+                fits=fits,
             )
         )
     return series
@@ -80,10 +82,10 @@ def plot_compounds(
     """Plot one summary dose-response curve per compound.
 
     A plotted series is one compound. Markers and fitted curve share one label
-    and one base color by default. The curve is evaluated directly from the
-    across-experiment parameter summaries in ``results``; plotting never fits
-    or modifies data. Grand-mean or experiment-level observations are selected
-    with ``dose_representation``.
+    and one base color by default. The curve is the pointwise arithmetic mean
+    of the successful experiment-level fitted predictions; failed fits are
+    excluded. Plotting never fits or modifies data. Grand-mean or
+    experiment-level observations are selected with ``dose_representation``.
     """
     ax = _get_axes(ax)
     resolved_compound_ids = _resolve_compound_ids(data, compounds)
@@ -100,7 +102,7 @@ def plot_compounds(
         spec.color = color
 
     for spec in series:
-        label_on_curve = show_curves and spec.parameters is not None
+        label_on_curve = show_curves and bool(spec.fits)
         observations_visible = show_markers or error_style is not None
         if observations_visible:
             label_used = False
@@ -123,7 +125,7 @@ def plot_compounds(
                 if plotted and group_label != "_nolegend_":
                     label_used = True
 
-        if show_curves and spec.parameters is not None:
+        if show_curves and spec.fits:
             compound_table = data.table[
                 data.table["compound_id"].astype(str) == spec.compound_id
             ]
@@ -151,7 +153,10 @@ def plot_compounds(
                         "markevery": [],
                     }
                 )
-            response = results.model.evaluate(grid, **spec.parameters)
+            predictions = np.stack(
+                [np.asarray(_evaluate_fit(fit, grid), dtype=float) for fit in spec.fits]
+            )
+            response = np.mean(predictions, axis=0)
             ax.plot(grid, response, **line_kwargs)
 
     if xscale is not None:
