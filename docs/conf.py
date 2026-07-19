@@ -55,9 +55,11 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
 }
 
-# Taylor & Francis serves these verified article pages to browsers but returns
-# HTTP 403 to Sphinx's automated link checker.
+# These verified DOI resolver links work for readers, but their publishers
+# return HTTP 403 to Sphinx's automated link checker.
 linkcheck_ignore = [
+    r"https://doi\.org/10\.1016/0014-5793\(95\)00062-E",
+    r"https://doi\.org/10\.1021/bi048233g",
     r"https://doi\.org/10\.3109/10799898809049010",
     r"https://doi\.org/10\.3109/10799898909066075",
 ]

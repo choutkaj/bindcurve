@@ -360,8 +360,8 @@ microscopic competitor dissociation constant.
 
 - Wang, Z.-X. (1995), [An exact mathematical expression for describing
   competitive binding of two different ligands to a protein
-  molecule](https://pubmed.ncbi.nlm.nih.gov/7875313/).
+  molecule](https://doi.org/10.1016/0014-5793(95)00062-E).
 - Roehrl, M. H. A., Wang, J. Y. & Wagner, G. (2004), [A general framework for
   development and data analysis of competitive high-throughput screens for
   small-molecule inhibitors of protein-protein interactions by fluorescence
-  polarization](https://pubmed.ncbi.nlm.nih.gov/15610000/).
+  polarization](https://doi.org/10.1021/bi048233g).
