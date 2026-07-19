@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Literal
 
@@ -11,7 +11,6 @@ from matplotlib.axes import Axes
 from matplotlib.colors import is_color_like
 
 from bindcurve.datasets import DoseResponseData
-from bindcurve.modeling import get_model
 from bindcurve.results import FitResult, FitResults
 
 ErrorStyle = Literal["sem", "sd", None]
@@ -27,6 +26,7 @@ class CurveSeries:
     compound_id: str
     observation_groups: list[pd.DataFrame]
     fit: FitResult | None = None
+    parameters: Mapping[str, float] | None = None
     color: object | None = None
 
 
@@ -41,40 +41,7 @@ def _get_axes(ax: Axes | None) -> Axes:
 def _resolve_compound_ids(
     data: DoseResponseData, compound_id: str | Iterable[str] | None
 ) -> list[str]:
-    if compound_id is not None:
-        if isinstance(compound_id, str):
-            return [compound_id]
-        return [str(cid) for cid in compound_id]
-    return data.compounds
-
-
-def _filter_experiments(
-    table: pd.DataFrame,
-    experiments: Iterable[str] | None,
-) -> pd.DataFrame:
-    if experiments is None:
-        return table
-    requested = {str(experiment) for experiment in experiments}
-    return table[table["experiment_id"].astype(str).isin(requested)]
-
-
-def _make_x_grid(
-    data: DoseResponseData,
-    *,
-    compound_id: str,
-    x_grid: np.ndarray | None,
-    n_points: int,
-    xscale: XScale,
-) -> np.ndarray:
-    if x_grid is not None:
-        return np.asarray(x_grid, dtype=float)
-
-    compound = data.select_compound(compound_id)
-    xmin = float(compound.table["concentration"].min())
-    xmax = float(compound.table["concentration"].max())
-    if xscale == "log":
-        return np.logspace(np.log10(xmin), np.log10(xmax), n_points)
-    return np.linspace(xmin, xmax, n_points)
+    return data.resolve_compounds(compound_id)
 
 
 def _matching_fits(
@@ -105,10 +72,8 @@ def _evaluate_model(
     x: np.ndarray | float,
     parameters: dict[str, float],
 ) -> np.ndarray:
-    model = get_model(fit.model_name)
     x_array = np.asarray(x, dtype=float)
-    x_transformed = model.transform_x(x_array)
-    return model.evaluate(x_transformed, **parameters)
+    return fit.model.evaluate(x_array, **parameters)
 
 
 def _evaluate_fit(fit: FitResult, x: np.ndarray | float) -> np.ndarray:

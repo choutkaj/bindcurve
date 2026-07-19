@@ -5,10 +5,48 @@ import pandas as pd
 import pytest
 
 import bindcurve as bc
+from bindcurve.modeling import IC50Model, ParameterSpec
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=-1.0):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+class AmbiguousConcentrationModel(IC50Model):
+    name = "ambiguous_concentrations"
+    parameter_specs = IC50Model.parameter_specs + (
+        ParameterSpec(
+            "Kd",
+            min=np.finfo(float).tiny,
+            kind="concentration",
+            scale="log10",
+            log_name="logKd",
+        ),
+    )
+
+
+def make_ambiguous_results() -> bc.FitResults:
+    model = AmbiguousConcentrationModel()
+    fits = tuple(
+        bc.FitResult(
+            model=model,
+            compound_id="cmpd_a",
+            experiment_id=f"exp{index}",
+            parameters={
+                "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
+                "amplitude": bc.ParameterEstimate(
+                    "amplitude", 100.0, vary=False
+                ),
+                "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
+                "hill_slope": bc.ParameterEstimate(
+                    "hill_slope", 1.0, vary=False
+                ),
+                "Kd": bc.ParameterEstimate("Kd", 2.0 + index, stderr=0.1),
+            },
+        )
+        for index in range(1, 4)
+    )
+    return bc.FitResults(model=model, fit_results=fits)
+
+
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=1.0):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_multi_experiment_data() -> bc.DoseResponseData:
@@ -51,7 +89,7 @@ def make_single_experiment_data() -> bc.DoseResponseData:
 
 def test_report_representation_both_labels_linear_and_log_faces():
     data = make_multi_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
     report = results.report(
         representation="both",
@@ -73,7 +111,7 @@ def test_report_representation_both_labels_linear_and_log_faces():
 
 def test_report_omits_missing_uncertainty_for_single_experiment():
     data = make_single_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
     summary = results.summary()
     report = results.report(rounding="decimals", places_mean=2, places_uncertainty=2)
@@ -84,42 +122,21 @@ def test_report_omits_missing_uncertainty_for_single_experiment():
     assert "±" not in report.loc[0, "report"]
 
 
-def test_fit_summary_omits_message_column():
+def test_fit_summary_exposes_explicit_optimizer_and_failure_diagnostics():
     data = make_single_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
-    assert "message" not in results.fit_summary().columns
+    columns = set(results.fit_summary().columns)
+    assert {
+        "optimizer_message",
+        "failure_stage",
+        "error_type",
+        "error_message",
+    } <= columns
 
 
 def test_report_auto_raises_for_multiple_reportable_quantities():
-    fit = bc.FitResult(compound_id="cmpd_a", model_name="mock", success=True)
-    summaries = [
-        bc.ConcentrationSummary(
-            compound_id="cmpd_a",
-            parameter="IC50",
-            log_parameter="logIC50",
-            N_exp=3,
-            reportable=True,
-            log10_mean=0.1,
-            log10_sd=0.02,
-            log10_sem=0.01,
-            log10_ci95_lower=0.05,
-            log10_ci95_upper=0.15,
-        ),
-        bc.ConcentrationSummary(
-            compound_id="cmpd_a",
-            parameter="Kd",
-            log_parameter="logKd",
-            N_exp=3,
-            reportable=True,
-            log10_mean=0.2,
-            log10_sd=0.03,
-            log10_sem=0.02,
-            log10_ci95_lower=0.12,
-            log10_ci95_upper=0.28,
-        ),
-    ]
-    results = bc.FitResults(fit_results=[fit], summaries=summaries)
+    results = make_ambiguous_results()
 
     with pytest.raises(
         ValueError,

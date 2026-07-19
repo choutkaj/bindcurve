@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -14,11 +16,11 @@ from matplotlib.lines import Line2D
 from scipy.stats import t as student_t
 
 import bindcurve as bc
-from bindcurve.plotting.curves import _fit_confidence_band, _get_lmfit_covariance
+from bindcurve.plotting.confidence import _fit_confidence_band, _get_covariance
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.5, hill_slope=-1.1):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.5, hill_slope=1.1):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_data() -> bc.DoseResponseData:
@@ -43,33 +45,7 @@ def make_data() -> bc.DoseResponseData:
 
 
 def make_results(data: bc.DoseResponseData) -> bc.FitResults:
-    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
-
-
-def make_summary_results(data: bc.DoseResponseData) -> bc.FitResults:
-    experiment_means = (
-        data.table.groupby(
-            ["compound_id", "experiment_id", "concentration"],
-            as_index=False,
-        )["response"]
-        .mean()
-    )
-    grand_mean = (
-        experiment_means.groupby(
-            ["compound_id", "concentration"],
-            as_index=False,
-        )["response"]
-        .mean()
-    )
-    grand_mean["experiment_id"] = "grand_mean"
-    grand_mean["replicate_id"] = "grand_mean"
-    return bc.fit(
-        bc.DoseResponseData.from_dataframe(
-            grand_mean,
-        ),
-        model="ic50",
-        fixed={"ymin": 0.0, "ymax": 100.0},
-    )
+    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
 
 def errorbar_half_heights(ax: plt.Axes, *, container_index: int = 0) -> np.ndarray:
@@ -100,60 +76,6 @@ def observation_lines(ax: plt.Axes) -> list[Line2D]:
 
 def curve_lines(ax: plt.Axes) -> list[Line2D]:
     return [line for line in ax.lines if str(line.get_linestyle()).lower() != "none"]
-
-
-def make_unbalanced_data() -> bc.DoseResponseData:
-    rows = []
-    for concentration in [1.0, 10.0]:
-        rows.append(
-            {
-                "compound_id": "cmpd_a",
-                "experiment_id": "exp1",
-                "concentration": concentration,
-                "replicate_id": "rep1",
-                "response": 0.0,
-            }
-        )
-        for replicate_index in range(5):
-            rows.append(
-                {
-                    "compound_id": "cmpd_a",
-                    "experiment_id": "exp2",
-                    "concentration": concentration,
-                    "replicate_id": f"rep{replicate_index + 1}",
-                    "response": 100.0,
-                }
-            )
-    return bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
-
-
-def test_plot_observations_draws_on_existing_axes():
-    data = make_data()
-    fig, ax = plt.subplots()
-    ax.set_xlabel("dose")
-    ax.set_ylabel("signal")
-
-    returned_ax = bc.plot_observations(data, ax=ax)
-
-    assert returned_ax is ax
-    assert len(ax.collections) > 0
-    assert ax.get_xlabel() == "dose"
-    assert ax.get_ylabel() == "signal"
-    plt.close(fig)
-
-
-def test_plot_fit_lines_draws_fit_lines_on_existing_axes():
-    data = make_data()
-    results = make_results(data)
-    fig, ax = plt.subplots()
-
-    returned_ax = bc.plot_fit_lines(data, results, ax=ax, n_points=50)
-
-    assert returned_ax is ax
-    assert len(ax.lines) == 2
-    assert len(ax.collections) == 0  # Should not draw observations
-    assert ax.get_xscale() == "log"
-    plt.close(fig)
 
 
 def test_plot_fits_couples_series_labels_and_colors():
@@ -206,35 +128,26 @@ def test_plot_fits_supports_explicit_styling_args():
     plt.close(fig)
 
 
-def test_plot_compounds_aggregates_experiments_with_master_fit():
+def test_plot_compounds_uses_derived_summary_parameters_without_refitting():
     data = make_data()
     results = make_results(data)
-    summary_results = make_summary_results(data)
     fig, ax = plt.subplots()
-    expected_fig, expected_ax = plt.subplots()
 
     bc.plot_compounds(data, results, ax=ax, n_points=50)
-    bc.plot_fit_lines(
-        data,
-        summary_results,
-        ax=expected_ax,
-        n_points=50,
-        by_experiment=False,
-    )
 
     assert legend_labels(ax) == ["cmpd_a"]
     assert len(observation_lines(ax)) == 1
     assert len(curve_lines(ax)) == 1
-    np.testing.assert_allclose(
-        curve_lines(ax)[0].get_xdata(),
-        expected_ax.lines[0].get_xdata(),
+    curve = curve_lines(ax)[0]
+    expected = results.model.evaluate(
+        np.asarray(curve.get_xdata(), dtype=float),
+        **results.parameter_values("cmpd_a"),
     )
     np.testing.assert_allclose(
-        curve_lines(ax)[0].get_ydata(),
-        expected_ax.lines[0].get_ydata(),
+        curve.get_ydata(),
+        expected,
     )
     plt.close(fig)
-    plt.close(expected_fig)
 
 
 def test_plot_compounds_supports_sd_or_sem_error_bars():
@@ -318,23 +231,16 @@ def test_plot_fits_rejects_wrong_color_count():
     plt.close(fig)
 
 
-def test_plot_observations_uses_grand_mean_across_experiments():
-    data = make_unbalanced_data()
-    fig, ax = plt.subplots()
-
-    bc.plot_observations(data, ax=ax, by_experiment=False)
-
-    grand_mean_points = np.asarray(ax.containers[0].lines[0].get_ydata(), dtype=float)
-    np.testing.assert_allclose(grand_mean_points, [50.0, 50.0])
-    plt.close(fig)
-
-
 def test_plot_fits_supports_multi_compound_data_by_default():
     data = make_data()
     extra = data.table.copy()
     extra["compound_id"] = "cmpd_b"
     multi = bc.DoseResponseData.from_dataframe(pd.concat([data.table, extra]))
-    results = bc.fit(multi, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(
+        multi,
+        model="ic50",
+        fixed={"ymin": 0.0, "amplitude": 100.0},
+    )
 
     fig, ax = plt.subplots()
     bc.plot_fits(multi, results, ax=ax, n_points=50)
@@ -347,6 +253,44 @@ def test_plot_fits_supports_multi_compound_data_by_default():
     ]
     assert len(observation_lines(ax)) == 4
     assert len(curve_lines(ax)) == 4
+    plt.close(fig)
+
+
+def test_plot_fits_uses_each_fit_observation_range_for_its_curve_grid():
+    rows = []
+    for compound_id, concentrations, ic50 in [
+        ("cmpd_a", [1.0, 10.0, 100.0], 10.0),
+        ("cmpd_b", [0.001, 0.01, 0.1], 0.01),
+    ]:
+        for index, concentration in enumerate(concentrations):
+            rows.append(
+                {
+                    "compound_id": compound_id,
+                    "experiment_id": "exp1",
+                    "concentration": concentration,
+                    "replicate_id": f"rep{index}",
+                    "response": ic50_curve(
+                        concentration,
+                        ic50=ic50,
+                        hill_slope=1.0,
+                    ),
+                }
+            )
+    data = bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
+    results = bc.fit(
+        data,
+        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.0},
+    )
+    fig, ax = plt.subplots()
+
+    bc.plot_fits(data, results, ax=ax, n_points=20, show_errorbars=False)
+
+    ranges = {
+        line.get_label(): (line.get_xdata()[0], line.get_xdata()[-1])
+        for line in curve_lines(ax)
+    }
+    assert ranges["cmpd_a exp1"] == pytest.approx((1.0, 100.0))
+    assert ranges["cmpd_b exp1"] == pytest.approx((0.001, 0.1))
     plt.close(fig)
 
 
@@ -454,29 +398,6 @@ def test_plot_curve_points_rejects_invalid_dict_spec():
     plt.close(fig)
 
 
-def test_plot_confidence_bands_draws_fill_between_collection():
-    data = make_data()
-    results = make_results(data)
-    fig, ax = plt.subplots()
-
-    returned_ax = bc.plot_confidence_bands(
-        data,
-        results,
-        ax=ax,
-        experiments=["exp1"],
-        n_points=50,
-        confidence_level=0.90,
-    )
-
-    assert returned_ax is ax
-    assert len(ax.collections) == 1
-    assert ax.collections[0].get_label() == "exp1 90% confidence band"
-    assert ax.collections[0].get_alpha() == pytest.approx(0.25)
-    assert np.max(ax.collections[0].get_linewidths()) == pytest.approx(0.8)
-    assert ax.get_xscale() == "log"
-    plt.close(fig)
-
-
 def test_plot_fits_can_add_confidence_band():
     data = make_data()
     results = make_results(data)
@@ -513,8 +434,7 @@ def test_fit_confidence_band_uses_student_t_multiplier():
     fit = results.successful()[0]
     grid = np.logspace(-2, 2, 7)
     finite_difference_step = 1.0e-2
-    model = bc.get_model(fit.model_name)
-    transformed_grid = model.transform_x(grid)
+    model = fit.model
 
     y, lower, upper = _fit_confidence_band(
         fit,
@@ -523,7 +443,7 @@ def test_fit_confidence_band_uses_student_t_multiplier():
         finite_difference_step=finite_difference_step,
     )
 
-    variable_names, covariance = _get_lmfit_covariance(fit)
+    variable_names, covariance = _get_covariance(fit)
     parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
     jacobian = np.empty((grid.size, len(variable_names)), dtype=float)
 
@@ -536,12 +456,15 @@ def test_fit_confidence_band_uses_student_t_multiplier():
         minus_parameters = dict(parameters)
         plus_parameters[name] = value + step
         minus_parameters[name] = value - step
-        plus = model.evaluate(transformed_grid, **plus_parameters)
-        minus = model.evaluate(transformed_grid, **minus_parameters)
+        plus = model.evaluate(grid, **plus_parameters)
+        minus = model.evaluate(grid, **minus_parameters)
         jacobian[:, index] = (np.asarray(plus) - np.asarray(minus)) / (2.0 * step)
 
     variance = np.einsum("ij,jk,ik->i", jacobian, covariance, jacobian)
-    degrees_of_freedom = int(fit.lmfit_result.ndata) - int(fit.lmfit_result.nvarys)
+    assert fit.metrics is not None
+    degrees_of_freedom = (
+        fit.metrics.n_data - fit.metrics.n_varying_parameters
+    )
     multiplier = float(student_t.ppf(0.975, df=degrees_of_freedom))
     expected_half_width = multiplier * np.sqrt(np.maximum(variance, 0.0))
 
@@ -549,34 +472,59 @@ def test_fit_confidence_band_uses_student_t_multiplier():
     np.testing.assert_allclose(y - lower, expected_half_width, rtol=1.0e-6, atol=1.0e-9)
 
 
-def test_plot_confidence_bands_rejects_invalid_confidence_level():
+def test_fit_confidence_band_uses_one_sided_difference_at_parameter_bound():
+    fit = make_results(make_data()).successful()[0]
+    parameters = dict(fit.parameters)
+    estimate = parameters["IC50"]
+    parameters["IC50"] = replace(estimate, min=estimate.value)
+    bounded_fit = replace(fit, parameters=parameters)
+
+    y, lower, upper = _fit_confidence_band(
+        bounded_fit,
+        np.logspace(-2, 2, 9),
+        confidence_level=0.95,
+        finite_difference_step=1e-2,
+    )
+
+    assert np.all(np.isfinite(y))
+    assert np.all(np.isfinite(lower))
+    assert np.all(np.isfinite(upper))
+    assert np.all(lower <= y)
+    assert np.all(y <= upper)
+
+
+def test_plot_fits_rejects_invalid_confidence_level():
     data = make_data()
     results = make_results(data)
     fig, ax = plt.subplots()
 
     with pytest.raises(ValueError, match="confidence_level"):
-        bc.plot_confidence_bands(
+        bc.plot_fits(
             data,
             results,
             ax=ax,
             experiments=["exp1"],
+            confidence_band=True,
             confidence_level=1.5,
         )
     plt.close(fig)
 
 
-def test_plot_confidence_bands_requires_covariance_matrix():
+def test_plot_fits_confidence_band_requires_covariance_matrix():
     data = make_data()
     results = make_results(data)
-    results.successful()[0].lmfit_result.covar = None
+    fits = list(results.fit_results)
+    fits[0] = replace(fits[0], covariance=None)
+    results = bc.FitResults(model=results.model, fit_results=tuple(fits))
     fig, ax = plt.subplots()
 
     with pytest.raises(ValueError, match="covariance"):
-        bc.plot_confidence_bands(
+        bc.plot_fits(
             data,
             results,
             ax=ax,
             experiments=["exp1"],
+            confidence_band=True,
         )
     plt.close(fig)
 

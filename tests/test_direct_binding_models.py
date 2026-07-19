@@ -6,6 +6,11 @@ import pytest
 from scipy.optimize import brentq
 
 import bindcurve as bc
+from bindcurve.modeling import (
+    DirectSimpleKdModel,
+    DirectSpecificKdModel,
+    DirectTotalKdModel,
+)
 
 
 def dir_simple_curve(x, *, ymin=2.0, ymax=88.0, Kds=1.4):
@@ -72,9 +77,9 @@ def make_saturation_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
 
 
 def test_registry_contains_direct_binding_models():
-    assert isinstance(bc.get_model("dir_simple"), bc.DirectSimpleKdModel)
-    assert isinstance(bc.get_model("dir_specific"), bc.DirectSpecificKdModel)
-    assert isinstance(bc.get_model("dir_total"), bc.DirectTotalKdModel)
+    assert isinstance(bc.get_model("dir_simple"), DirectSimpleKdModel)
+    assert isinstance(bc.get_model("dir_specific"), DirectSpecificKdModel)
+    assert isinstance(bc.get_model("dir_total"), DirectTotalKdModel)
 
 
 def test_dir_simple_recovers_kds_from_synthetic_data():
@@ -84,7 +89,7 @@ def test_dir_simple_recovers_kds_from_synthetic_data():
         model="dir_simple",
         fixed={"ymin": 2.0, "ymax": 88.0},
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -98,7 +103,7 @@ def test_dir_specific_recovers_kds_from_synthetic_data():
         model="dir_specific",
         fixed={"ymin": 3.0, "ymax": 91.0, "LsT": 0.35},
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -113,7 +118,7 @@ def test_dir_total_recovers_kds_from_synthetic_data():
         model="dir_total",
         fixed={"ymin": 4.0, "ymax": 86.0, "LsT": 0.4, "Ns": 0.25},
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()

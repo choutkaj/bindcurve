@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 from scipy.optimize import least_squares
 
-import bindcurve as bc
+from bindcurve.modeling import (
+    CompetitiveFourStateSpecificKdModel,
+    CompetitiveFourStateTotalKdModel,
+)
 
 
 def solve_four_state_mass_balance(
@@ -78,7 +81,7 @@ def polynomial_four_state_fbs(
     Kd: float,
     Kd3: float,
 ) -> np.ndarray:
-    response = bc.CompetitiveFourStateSpecificKdModel().evaluate(
+    response = CompetitiveFourStateSpecificKdModel().evaluate(
         LT,
         ymin=0.0,
         ymax=1.0,
@@ -156,7 +159,7 @@ def test_total_four_state_matches_numerical_mass_balance_with_effective_kd():
     }
     LT = np.logspace(-3, 2, 12)
 
-    polynomial = bc.CompetitiveFourStateTotalKdModel().evaluate(
+    polynomial = CompetitiveFourStateTotalKdModel().evaluate(
         LT,
         ymin=0.0,
         ymax=1.0,
@@ -217,16 +220,17 @@ def test_specific_four_state_is_invariant_to_concentration_units():
 
 
 def test_specific_four_state_preserves_tiny_physical_root_in_tracer_excess():
-    model = bc.CompetitiveFourStateSpecificKdModel()
-    components = model.component_arrays(
+    model = CompetitiveFourStateSpecificKdModel()
+    components = model.evaluate_components(
         np.array([1.0]),
-        np.array([1.0]),
+        ymin=0.0,
+        ymax=1.0,
         RT=1.0,
         LsT=1.0e15,
         Kds=1.0,
         Kd=1.0,
         Kd3=1.0,
-    )
+    ).components
 
     assert components["R"][0] > 0.0
     RT_reconstructed = sum(

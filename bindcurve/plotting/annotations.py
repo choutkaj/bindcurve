@@ -14,7 +14,7 @@ from bindcurve.plotting.common import (
     _matching_fits,
     _resolve_compound_ids,
 )
-from bindcurve.results import FitResults
+from bindcurve.results import FitResult, FitResults
 
 AsymptoteName = Literal["ymin", "ymax"]
 CurvePointSpec = float | tuple[float, str] | dict[str, object]
@@ -26,6 +26,21 @@ class CurvePoint:
 
     x: float
     label: str | None = None
+
+
+def _asymptote_value(fit: FitResult, name: AsymptoteName) -> float | None:
+    """Resolve response-scale asymptotes from a fit's native parameters."""
+    if name == "ymin" and "ymin" in fit.parameters:
+        return fit.parameters["ymin"].value
+    if name == "ymax":
+        if "ymax" in fit.parameters:
+            return fit.parameters["ymax"].value
+        if "ymin" in fit.parameters and "amplitude" in fit.parameters:
+            return (
+                fit.parameters["ymin"].value
+                + fit.parameters["amplitude"].value
+            )
+    return None
 
 
 def _coerce_curve_points(points: Iterable[CurvePointSpec]) -> list[CurvePoint]:
@@ -75,7 +90,8 @@ def plot_asymptotes(
     n_drawn = 0
     for fit in fits:
         for parameter in parameters:
-            if parameter not in fit.parameters:
+            value = _asymptote_value(fit, parameter)
+            if value is None:
                 continue
             asymptote_label = None
             if label:
@@ -85,7 +101,7 @@ def plot_asymptotes(
                 else:
                     asymptote_label = f"{experiment} {parameter}"
             ax.axhline(
-                fit.parameters[parameter].value,
+                value,
                 label=asymptote_label,
                 **default_kwargs,
             )

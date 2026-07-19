@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Literal
@@ -81,7 +82,7 @@ def resolve_requested_compounds(
     ]
     if missing:
         raise KeyError(f"Unknown compound(s): {missing}")
-    return requested
+    return list(dict.fromkeys(requested))
 
 
 def summarize_quality_flags(
@@ -119,7 +120,7 @@ def _validate_nonnegative_float(
     *,
     minimum: float = 0.0,
 ) -> None:
-    if value < minimum:
+    if not math.isfinite(float(value)) or value < minimum:
         raise ValueError(f"{name} must be greater than or equal to {minimum}.")
 
 
@@ -129,7 +130,7 @@ def _validate_nonnegative_int(
     *,
     minimum: int = 0,
 ) -> None:
-    if not isinstance(value, int) or value < minimum:
+    if not isinstance(value, int) or isinstance(value, bool) or value < minimum:
         raise ValueError(
             f"{name} must be an integer greater than or equal to {minimum}."
         )

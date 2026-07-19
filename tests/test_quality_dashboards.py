@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
+import matplotlib
+
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,10 +13,48 @@ import pytest
 from matplotlib.figure import Figure
 
 import bindcurve as bc
+from bindcurve.modeling import IC50Model, ParameterSpec
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=-1.0):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+class AmbiguousConcentrationModel(IC50Model):
+    name = "ambiguous_concentrations"
+    parameter_specs = IC50Model.parameter_specs + (
+        ParameterSpec(
+            "Kd",
+            min=np.finfo(float).tiny,
+            kind="concentration",
+            scale="log10",
+            log_name="logKd",
+        ),
+    )
+
+
+def make_ambiguous_results() -> bc.FitResults:
+    model = AmbiguousConcentrationModel()
+    fits = tuple(
+        bc.FitResult(
+            model=model,
+            compound_id="cmpd_a",
+            experiment_id=f"exp{index}",
+            parameters={
+                "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
+                "amplitude": bc.ParameterEstimate(
+                    "amplitude", 100.0, vary=False
+                ),
+                "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
+                "hill_slope": bc.ParameterEstimate(
+                    "hill_slope", 1.0, vary=False
+                ),
+                "Kd": bc.ParameterEstimate("Kd", 2.0 + index, stderr=0.1),
+            },
+        )
+        for index in range(1, 4)
+    )
+    return bc.FitResults(model=model, fit_results=fits)
+
+
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=1.0):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_quality_data(
@@ -44,7 +88,7 @@ def make_quality_data(
 
 def make_results() -> bc.FitResults:
     data = make_quality_data()
-    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
 
 def test_data_quality_dashboard_returns_three_panel_figure_for_one_compound():
@@ -87,27 +131,19 @@ def test_results_quality_dashboard_returns_three_panel_figure():
 
 def test_results_quality_dashboard_handles_failed_fit_and_preserves_order():
     first = make_results()
-    second = make_results()
-    for fit in second.fit_results:
-        fit.compound_id = "cmpd_b"
-    second.summaries = [
-        (
-            summary
-            if summary.compound_id != "cmpd_a"
-            else _replace_compound(summary, "cmpd_b")
-        )
-        for summary in second.summaries
-    ]
-    first.fit_results.append(
-        bc.FitResult.failed(
-            compound_id="cmpd_a",
-            model_name="ic50",
-            experiment_id="exp4",
-        )
+    second_fits = tuple(
+        replace(fit, compound_id="cmpd_b") for fit in make_results().fit_results
+    )
+    failure = bc.FitResult.failed(
+        model=first.model,
+        compound_id="cmpd_a",
+        experiment_id="exp4",
+        stage="test",
+        error=RuntimeError("synthetic failure"),
     )
     merged = bc.FitResults(
-        fit_results=first.fit_results + second.fit_results,
-        summaries=first.summaries + second.summaries,
+        model=first.model,
+        fit_results=first.fit_results + (failure,) + second_fits,
     )
 
     figure = merged.quality_dashboard(compounds=["cmpd_b", "cmpd_a"])
@@ -120,65 +156,10 @@ def test_results_quality_dashboard_handles_failed_fit_and_preserves_order():
 
 
 def test_results_quality_dashboard_raises_for_ambiguous_auto_parameter():
-    fit = bc.FitResult(compound_id="cmpd_a", model_name="ic50", success=True)
-    results = bc.FitResults(
-        fit_results=[fit],
-        summaries=[
-            bc.ConcentrationSummary(
-                compound_id="cmpd_a",
-                parameter="IC50",
-                log_parameter="logIC50",
-                N_exp=3,
-                reportable=True,
-                log10_mean=0.1,
-                log10_sd=0.02,
-                log10_sem=0.01,
-                log10_ci95_lower=0.05,
-                log10_ci95_upper=0.15,
-            ),
-            bc.ConcentrationSummary(
-                compound_id="cmpd_a",
-                parameter="Kd",
-                log_parameter="logKd",
-                N_exp=3,
-                reportable=True,
-                log10_mean=0.2,
-                log10_sd=0.03,
-                log10_sem=0.02,
-                log10_ci95_lower=0.12,
-                log10_ci95_upper=0.28,
-            ),
-        ],
-    )
+    results = make_ambiguous_results()
 
     with pytest.raises(
         ValueError,
         match="Multiple reportable concentration quantities",
     ):
         results.quality_dashboard()
-
-
-def _replace_compound(summary: object, compound_id: str) -> object:
-    if isinstance(summary, bc.ConcentrationSummary):
-        return bc.ConcentrationSummary(
-            compound_id=compound_id,
-            parameter=summary.parameter,
-            log_parameter=summary.log_parameter,
-            N_exp=summary.N_exp,
-            reportable=summary.reportable,
-            log10_mean=summary.log10_mean,
-            log10_sd=summary.log10_sd,
-            log10_sem=summary.log10_sem,
-            log10_ci95_lower=summary.log10_ci95_lower,
-            log10_ci95_upper=summary.log10_ci95_upper,
-        )
-    return bc.ParameterSummary(
-        compound_id=compound_id,
-        parameter=summary.parameter,
-        N_exp=summary.N_exp,
-        mean=summary.mean,
-        sd=summary.sd,
-        sem=summary.sem,
-        ci95_lower=summary.ci95_lower,
-        ci95_upper=summary.ci95_upper,
-    )

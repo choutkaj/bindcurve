@@ -5,10 +5,20 @@ import pandas as pd
 import pytest
 
 import bindcurve as bc
+from bindcurve.modeling import (
+    CompetitiveFourStateSpecificKdModel,
+    CompetitiveFourStateTotalKdModel,
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
+    DirectSimpleKdModel,
+    DirectSpecificKdModel,
+    DirectTotalKdModel,
+    IC50Model,
+)
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=2.0, hill_slope=-1.0):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=2.0, hill_slope=1.0):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_multi_experiment_data() -> bc.DoseResponseData:
@@ -55,8 +65,8 @@ def make_multi_compound_data() -> bc.DoseResponseData:
 
 def test_fit_runs_one_curve_per_experiment():
     data = make_multi_experiment_data()
-    results = bc.fit(data, fixed={"ymin": 0.0, "ymax": 100.0})
-    fits = results.fits()
+    results = bc.fit(data, fixed={"ymin": 0.0, "amplitude": 100.0})
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert set(fits["experiment_id"]) == {"exp1", "exp2", "exp3"}
@@ -231,7 +241,7 @@ def test_compound_filtering_raises_for_invalid_selectors_and_empty_results():
         data.remove(["cmpd_a", "cmpd_b", "cmpd_c"])
 
 
-def test_concatenate_merges_disjoint_compounds_and_drops_metadata():
+def test_concatenate_merges_disjoint_compounds_and_preserves_metadata():
     first = make_multi_compound_data().keep_only("cmpd_a")
     second = make_multi_compound_data().keep_only("cmpd_b")
 
@@ -240,19 +250,29 @@ def test_concatenate_merges_disjoint_compounds_and_drops_metadata():
 
     pd.testing.assert_frame_equal(combined.table.reset_index(drop=True), expected)
     assert combined.compounds == ["cmpd_a", "cmpd_b"]
-    assert combined.metadata == {}
+    assert combined.metadata == {"source": "synthetic"}
 
 
 def test_concatenate_merges_same_compound_with_distinct_experiments():
     first = make_multi_compound_data().keep_only("cmpd_a")
     second_table = first.table.copy()
     second_table["experiment_id"] = "exp2"
-    second = bc.DoseResponseData(second_table, metadata={"source": "other"})
+    second = bc.DoseResponseData(second_table, metadata=first.metadata)
 
     combined = bc.DoseResponseData.concatenate(first, second)
 
     assert combined.compounds == ["cmpd_a"]
     assert set(combined.table["experiment_id"]) == {"exp1", "exp2"}
+
+
+def test_concatenate_rejects_different_metadata():
+    first = make_multi_compound_data().keep_only("cmpd_a")
+    second_table = first.table.copy()
+    second_table["experiment_id"] = "exp2"
+    second = bc.DoseResponseData(second_table, metadata={"source": "other"})
+
+    with pytest.raises(ValueError, match="different metadata"):
+        bc.DoseResponseData.concatenate(first, second)
 
 
 def test_concatenate_raises_for_overlapping_experiment_ids_and_invalid_inputs():
@@ -278,33 +298,32 @@ def test_fixed_parameters_and_bounds_are_respected():
     data = make_multi_experiment_data()
     results = bc.fit(
         data,
-        fixed={"ymin": 0.0, "ymax": 100.0},
-        bounds={"IC50": (0.1, 10.0), "hill_slope": (-3.0, -0.1)},
+        fixed={"ymin": 0.0, "amplitude": 100.0},
+        bounds={"IC50": (0.1, 10.0), "hill_slope": (0.1, 3.0)},
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert fits["ymin"].eq(0.0).all()
-    assert fits["ymax"].eq(100.0).all()
+    assert fits["amplitude"].eq(100.0).all()
     assert fits["IC50"].between(0.1, 10.0).all()
-    assert fits["hill_slope"].between(-3.0, -0.1).all()
+    assert fits["hill_slope"].between(0.1, 3.0).all()
 
 
 def test_concentration_parameter_specs_are_strictly_positive():
     models = [
-        bc.IC50Model(),
-        bc.DirectSimpleKdModel(),
-        bc.DirectSpecificKdModel(),
-        bc.DirectTotalKdModel(),
-        bc.CompetitiveThreeStateSpecificKdModel(),
-        bc.CompetitiveThreeStateTotalKdModel(),
-        bc.CompetitiveFourStateSpecificKdModel(),
-        bc.CompetitiveFourStateTotalKdModel(),
+        IC50Model(),
+        DirectSimpleKdModel(),
+        DirectSpecificKdModel(),
+        DirectTotalKdModel(),
+        CompetitiveThreeStateSpecificKdModel(),
+        CompetitiveThreeStateTotalKdModel(),
+        CompetitiveFourStateSpecificKdModel(),
+        CompetitiveFourStateTotalKdModel(),
     ]
 
     for model in models:
-        specs = {spec.name: spec for spec in model.parameter_specs}
-        for name in model.concentration_parameters:
-            assert specs[name].min > 0.0
+        for spec in model.concentration_parameter_specs:
+            assert spec.min > 0.0
 
 
 def test_fixed_zero_concentration_parameter_is_rejected():
@@ -313,7 +332,7 @@ def test_fixed_zero_concentration_parameter_is_rejected():
     with pytest.raises(ValueError, match="IC50.*strictly positive"):
         bc.fit(
             data,
-            fixed={"ymin": 0.0, "ymax": 100.0, "IC50": 0.0},
+            fixed={"ymin": 0.0, "amplitude": 100.0, "IC50": 0.0},
         )
 
 
@@ -323,13 +342,13 @@ def test_zero_lower_bound_for_concentration_parameter_is_rejected():
     with pytest.raises(ValueError, match="Lower bound.*IC50.*strictly positive"):
         bc.fit(
             data,
-            fixed={"ymin": 0.0, "ymax": 100.0},
+            fixed={"ymin": 0.0, "amplitude": 100.0},
             bounds={"IC50": (0.0, 10.0)},
         )
 
 
 def test_zero_nonspecific_factor_is_allowed():
-    model = bc.DirectTotalKdModel()
+    model = DirectTotalKdModel()
 
     parameters = model.make_lmfit_parameters(
         {"Kds": 1.0},

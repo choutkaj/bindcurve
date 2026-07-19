@@ -1,6 +1,6 @@
 """Fitting coordination and settings."""
 
-from bindcurve.fitting.calculator import FitCalculator, fit
+from bindcurve.fitting.calculator import fit
 from bindcurve.fitting.settings import FitSettings
 
-__all__ = ["FitCalculator", "FitSettings", "fit"]
+__all__ = ["FitSettings", "fit"]

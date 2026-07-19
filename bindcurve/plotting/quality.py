@@ -12,7 +12,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 
 from bindcurve.datasets import DoseResponseData
-from bindcurve.modeling import get_model
 from bindcurve.quality import (
     DataQualityThresholds,
     ResultQualityThresholds,
@@ -236,7 +235,14 @@ def plot_results_quality_dashboard(
                     f"{_format_float(report_row['R_squared_median'], 3)} / "
                     f"{_format_float(report_row['R_squared_min'], 3)}"
                 ),
-                f"redchi median: {_format_float(report_row['redchi_median'], 3)}",
+                (
+                    "reduced RSS median: "
+                    f"{_format_float(report_row['reduced_RSS_median'], 3)}"
+                ),
+                (
+                    "reduced chi-square median: "
+                    f"{_format_float(report_row['reduced_chi_square_median'], 3)}"
+                ),
                 (
                     "inter log10 SD: "
                     f"{_format_float(report_row['inter_log10_sd'], 3)}"
@@ -350,9 +356,7 @@ def _build_result_dashboard_details(
     fit_rows: list[dict[str, object]] = []
     log_rows: list[dict[str, object]] = []
     for fit in compound_fits:
-        covariance_missing = (
-            fit.lmfit_result is None or getattr(fit.lmfit_result, "covar", None) is None
-        )
+        covariance_missing = fit.covariance is None
         stderr_missing = _fit_has_missing_stderr(fit)
         parameter_at_bound = _fit_has_parameter_at_bound(
             fit,
@@ -370,8 +374,16 @@ def _build_result_dashboard_details(
                     if fit.metrics is None or fit.metrics.r_squared is None
                     else float(fit.metrics.r_squared)
                 ),
-                "redchi": (
-                    np.nan if fit.metrics is None else float(fit.metrics.redchi)
+                "reduced_rss": (
+                    np.nan
+                    if fit.metrics is None or fit.metrics.reduced_rss is None
+                    else float(fit.metrics.reduced_rss)
+                ),
+                "reduced_chi_square": (
+                    np.nan
+                    if fit.metrics is None
+                    or fit.metrics.reduced_chi_square is None
+                    else float(fit.metrics.reduced_chi_square)
                 ),
                 "covariance": (
                     "NA"
@@ -572,7 +584,12 @@ def _plot_fit_diagnostic_table(
     display["r_squared"] = display["r_squared"].apply(
         lambda value: _format_float(value, 3)
     )
-    display["redchi"] = display["redchi"].apply(lambda value: _format_float(value, 3))
+    display["reduced_rss"] = display["reduced_rss"].apply(
+        lambda value: _format_float(value, 3)
+    )
+    display["reduced_chi_square"] = display["reduced_chi_square"].apply(
+        lambda value: _format_float(value, 3)
+    )
     display["stderr"] = display["stderr"].apply(_format_diagnostic_value)
     display["bound_gap"] = display["bound_gap"].apply(_format_diagnostic_value)
     display = display[
@@ -580,7 +597,8 @@ def _plot_fit_diagnostic_table(
             "experiment_id",
             "success",
             "r_squared",
-            "redchi",
+            "reduced_rss",
+            "reduced_chi_square",
             "covariance",
             "stderr",
             "bound_gap",
@@ -592,7 +610,8 @@ def _plot_fit_diagnostic_table(
             "experiment",
             "success",
             "R^2",
-            "redchi",
+            "RSS/df",
+            "chi^2/df",
             "covar",
             "stderr",
             "bound gap",
@@ -605,7 +624,7 @@ def _plot_fit_diagnostic_table(
     table.set_fontsize(7)
     table.scale(1.0, 1.18)
 
-    for column_index in range(7):
+    for column_index in range(8):
         table[(0, column_index)].set_facecolor("#eceff4")
         table[(0, column_index)].set_text_props(weight="bold")
 
@@ -620,9 +639,9 @@ def _plot_fit_diagnostic_table(
         stderr_color = _diagnostic_fill_color(str(row["stderr"]))
         bound_color = _diagnostic_fill_color(str(row["bound_gap"]))
         table[(table_row, 1)].set_facecolor(success_color)
-        table[(table_row, 4)].set_facecolor(covariance_color)
-        table[(table_row, 5)].set_facecolor(stderr_color)
-        table[(table_row, 6)].set_facecolor(bound_color)
+        table[(table_row, 5)].set_facecolor(covariance_color)
+        table[(table_row, 6)].set_facecolor(stderr_color)
+        table[(table_row, 7)].set_facecolor(bound_color)
 
 
 def _diagnostic_fill_color(label: str) -> str:
@@ -660,20 +679,17 @@ def _fit_log10_value(
 ) -> float | None:
     if not fit.success:
         return None
-    model = get_model(fit.model_name)
     spec = next(
         (
             spec
-            for spec in model.concentration_parameter_specs
-            if spec.parameter == parameter
+            for spec in fit.model.concentration_parameter_specs
+            if spec.name == parameter
         ),
         None,
     )
-    if spec is None or spec.fitted_parameter not in fit.parameters:
+    if spec is None or spec.name not in fit.parameters:
         return None
-    value = float(fit.parameters[spec.fitted_parameter].value)
-    if spec.fitted_scale == "log10":
-        return value
+    value = float(fit.parameters[spec.name].value)
     if value <= 0.0:
         return None
     return float(np.log10(value))
@@ -689,7 +705,7 @@ def _fit_parameter_stderr(
     spec = _fit_concentration_spec(fit, parameter=parameter)
     if spec is None:
         return "NA"
-    estimate = fit.parameters.get(spec.fitted_parameter)
+    estimate = fit.parameters.get(spec.name)
     if estimate is None:
         return "NA"
     if estimate.stderr is None:
@@ -702,21 +718,21 @@ def _fit_parameter_bound_gap(
     *,
     parameter: str,
 ) -> float | str:
-    if not fit.success or fit.lmfit_result is None:
+    if not fit.success:
         return "NA"
     spec = _fit_concentration_spec(fit, parameter=parameter)
     if spec is None:
         return "NA"
-    lmfit_parameter = fit.lmfit_result.params.get(spec.fitted_parameter)
-    if lmfit_parameter is None:
+    estimate = fit.parameters.get(spec.name)
+    if estimate is None:
         return "NA"
 
-    value = float(lmfit_parameter.value)
+    value = float(estimate.value)
     distances: list[float] = []
-    if math.isfinite(float(lmfit_parameter.min)):
-        distances.append(abs(value - float(lmfit_parameter.min)))
-    if math.isfinite(float(lmfit_parameter.max)):
-        distances.append(abs(float(lmfit_parameter.max) - value))
+    if math.isfinite(float(estimate.min)):
+        distances.append(abs(value - float(estimate.min)))
+    if math.isfinite(float(estimate.max)):
+        distances.append(abs(float(estimate.max) - value))
     if not distances:
         return "unbounded"
     return float(min(distances))
@@ -727,12 +743,11 @@ def _fit_concentration_spec(
     *,
     parameter: str,
 ):
-    model = get_model(fit.model_name)
     return next(
         (
             spec
-            for spec in model.concentration_parameter_specs
-            if spec.parameter == parameter
+            for spec in fit.model.concentration_parameter_specs
+            if spec.name == parameter
         ),
         None,
     )
@@ -751,14 +766,12 @@ def _fit_has_parameter_at_bound(
     rel_tol: float,
     abs_tol: float,
 ) -> bool:
-    if fit.lmfit_result is None:
-        return False
-    for parameter in fit.lmfit_result.params.values():
-        if not parameter.vary:
+    for estimate in fit.parameters.values():
+        if not estimate.vary:
             continue
-        value = float(parameter.value)
-        lower = float(parameter.min)
-        upper = float(parameter.max)
+        value = float(estimate.value)
+        lower = float(estimate.min)
+        upper = float(estimate.max)
         if math.isfinite(lower) and math.isclose(
             value,
             lower,

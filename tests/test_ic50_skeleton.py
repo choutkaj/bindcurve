@@ -5,10 +5,11 @@ import pandas as pd
 import pytest
 
 import bindcurve as bc
+from bindcurve.modeling import IC50Model
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.5, hill_slope=-1.1):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.5, hill_slope=1.1):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_synthetic_data() -> bc.DoseResponseData:
@@ -52,9 +53,9 @@ def test_dose_response_data_validates_positive_concentrations():
 
 def test_default_strategy_fits_one_curve_per_independent_experiment():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 6
     assert set(fits["compound_id"]) == {"cmpd_a", "cmpd_b"}
@@ -70,7 +71,7 @@ def test_default_strategy_fits_one_curve_per_independent_experiment():
 
 def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
     summary = results.summary()
 
     assert len(summary) == 2
@@ -87,7 +88,8 @@ def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     assert "IC50_CI95_upper" in summary.columns
     assert "IC50_SD" not in summary.columns
     assert "IC50_SEM" not in summary.columns
-    assert "R_squared" in summary.columns
+    assert "R_squared" not in summary.columns
+    assert "RSS" in summary.columns
     assert "Chi_squared" in summary.columns
 
     cmpd_a = summary[summary["compound_id"] == "cmpd_a"].iloc[0]
@@ -102,16 +104,16 @@ def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     assert cmpd_a["IC50_SD_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_SD_upper"]
     assert cmpd_a["IC50_SEM_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_SEM_upper"]
     assert cmpd_a["IC50_CI95_lower"] < cmpd_a["IC50"] < cmpd_a["IC50_CI95_upper"]
-    assert 0.0 <= cmpd_a["R_squared"] <= 1.0
-    assert cmpd_a["Chi_squared"] >= 0.0
+    assert cmpd_a["RSS"] >= 0.0
+    assert pd.isna(cmpd_a["Chi_squared"])
 
 
 def test_parameters_keeps_detailed_parameter_rows():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
     parameters = results.parameters()
 
-    assert len(parameters) == 8
+    assert len(parameters) == 4
     assert {"compound_id", "parameter", "N_exp", "summary_type"} <= set(
         parameters.columns
     )
@@ -126,7 +128,7 @@ def test_parameters_keeps_detailed_parameter_rows():
 
 def test_report_formats_geometric_center_and_intervals():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
     report = results.report(
         uncertainty="sem",
@@ -137,32 +139,35 @@ def test_report_formats_geometric_center_and_intervals():
         include_n_exp=True,
     )
 
-    assert list(report.columns) == ["compound_id", "report"]
+    assert list(report.columns) == [
+        "compound_id",
+        "report",
+        "N_fit_successful",
+        "N_fit_failed",
+    ]
     assert list(report["compound_id"]) == ["cmpd_a", "cmpd_b"]
     assert report.loc[0, "report"].endswith("uM, N_exp = 3")
     assert "[" in report.loc[0, "report"]
     assert "±" not in report.loc[0, "report"]
 
 
-def test_collect_errors_returns_failed_result():
+def test_unknown_compound_is_rejected_before_error_collection():
     data = make_synthetic_data()
     settings = bc.FitSettings(errors="collect")
-    results = bc.fit(
-        data,
-        model="ic50",
-        settings=settings,
-        compounds=["missing_compound"],
-    )
-
-    assert len(results.failed()) == 1
-    assert results.failed()[0].success is False
+    with pytest.raises(KeyError, match="missing_compound"):
+        bc.fit(
+            data,
+            model="ic50",
+            settings=settings,
+            compounds=["missing_compound"],
+        )
 
 
 def test_collect_errors_continues_after_experiment_failure():
-    class FailsForExp2Model(bc.IC50Model):
+    class FailsForExp2Model(IC50Model):
         name = "fails_for_exp2"
 
-        def guess(self, compound: bc.CompoundData) -> dict[str, float]:
+        def guess(self, compound) -> dict[str, float]:
             experiment_id = str(compound.table["experiment_id"].iloc[0])
             if experiment_id == "exp2":
                 raise RuntimeError("synthetic experiment failure")
@@ -173,7 +178,7 @@ def test_collect_errors_continues_after_experiment_failure():
         data,
         model=FailsForExp2Model(),
         settings=bc.FitSettings(errors="collect"),
-        fixed={"ymin": 0.0, "ymax": 100.0},
+        fixed={"ymin": 0.0, "amplitude": 100.0},
     )
 
     successful_experiments = {fit.experiment_id for fit in results.successful()}
@@ -182,3 +187,7 @@ def test_collect_errors_continues_after_experiment_failure():
     assert successful_experiments == {"exp1", "exp3"}
     assert failed_experiments == {"exp2"}
     assert len(results.fit_results) == 3
+    failed = results.failed()[0]
+    assert failed.failure_stage == "fit_experiment"
+    assert failed.error_type == "RuntimeError"
+    assert failed.error_message == "synthetic experiment failure"

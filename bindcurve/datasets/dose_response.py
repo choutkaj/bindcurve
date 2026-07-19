@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from copy import deepcopy
 from numbers import Integral
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
@@ -10,11 +10,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import pandas as pd
 
-from bindcurve.quality import (
-    DataQualityThresholds,
-    resolve_requested_compounds,
-    summarize_quality_flags,
-)
+from bindcurve.quality import DataQualityThresholds
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -22,12 +18,20 @@ if TYPE_CHECKING:
 DataFormat = Literal["long", "wide"]
 
 
-@dataclass
 class CompoundData:
     """View of dose-response observations for one compound."""
 
     compound_id: str
-    table: pd.DataFrame
+    _table: pd.DataFrame
+
+    def __init__(self, compound_id: str, table: pd.DataFrame) -> None:
+        self.compound_id = str(compound_id)
+        self._table = table.copy()
+
+    @property
+    def table(self) -> pd.DataFrame:
+        """Return an isolated copy of this view's canonical table."""
+        return self._table.copy()
 
     @property
     def experiments(self) -> list[str]:
@@ -85,20 +89,73 @@ class CompoundData:
             table["response"].to_numpy(dtype=float),
         )
 
+    def fit_observations(self) -> pd.DataFrame:
+        """Aggregate responses and any known observation uncertainty for fitting.
 
-@dataclass
+        Technical-replicate responses retain their arithmetic mean. When each
+        replicate has a known standard deviation, the standard deviation of
+        that arithmetic mean is propagated exactly under independent errors.
+        ``weight`` is defined as reciprocal standard deviation.
+        """
+        aggregated = self.aggregate_replicates()
+        uncertainty_column = None
+        if "sigma" in self._table.columns:
+            uncertainty_column = "sigma"
+        elif "weight" in self._table.columns:
+            uncertainty_column = "weight"
+        if uncertainty_column is None:
+            return aggregated
+
+        rows: list[dict[str, float | int]] = []
+        for concentration, group in self._table.groupby(
+            "concentration",
+            sort=True,
+        ):
+            if uncertainty_column == "sigma":
+                sigma = group["sigma"].to_numpy(dtype=float)
+            else:
+                sigma = 1.0 / group["weight"].to_numpy(dtype=float)
+            n_replicates = len(group)
+            sigma_mean = float(np.sqrt(np.sum(sigma**2)) / n_replicates)
+            rows.append(
+                {
+                    "concentration": float(concentration),
+                    "response": float(group["response"].mean()),
+                    "sigma": sigma_mean,
+                    "weight": 1.0 / sigma_mean,
+                    "n_replicates": n_replicates,
+                }
+            )
+        return pd.DataFrame(rows)
+
+
 class DoseResponseData:
     """Validated long-form dose-response observations."""
 
-    table: pd.DataFrame
-    metadata: dict = field(default_factory=dict)
+    _table: pd.DataFrame
+    _metadata: dict
 
     REQUIRED_COLUMNS = {"compound_id", "concentration", "response"}
 
-    def __post_init__(self) -> None:
-        self.table = self.table.copy()
+    def __init__(
+        self,
+        table: pd.DataFrame,
+        metadata: dict | None = None,
+    ) -> None:
+        self._table = table.copy()
+        self._metadata = deepcopy(metadata or {})
         self._normalize_columns()
         self.validate()
+
+    @property
+    def table(self) -> pd.DataFrame:
+        """Return an isolated copy of the validated canonical table."""
+        return self._table.copy()
+
+    @property
+    def metadata(self) -> dict:
+        """Return an isolated copy of dataset metadata."""
+        return deepcopy(self._metadata)
 
     @classmethod
     def from_dataframe(
@@ -111,6 +168,8 @@ class DoseResponseData:
         response_col: str = "response",
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
+        sigma_col: str | None = "sigma",
+        weight_col: str | None = "weight",
         replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
@@ -126,6 +185,8 @@ class DoseResponseData:
                 response_col=response_col,
                 experiment_col=experiment_col,
                 replicate_col=replicate_col,
+                sigma_col=sigma_col,
+                weight_col=weight_col,
             )
             return cls(
                 table=table,
@@ -156,6 +217,9 @@ class DoseResponseData:
         response_col: str = "response",
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
+        sigma_col: str | None = "sigma",
+        weight_col: str | None = "weight",
+        replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
         **read_csv_kwargs,
@@ -173,6 +237,9 @@ class DoseResponseData:
             response_col=response_col,
             experiment_col=experiment_col,
             replicate_col=replicate_col,
+            sigma_col=sigma_col,
+            weight_col=weight_col,
+            replicate_cols=replicate_cols,
             replicate_prefix=replicate_prefix,
             metadata=metadata,
         )
@@ -188,6 +255,8 @@ class DoseResponseData:
         response_col: str = "response",
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
+        sigma_col: str | None = "sigma",
+        weight_col: str | None = "weight",
         replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
@@ -223,6 +292,8 @@ class DoseResponseData:
             response_col=response_col,
             experiment_col=experiment_col,
             replicate_col=replicate_col,
+            sigma_col=sigma_col,
+            weight_col=weight_col,
             replicate_cols=replicate_cols,
             replicate_prefix=replicate_prefix,
             metadata=resolved_metadata,
@@ -258,28 +329,55 @@ class DoseResponseData:
                 }
             ).copy()
 
+        canonical_columns = {
+            "compound_id",
+            "experiment_id",
+            "concentration",
+            "replicate_id",
+            "response",
+        }
+        unsupported_columns = set(self._table.columns) - canonical_columns
+        if unsupported_columns:
+            raise ValueError(
+                "Wide serialization cannot represent these observation columns: "
+                f"{sorted(unsupported_columns)}. Use long format."
+            )
+
         table = self.table[
             [
                 "compound_id",
                 "experiment_id",
                 "concentration",
+                "replicate_id",
                 "response",
             ]
         ].copy()
         group_cols = ["compound_id", "experiment_id", "concentration"]
-        table["__replicate_position"] = table.groupby(group_cols).cumcount().add(1)
+        replicate_ids = table["replicate_id"].astype(str)
+        invalid_ids = [
+            replicate_id
+            for replicate_id in replicate_ids.unique()
+            if not (
+                replicate_id.startswith(replicate_prefix)
+                and replicate_id[len(replicate_prefix) :].isdigit()
+            )
+        ]
+        if invalid_ids:
+            raise ValueError(
+                "Wide serialization requires positional replicate identifiers "
+                f"matching {replicate_prefix!r} followed by an integer; got "
+                f"{sorted(invalid_ids)}. Use long format."
+            )
         wide = table.pivot(
             index=group_cols,
-            columns="__replicate_position",
+            columns="replicate_id",
             values="response",
         ).reset_index()
-        wide = wide.rename(
-            columns={
-                column: f"{replicate_prefix}{int(column)}"
-                for column in wide.columns
-                if column not in group_cols
-            }
+        response_columns = sorted(
+            (column for column in wide.columns if column not in group_cols),
+            key=lambda column: int(str(column)[len(replicate_prefix) :]),
         )
+        wide = wide[group_cols + response_columns]
         wide.columns.name = None
         return wide.rename(
             columns={
@@ -420,13 +518,18 @@ class DoseResponseData:
                 )
 
         _validate_concatenation_inputs(datasets)
+        first_metadata = datasets[0].metadata
+        if any(dataset.metadata != first_metadata for dataset in datasets[1:]):
+            raise ValueError(
+                "Cannot concatenate datasets with different metadata."
+            )
         combined = pd.concat(
             [dataset.table for dataset in datasets],
             ignore_index=True,
         )
         return cls(
             table=combined,
-            metadata={},
+            metadata=first_metadata,
         )
 
     def quality_report(
@@ -436,43 +539,13 @@ class DoseResponseData:
         thresholds: DataQualityThresholds | None = None,
     ) -> pd.DataFrame:
         """Return compound-level quality-control metrics for the dataset."""
-        resolved_thresholds = thresholds or DataQualityThresholds()
-        selected_compounds = resolve_requested_compounds(self.compounds, compounds)
-        if not selected_compounds:
-            return pd.DataFrame()
+        from bindcurve.datasets.quality import build_data_quality_report
 
-        rows: list[dict[str, object]] = []
-        for compound_id in selected_compounds:
-            compound_table = self.select_compound(compound_id).table
-            rows.append(
-                _compound_data_quality_row(
-                    compound_table,
-                    thresholds=resolved_thresholds,
-                )
-            )
-
-        columns = [
-            "compound_id",
-            "status",
-            "N_flag_orange",
-            "N_flag_red",
-            "flags",
-            "N_exp",
-            "N_obs",
-            "N_conc_union",
-            "N_conc_min",
-            "N_conc_median",
-            "N_conc_max",
-            "grid_coverage",
-            "N_rep_min",
-            "N_rep_median",
-            "N_rep_max",
-            "single_replicate_fraction",
-            "intra_noise_median_frac_range",
-            "intra_noise_p90_frac_range",
-            "nonpositive_concentration_count",
-        ]
-        return pd.DataFrame(rows, columns=columns)
+        return build_data_quality_report(
+            self,
+            compounds=compounds,
+            thresholds=thresholds,
+        )
 
     def quality_dashboard(
         self,
@@ -501,6 +574,8 @@ class DoseResponseData:
         response_col: str,
         experiment_col: str,
         replicate_col: str,
+        sigma_col: str | None,
+        weight_col: str | None,
     ) -> pd.DataFrame:
         """Rename user-provided long-form columns to the canonical schema."""
         cls._require_columns(
@@ -508,6 +583,14 @@ class DoseResponseData:
             columns=[compound_col, concentration_col, response_col],
             format_name="long",
         )
+        role_columns = [compound_col, concentration_col, response_col]
+        role_columns.extend(
+            column
+            for column in (experiment_col, replicate_col, sigma_col, weight_col)
+            if column is not None and column in df.columns
+        )
+        if len(role_columns) != len(set(role_columns)):
+            raise ValueError("Input column roles must use distinct source columns.")
         rename_map = {
             compound_col: "compound_id",
             concentration_col: "concentration",
@@ -517,6 +600,16 @@ class DoseResponseData:
             rename_map[experiment_col] = "experiment_id"
         if replicate_col in df.columns:
             rename_map[replicate_col] = "replicate_id"
+        if sigma_col is not None and sigma_col in df.columns:
+            rename_map[sigma_col] = "sigma"
+        if weight_col is not None and weight_col in df.columns:
+            rename_map[weight_col] = "weight"
+        for source, target in rename_map.items():
+            if source != target and target in df.columns:
+                raise ValueError(
+                    f"Renaming {source!r} to {target!r} would create duplicate "
+                    "canonical columns."
+                )
         return df.rename(
             columns={
                 source: target
@@ -551,6 +644,14 @@ class DoseResponseData:
         id_vars = [compound_col, concentration_col]
         if experiment_col is not None:
             id_vars.append(experiment_col)
+        unsupported_columns = set(df.columns) - set(id_vars) - set(
+            selected_replicate_cols
+        )
+        if unsupported_columns:
+            raise ValueError(
+                "Wide input contains unsupported non-replicate columns: "
+                f"{sorted(unsupported_columns)}. Use long format."
+            )
 
         long = df.melt(
             id_vars=id_vars,
@@ -668,6 +769,15 @@ class DoseResponseData:
         """Return sorted compound identifiers."""
         return sorted(self.table["compound_id"].astype(str).unique())
 
+    def resolve_compounds(
+        self,
+        selectors: str | int | Iterable[str | int] | None = None,
+    ) -> list[str]:
+        """Resolve, validate, and stably deduplicate compound selectors."""
+        if selectors is None:
+            return self.compounds
+        return self._resolve_compound_selectors(selectors)
+
     def select_compound(self, compound_id: str) -> CompoundData:
         """Return a view containing observations for one compound."""
         selected = self.table[
@@ -715,193 +825,84 @@ class DoseResponseData:
         return resolved
 
     def _normalize_columns(self) -> None:
-        missing = self.REQUIRED_COLUMNS - set(self.table.columns)
+        missing = self.REQUIRED_COLUMNS - set(self._table.columns)
         if missing:
             raise ValueError(f"Missing required columns: {sorted(missing)}")
 
-        if "experiment_id" not in self.table.columns:
-            self.table["experiment_id"] = "experiment_1"
-        if "replicate_id" not in self.table.columns:
-            self.table["replicate_id"] = (
-                self.table.groupby(["compound_id", "experiment_id", "concentration"])
+        if "experiment_id" not in self._table.columns:
+            self._table["experiment_id"] = "experiment_1"
+        self._validate_identifier_values(("compound_id", "experiment_id"))
+
+        if "replicate_id" not in self._table.columns:
+            self._table["replicate_id"] = (
+                self._table.groupby(
+                    ["compound_id", "experiment_id", "concentration"]
+                )
                 .cumcount()
                 .add(1)
                 .astype(str)
                 .radd("replicate_")
             )
+        self._validate_identifier_values(("replicate_id",))
 
-        self.table["compound_id"] = self.table["compound_id"].astype(str)
-        self.table["experiment_id"] = self.table["experiment_id"].astype(str)
-        self.table["replicate_id"] = self.table["replicate_id"].astype(str)
-        self.table["concentration"] = pd.to_numeric(
-            self.table["concentration"], errors="raise"
+        self._table["compound_id"] = self._table["compound_id"].astype(str)
+        self._table["experiment_id"] = self._table["experiment_id"].astype(str)
+        self._table["replicate_id"] = self._table["replicate_id"].astype(str)
+        self._table["concentration"] = pd.to_numeric(
+            self._table["concentration"], errors="raise"
         )
-        self.table["response"] = pd.to_numeric(self.table["response"], errors="raise")
+        self._table["response"] = pd.to_numeric(
+            self._table["response"], errors="raise"
+        )
+        for column in ("sigma", "weight"):
+            if column in self._table.columns:
+                self._table[column] = pd.to_numeric(
+                    self._table[column],
+                    errors="raise",
+                )
 
     def validate(self) -> None:
         """Validate the dose-response data schema and basic numerical assumptions."""
-        if self.table.empty:
+        if self._table.empty:
             raise ValueError("Dose-response table is empty.")
-        if self.table["compound_id"].isna().any():
-            raise ValueError("compound_id contains missing values.")
-        if self.table["experiment_id"].isna().any():
-            raise ValueError("experiment_id contains missing values.")
-        if self.table["concentration"].isna().any():
-            raise ValueError("concentration contains missing values.")
-        if self.table["response"].isna().any():
-            raise ValueError("response contains missing values.")
-        if (self.table["concentration"] <= 0).any():
+        concentration = self._table["concentration"].to_numpy(dtype=float)
+        response = self._table["response"].to_numpy(dtype=float)
+        if np.any(~np.isfinite(concentration)):
+            raise ValueError("concentration must contain only finite values.")
+        if np.any(~np.isfinite(response)):
+            raise ValueError("response must contain only finite values.")
+        if np.any(concentration <= 0.0):
             raise ValueError("All concentrations must be positive.")
+        if "sigma" in self._table.columns and "weight" in self._table.columns:
+            raise ValueError("Provide either sigma or weight, not both.")
+        for column in ("sigma", "weight"):
+            if column not in self._table.columns:
+                continue
+            values = self._table[column].to_numpy(dtype=float)
+            if np.any(~np.isfinite(values)) or np.any(values <= 0.0):
+                raise ValueError(f"{column} must contain finite positive values.")
 
-
-def _compound_data_quality_row(
-    compound_table: pd.DataFrame,
-    *,
-    thresholds: DataQualityThresholds,
-) -> dict[str, object]:
-    compound_id = str(compound_table["compound_id"].iloc[0])
-    experiment_concentration = compound_table.groupby(
-        ["experiment_id", "concentration"],
-        as_index=False,
-    )["response"].agg(response_sd="std", n_replicates="count")
-    concentration_counts = (
-        experiment_concentration.groupby("experiment_id")["concentration"].count()
-    )
-    observed_cells = len(experiment_concentration)
-    N_exp = int(compound_table["experiment_id"].nunique())
-    N_conc_union = int(compound_table["concentration"].nunique())
-    expected_cells = N_exp * N_conc_union
-    grid_coverage = (
-        float(observed_cells / expected_cells) if expected_cells > 0 else np.nan
-    )
-    single_replicate_fraction = float(
-        (experiment_concentration["n_replicates"] < 2).mean()
-    )
-
-    experiment_means = (
-        compound_table.groupby(
-            ["experiment_id", "concentration"],
-            as_index=False,
-        )["response"]
-        .mean()
-        .rename(columns={"response": "response_mean"})
-    )
-    experiment_ranges = (
-        experiment_means.groupby("experiment_id")["response_mean"]
-        .agg(lambda values: float(values.max() - values.min()))
-        .rename("experiment_response_range")
-        .reset_index()
-    )
-    experiment_concentration = experiment_concentration.merge(
-        experiment_ranges,
-        on="experiment_id",
-        how="left",
-    )
-    valid_noise = experiment_concentration[
-        (experiment_concentration["n_replicates"] >= 2)
-        & experiment_concentration["response_sd"].notna()
-        & (experiment_concentration["experiment_response_range"] > 0.0)
-    ].copy()
-    valid_noise["response_sd_frac_range"] = (
-        valid_noise["response_sd"] / valid_noise["experiment_response_range"]
-    )
-    intra_noise_values = valid_noise["response_sd_frac_range"].to_numpy(dtype=float)
-
-    flags: list[tuple[str, str]] = []
-    nonpositive_concentration_count = int(
-        (compound_table["concentration"] <= 0.0).sum()
-    )
-    if nonpositive_concentration_count > 0:
-        flags.append(("red", "nonpositive concentration values present"))
-    if N_exp < 2:
-        flags.append(("red", "fewer than 2 independent experiments"))
-    elif N_exp < thresholds.min_experiments_green:
-        flags.append(("orange", f"only {N_exp} independent experiments"))
-    if grid_coverage < 1.0:
-        flags.append(("orange", "incomplete experiment-concentration grid"))
-    if single_replicate_fraction > 0.0:
-        flags.append(("orange", "single-replicate concentration cells present"))
-
-    invalid_range_count = int(
-        (experiment_ranges["experiment_response_range"] <= 0.0).sum()
-    )
-    if invalid_range_count > 0:
-        flags.append(
-            (
-                "orange",
-                "nonpositive experiment response range prevented full "
-                "intra-noise evaluation",
+        key = [
+            "compound_id",
+            "experiment_id",
+            "concentration",
+            "replicate_id",
+        ]
+        duplicated = self._table.duplicated(key, keep=False)
+        if duplicated.any():
+            raise ValueError(
+                "Duplicate observations share the same compound, experiment, "
+                "concentration, and replicate identifiers."
             )
-        )
 
-    intra_noise_median = _nan_percentile(intra_noise_values, 50.0)
-    intra_noise_p90 = _nan_percentile(intra_noise_values, 90.0)
-    _append_threshold_flag(
-        flags,
-        value=intra_noise_median,
-        orange_threshold=thresholds.max_intra_noise_median_frac_range_orange,
-        red_threshold=thresholds.max_intra_noise_median_frac_range_red,
-        orange_message=(
-            "elevated median intra-experiment noise relative to response range"
-        ),
-        red_message="high median intra-experiment noise relative to response range",
-    )
-    _append_threshold_flag(
-        flags,
-        value=intra_noise_p90,
-        orange_threshold=thresholds.max_intra_noise_p90_frac_range_orange,
-        red_threshold=thresholds.max_intra_noise_p90_frac_range_red,
-        orange_message=(
-            "elevated upper-tail intra-experiment noise relative to response range"
-        ),
-        red_message="high upper-tail intra-experiment noise relative to response range",
-    )
-
-    status, N_flag_orange, N_flag_red, flag_text = summarize_quality_flags(flags)
-    return {
-        "compound_id": compound_id,
-        "status": status,
-        "N_flag_orange": N_flag_orange,
-        "N_flag_red": N_flag_red,
-        "flags": flag_text,
-        "N_exp": N_exp,
-        "N_obs": int(len(compound_table)),
-        "N_conc_union": N_conc_union,
-        "N_conc_min": int(concentration_counts.min()),
-        "N_conc_median": float(concentration_counts.median()),
-        "N_conc_max": int(concentration_counts.max()),
-        "grid_coverage": grid_coverage,
-        "N_rep_min": int(experiment_concentration["n_replicates"].min()),
-        "N_rep_median": float(experiment_concentration["n_replicates"].median()),
-        "N_rep_max": int(experiment_concentration["n_replicates"].max()),
-        "single_replicate_fraction": single_replicate_fraction,
-        "intra_noise_median_frac_range": intra_noise_median,
-        "intra_noise_p90_frac_range": intra_noise_p90,
-        "nonpositive_concentration_count": nonpositive_concentration_count,
-    }
-
-
-def _nan_percentile(values: np.ndarray, percentile: float) -> float | None:
-    if values.size == 0:
-        return None
-    return float(np.nanpercentile(values, percentile))
-
-
-def _append_threshold_flag(
-    flags: list[tuple[str, str]],
-    *,
-    value: float | None,
-    orange_threshold: float,
-    red_threshold: float,
-    orange_message: str,
-    red_message: str,
-) -> None:
-    if value is None:
-        return
-    if value > red_threshold:
-        flags.append(("red", red_message))
-    elif value > orange_threshold:
-        flags.append(("orange", orange_message))
+    def _validate_identifier_values(self, columns: tuple[str, ...]) -> None:
+        for column in columns:
+            values = self._table[column]
+            if values.isna().any():
+                raise ValueError(f"{column} contains missing values.")
+            strings = values.astype("string")
+            if strings.str.strip().eq("").any():
+                raise ValueError(f"{column} contains blank values.")
 
 
 def _coerce_compound_selectors(

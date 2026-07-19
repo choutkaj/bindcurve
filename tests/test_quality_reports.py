@@ -7,10 +7,69 @@ import pandas as pd
 import pytest
 
 import bindcurve as bc
+from bindcurve.modeling import IC50Model, ParameterSpec
 
 
-def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=-1.0):
-    return ymin + (ymax - ymin) / (1.0 + (ic50 / x) ** hill_slope)
+class AmbiguousConcentrationModel(IC50Model):
+    name = "ambiguous_concentrations"
+    parameter_specs = IC50Model.parameter_specs + (
+        ParameterSpec(
+            "Kd",
+            min=np.finfo(float).tiny,
+            kind="concentration",
+            scale="log10",
+            log_name="logKd",
+        ),
+    )
+
+
+def rebuild_results(
+    results: bc.FitResults,
+    fits: list[bc.FitResult] | tuple[bc.FitResult, ...],
+) -> bc.FitResults:
+    return bc.FitResults(model=results.model, fit_results=tuple(fits))
+
+
+def with_ic50_spread(results: bc.FitResults, half_width: float) -> bc.FitResults:
+    offsets = np.linspace(-half_width, half_width, len(results.fit_results))
+    fits = []
+    for fit, offset in zip(results.fit_results, offsets, strict=True):
+        parameters = dict(fit.parameters)
+        estimate = parameters["IC50"]
+        parameters["IC50"] = replace(
+            estimate,
+            value=estimate.value * 10**offset,
+        )
+        fits.append(replace(fit, parameters=parameters))
+    return rebuild_results(results, fits)
+
+
+def make_ambiguous_results() -> bc.FitResults:
+    model = AmbiguousConcentrationModel()
+    fits = tuple(
+        bc.FitResult(
+            model=model,
+            compound_id="cmpd_a",
+            experiment_id=f"exp{index}",
+            parameters={
+                "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
+                "amplitude": bc.ParameterEstimate(
+                    "amplitude", 100.0, vary=False
+                ),
+                "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
+                "hill_slope": bc.ParameterEstimate(
+                    "hill_slope", 1.0, vary=False
+                ),
+                "Kd": bc.ParameterEstimate("Kd", 2.0 + index, stderr=0.1),
+            },
+        )
+        for index in range(1, 4)
+    )
+    return bc.FitResults(model=model, fit_results=fits)
+
+
+def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=1.0):
+    return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
 def make_quality_data(
@@ -51,7 +110,7 @@ def make_quality_data(
 
 def make_clean_results() -> bc.FitResults:
     data = make_quality_data(replicate_noise=0.05)
-    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
+    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
 
 
 def test_data_quality_report_green_for_balanced_low_noise_dataset():
@@ -121,15 +180,15 @@ def test_data_quality_report_flags_high_intra_noise_orange_and_red():
     assert "high median intra-experiment noise" in red_quality.loc[0, "flags"]
 
 
-def test_data_quality_report_red_for_nonpositive_concentration():
+def test_data_table_is_read_only_from_the_public_interface():
     data = make_quality_data()
-    data.table.loc[data.table.index[0], "concentration"] = 0.0
+    exported = data.table
+    exported.loc[exported.index[0], "concentration"] = 0.0
 
     quality = data.quality_report()
 
-    assert quality.loc[0, "status"] == "red"
-    assert quality.loc[0, "nonpositive_concentration_count"] == 1
-    assert "nonpositive concentration values present" in quality.loc[0, "flags"]
+    assert quality.loc[0, "status"] == "green"
+    assert data.table["concentration"].min() > 0.0
 
 
 def test_data_quality_report_preserves_order_and_threshold_override():
@@ -169,13 +228,14 @@ def test_results_quality_report_green_for_clean_fits():
 
 def test_results_quality_report_orange_for_partial_fit_failure():
     results = make_clean_results()
-    results.fit_results.append(
-        bc.FitResult.failed(
-            compound_id="cmpd_a",
-            model_name="ic50",
-            experiment_id="exp4",
-        )
+    failure = bc.FitResult.failed(
+        model=results.model,
+        compound_id="cmpd_a",
+        experiment_id="exp4",
+        stage="test",
+        error=RuntimeError("synthetic failure"),
     )
+    results = rebuild_results(results, results.fit_results + (failure,))
 
     quality = results.quality_report()
 
@@ -185,20 +245,25 @@ def test_results_quality_report_orange_for_partial_fit_failure():
 
 
 def test_results_quality_report_red_for_all_failed_fits():
+    model = bc.get_model("ic50")
     results = bc.FitResults(
+        model=model,
         fit_results=[
             bc.FitResult.failed(
+                model=model,
                 compound_id="cmpd_a",
-                model_name="ic50",
                 experiment_id="exp1",
+                stage="test",
+                error=RuntimeError("failure one"),
             ),
             bc.FitResult.failed(
+                model=model,
                 compound_id="cmpd_a",
-                model_name="ic50",
                 experiment_id="exp2",
+                stage="test",
+                error=RuntimeError("failure two"),
             ),
         ],
-        summaries=[],
     )
 
     quality = results.quality_report()
@@ -212,7 +277,9 @@ def test_results_quality_report_red_for_all_failed_fits():
 
 def test_results_quality_report_orange_for_missing_covariance():
     results = make_clean_results()
-    results.fit_results[0].lmfit_result.covar = None
+    fits = list(results.fit_results)
+    fits[0] = replace(fits[0], covariance=None)
+    results = rebuild_results(results, fits)
 
     quality = results.quality_report()
 
@@ -223,13 +290,12 @@ def test_results_quality_report_orange_for_missing_covariance():
 
 def test_results_quality_report_orange_for_missing_stderr():
     results = make_clean_results()
+    fits = list(results.fit_results)
     estimate = results.fit_results[0].parameters["IC50"]
-    results.fit_results[0].parameters["IC50"] = bc.ParameterEstimate(
-        name=estimate.name,
-        value=estimate.value,
-        stderr=None,
-        vary=estimate.vary,
-    )
+    parameters = dict(fits[0].parameters)
+    parameters["IC50"] = replace(estimate, stderr=None)
+    fits[0] = replace(fits[0], parameters=parameters)
+    results = rebuild_results(results, fits)
 
     quality = results.quality_report()
 
@@ -240,8 +306,12 @@ def test_results_quality_report_orange_for_missing_stderr():
 
 def test_results_quality_report_orange_for_parameter_at_bound():
     results = make_clean_results()
-    parameter = results.fit_results[0].lmfit_result.params["IC50"]
-    parameter.min = parameter.value
+    fits = list(results.fit_results)
+    parameters = dict(fits[0].parameters)
+    estimate = parameters["IC50"]
+    parameters["IC50"] = replace(estimate, min=estimate.value)
+    fits[0] = replace(fits[0], parameters=parameters)
+    results = rebuild_results(results, fits)
 
     quality = results.quality_report()
 
@@ -251,29 +321,8 @@ def test_results_quality_report_orange_for_parameter_at_bound():
 
 
 def test_results_quality_report_flags_wide_inter_ci95_fold_orange_and_red():
-    base_results = make_clean_results()
-    base_summary = next(
-        summary
-        for summary in base_results.summaries
-        if isinstance(summary, bc.ConcentrationSummary)
-    )
-
-    orange_results = make_clean_results()
-    orange_results.summaries = [
-        replace(
-            base_summary,
-            log10_ci95_lower=0.0,
-            log10_ci95_upper=0.6,
-        )
-    ]
-    red_results = make_clean_results()
-    red_results.summaries = [
-        replace(
-            base_summary,
-            log10_ci95_lower=0.0,
-            log10_ci95_upper=1.1,
-        )
-    ]
+    orange_results = with_ic50_spread(make_clean_results(), 0.13)
+    red_results = with_ic50_spread(make_clean_results(), 0.23)
 
     orange_quality = orange_results.quality_report()
     red_quality = red_results.quality_report()
@@ -285,36 +334,7 @@ def test_results_quality_report_flags_wide_inter_ci95_fold_orange_and_red():
 
 
 def test_results_quality_report_parameter_auto_raises_for_ambiguity():
-    fit = bc.FitResult(compound_id="cmpd_a", model_name="ic50", success=True)
-    results = bc.FitResults(
-        fit_results=[fit],
-        summaries=[
-            bc.ConcentrationSummary(
-                compound_id="cmpd_a",
-                parameter="IC50",
-                log_parameter="logIC50",
-                N_exp=3,
-                reportable=True,
-                log10_mean=0.1,
-                log10_sd=0.02,
-                log10_sem=0.01,
-                log10_ci95_lower=0.05,
-                log10_ci95_upper=0.15,
-            ),
-            bc.ConcentrationSummary(
-                compound_id="cmpd_a",
-                parameter="Kd",
-                log_parameter="logKd",
-                N_exp=3,
-                reportable=True,
-                log10_mean=0.2,
-                log10_sd=0.03,
-                log10_sem=0.02,
-                log10_ci95_lower=0.12,
-                log10_ci95_upper=0.28,
-            ),
-        ],
-    )
+    results = make_ambiguous_results()
 
     with pytest.raises(
         ValueError,
@@ -324,27 +344,12 @@ def test_results_quality_report_parameter_auto_raises_for_ambiguity():
 
 
 def test_results_quality_report_preserves_compound_order_and_threshold_override():
-    first = make_clean_results()
-    second = make_clean_results()
-    for fit in second.fit_results:
-        fit.compound_id = "cmpd_b"
-    second_summary = [
-        replace(summary, compound_id="cmpd_b") for summary in second.summaries
-    ]
-
-    merged = bc.FitResults(
-        fit_results=first.fit_results + second.fit_results,
-        summaries=first.summaries + second_summary,
+    first = with_ic50_spread(make_clean_results(), 0.13)
+    second_fits = tuple(
+        replace(fit, compound_id="cmpd_b")
+        for fit in make_clean_results().fit_results
     )
-    merged.summaries = [
-        replace(summary, log10_ci95_lower=0.0, log10_ci95_upper=0.6)
-        if (
-            isinstance(summary, bc.ConcentrationSummary)
-            and summary.compound_id == "cmpd_a"
-        )
-        else summary
-        for summary in merged.summaries
-    ]
+    merged = rebuild_results(first, first.fit_results + second_fits)
 
     quality = merged.quality_report(compounds=["cmpd_b", "cmpd_a"])
     relaxed = merged.quality_report(

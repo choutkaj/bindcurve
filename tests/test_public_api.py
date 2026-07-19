@@ -8,25 +8,15 @@ import bindcurve as bc
 def test_public_api_exports_new_objects():
     expected = {
         "BaseDoseResponseModel",
-        "CompetitiveFourStateSpecificKdModel",
-        "CompetitiveFourStateTotalKdModel",
-        "CompetitiveThreeStateSpecificKdModel",
-        "CompetitiveThreeStateTotalKdModel",
         "ConcentrationSummary",
-        "CompoundData",
         "CurvePoint",
         "DataQualityThresholds",
-        "DirectSimpleKdModel",
-        "DirectSpecificKdModel",
-        "DirectTotalKdModel",
         "DoseResponseData",
-        "FitCalculator",
         "FitMetrics",
         "FitResult",
         "FitResults",
         "FitSettings",
         "IC50ConversionResult",
-        "IC50Model",
         "ModelEvaluation",
         "ParameterEstimate",
         "ParameterSummary",
@@ -40,15 +30,25 @@ def test_public_api_exports_new_objects():
         "get_model",
         "plot_asymptotes",
         "plot_compounds",
-        "plot_confidence_bands",
         "plot_curve_points",
-        "plot_fit_lines",
         "plot_fits",
-        "plot_observations",
         "plot_residuals",
     }
 
-    assert expected <= set(bc.__all__)
+    assert set(bc.__all__) == expected | {"__version__"}
+
+
+def test_low_level_implementation_objects_are_not_exported_at_package_root():
+    removed = {
+        "CompoundData",
+        "FitCalculator",
+        "IC50Model",
+        "plot_confidence_bands",
+        "plot_fit_lines",
+        "plot_observations",
+    }
+
+    assert removed.isdisjoint(bc.__all__)
 
 
 def test_legacy_flat_modules_are_not_importable():

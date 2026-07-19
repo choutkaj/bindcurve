@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Literal
 
 import numpy as np
@@ -30,12 +30,6 @@ def _require_positive(name: str, value: float) -> float:
     if value <= 0.0:
         raise ValueError(f"{name} must be positive.")
     return value
-
-
-def _optional_positive(name: str, value: float | None) -> float | None:
-    if value is None:
-        return None
-    return _require_positive(name, value)
 
 
 def _require_nonnegative(name: str, value: float) -> float:
@@ -163,11 +157,8 @@ def convert_ic50_to_kd(
     input row. Otherwise, ``IC50`` must be provided and a single
     ``IC50ConversionResult`` is returned.
     """
-    RT = _optional_positive("RT", RT)
-    LsT = _optional_positive("LsT", LsT)
-    Kds = _optional_positive("Kds", Kds)
-    if y0 is not None:
-        y0 = _require_nonnegative("y0", y0)
+    if model not in {"cheng_prusoff", "cheng_prusoff_corrected", "coleska"}:
+        raise ValueError(f"Unknown conversion model: {model!r}")
 
     if data is None:
         if IC50 is None:
@@ -187,10 +178,20 @@ def convert_ic50_to_kd(
             Kd=converted,
         )
 
-    if ic50_col not in data.columns:
-        raise ValueError(f"Input DataFrame must contain {ic50_col!r}.")
-    if compound_col not in data.columns:
-        raise ValueError(f"Input DataFrame must contain {compound_col!r}.")
+    required_columns = [compound_col, ic50_col]
+    if lower_col is not None:
+        required_columns.append(lower_col)
+    if upper_col is not None:
+        required_columns.append(upper_col)
+    missing_columns = [
+        column for column in required_columns if column not in data.columns
+    ]
+    if missing_columns:
+        raise ValueError(
+            f"Input DataFrame is missing required columns: {missing_columns}."
+        )
+    if data[compound_col].isna().any():
+        raise ValueError(f"{compound_col!r} contains missing compound identifiers.")
 
     rows = []
     for _, row in data.iterrows():
@@ -206,6 +207,10 @@ def convert_ic50_to_kd(
 
         lower_ic50 = None if lower_col is None else float(row[lower_col])
         upper_ic50 = None if upper_col is None else float(row[upper_col])
+        if lower_ic50 is not None and lower_ic50 > ic50_value:
+            raise ValueError("lower IC50 must not exceed the central IC50 value.")
+        if upper_ic50 is not None and upper_ic50 < ic50_value:
+            raise ValueError("upper IC50 must not be below the central IC50 value.")
         lower_kd = None
         upper_kd = None
         if lower_ic50 is not None:
@@ -228,7 +233,8 @@ def convert_ic50_to_kd(
             )
 
         rows.append(
-            IC50ConversionResult(
+            asdict(
+                IC50ConversionResult(
                 compound_id=str(row[compound_col]),
                 model=model,
                 IC50=ic50_value,
@@ -237,7 +243,8 @@ def convert_ic50_to_kd(
                 upper_IC50=upper_ic50,
                 lower_Kd=lower_kd,
                 upper_Kd=upper_kd,
-            ).__dict__
+                )
+            )
         )
 
     return pd.DataFrame(rows)

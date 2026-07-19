@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 from bindcurve.modeling.base import BaseDoseResponseModel
-from bindcurve.modeling.binding import (
-    CompetitiveThreeStateSpecificKdModel,
-    CompetitiveThreeStateTotalKdModel,
+from bindcurve.modeling.direct import (
     DirectSimpleKdModel,
     DirectSpecificKdModel,
     DirectTotalKdModel,
 )
-from bindcurve.modeling.competitive import (
+from bindcurve.modeling.four_state import (
     CompetitiveFourStateSpecificKdModel,
     CompetitiveFourStateTotalKdModel,
 )
 from bindcurve.modeling.logistic import IC50Model
+from bindcurve.modeling.three_state import (
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
+)
 
 _MODELS: dict[str, BaseDoseResponseModel] = {
     IC50Model.name: IC50Model(),

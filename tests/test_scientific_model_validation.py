@@ -7,8 +7,8 @@ from scipy.optimize import brentq
 import bindcurve as bc
 
 
-@pytest.mark.parametrize("hill_slope", [-2.0, -0.5, 0.5, 2.0])
-def test_ic50_is_midpoint_and_slope_sign_sets_direction(hill_slope):
+@pytest.mark.parametrize("hill_slope", [0.5, 2.0])
+def test_ic50_is_midpoint_and_strictly_decreasing(hill_slope):
     model = bc.get_model("ic50")
     IC50 = 3.7
     concentration = IC50 * np.array([1.0e-3, 1.0, 1.0e3])
@@ -16,15 +16,13 @@ def test_ic50_is_midpoint_and_slope_sign_sets_direction(hill_slope):
     response = model.evaluate(
         concentration,
         ymin=2.0,
-        ymax=10.0,
+        amplitude=8.0,
         IC50=IC50,
         hill_slope=hill_slope,
     )
 
     assert response[1] == pytest.approx(6.0)
-    assert np.all(np.diff(response) > 0.0) if hill_slope > 0.0 else np.all(
-        np.diff(response) < 0.0
-    )
+    assert np.all(np.diff(response) < 0.0)
 
 
 def test_ic50_model_is_invariant_to_concentration_units():
@@ -33,18 +31,18 @@ def test_ic50_model_is_invariant_to_concentration_units():
     reference = model.evaluate(
         concentration,
         ymin=1.0,
-        ymax=9.0,
+        amplitude=8.0,
         IC50=2.5,
-        hill_slope=-1.3,
+        hill_slope=1.3,
     )
 
     scale = 1.0e9
     scaled = model.evaluate(
         concentration * scale,
         ymin=1.0,
-        ymax=9.0,
+        amplitude=8.0,
         IC50=2.5 * scale,
-        hill_slope=-1.3,
+        hill_slope=1.3,
     )
 
     assert np.allclose(scaled, reference, rtol=1.0e-14, atol=1.0e-14)

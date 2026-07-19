@@ -11,7 +11,6 @@ from bindcurve.plotting.common import (
     CurveSeries,
     XScale,
     _evaluate_fit,
-    _filter_experiments,
     _get_axes,
     _make_plot_grid_from_table,
     _matching_fits,
@@ -21,7 +20,6 @@ from bindcurve.plotting.common import (
 )
 from bindcurve.plotting.confidence import _plot_series_confidence_band
 from bindcurve.plotting.observations import (
-    _aggregate_observations,
     _observation_table_for_fit,
     _plot_series_observation_group,
 )
@@ -100,99 +98,33 @@ def _plot_series_curve(
 
 
 def _residual_table_for_fit(
-    table: pd.DataFrame,
+    data: DoseResponseData,
     fit: FitResult,
     *,
     aggregate: bool,
+    standardized: bool,
 ) -> pd.DataFrame:
-    fit_table = table[table["compound_id"].astype(str) == str(fit.compound_id)]
+    compound = data.select_compound(fit.compound_id)
     if fit.experiment_id is not None:
-        fit_table = fit_table[
-            fit_table["experiment_id"].astype(str) == str(fit.experiment_id)
-        ]
-
-    if fit_table.empty:
-        return pd.DataFrame(
-            columns=["concentration", "response", "predicted", "residual"]
-        )
-
-    if aggregate:
-        fit_table = _aggregate_observations(fit_table, by_experiment=False)
-
-    plotted = fit_table.copy()
+        compound = compound.select_experiment(fit.experiment_id)
+    plotted = compound.fit_observations() if aggregate else compound.table
     predicted = np.asarray(
         _evaluate_fit(fit, plotted["concentration"].to_numpy()),
         dtype=float,
     )
     plotted["predicted"] = predicted
     plotted["residual"] = plotted["response"].to_numpy(dtype=float) - predicted
-    return plotted
-
-
-def plot_fit_lines(
-    data: DoseResponseData,
-    results: FitResults,
-    *,
-    compound_id: str | Iterable[str] | None = None,
-    ax: Axes | None = None,
-    experiments: Iterable[str] | None = None,
-    x_grid: np.ndarray | None = None,
-    n_points: int = 300,
-    xscale: XScale = "log",
-    by_experiment: bool = True,
-    label: str | None = None,
-    **plot_kwargs,
-) -> Axes:
-    """Plot fitted dose-response curves onto an existing Matplotlib axes."""
-    ax = _get_axes(ax)
-    resolved_compound_ids = _resolve_compound_ids(data, compound_id)
-
-    # Use the first compound to determine the default grid if not provided,
-    # or better, use the global range.
-    grid = x_grid
-    if grid is None:
-        table = data.table[data.table["compound_id"].isin(resolved_compound_ids)]
-        xmin = float(table["concentration"].min())
-        xmax = float(table["concentration"].max())
-        if xscale == "log":
-            grid = np.logspace(np.log10(xmin), np.log10(xmax), n_points)
+    if standardized:
+        if "sigma" in plotted.columns:
+            sigma = plotted["sigma"].to_numpy(dtype=float)
+        elif "weight" in plotted.columns:
+            sigma = 1.0 / plotted["weight"].to_numpy(dtype=float)
         else:
-            grid = np.linspace(xmin, xmax, n_points)
-
-    fits = _matching_fits(
-        results,
-        compound_ids=resolved_compound_ids,
-        experiments=experiments,
-    )
-
-    seen_labels = set()
-    for fit in fits:
-        y = _evaluate_fit(fit, grid)
-
-        plot_label = label
-        if plot_label is None:
-            experiment = fit.experiment_id or fit.model_name
-            if len(resolved_compound_ids) > 1:
-                plot_label = (
-                    f"{fit.compound_id} {experiment}"
-                    if by_experiment
-                    else str(fit.compound_id)
-                )
-            elif by_experiment:
-                plot_label = str(experiment)
-            else:
-                plot_label = str(fit.compound_id)
-
-        if plot_label in seen_labels:
-            plot_label = None
-        elif plot_label is not None:
-            seen_labels.add(plot_label)
-
-        ax.plot(grid, y, label=plot_label, **plot_kwargs)
-
-    if xscale is not None:
-        ax.set_xscale(xscale)
-    return ax
+            raise ValueError(
+                "Standardized residuals require observation sigma or weight."
+            )
+        plotted["residual"] = plotted["residual"].to_numpy(dtype=float) / sigma
+    return plotted
 
 
 def plot_residuals(
@@ -203,6 +135,7 @@ def plot_residuals(
     ax: Axes | None = None,
     experiments: Iterable[str] | None = None,
     aggregate: bool = True,
+    standardized: bool = False,
     xscale: XScale = "log",
     zero_line: bool = True,
     label: str | None = None,
@@ -211,12 +144,12 @@ def plot_residuals(
 ) -> Axes:
     """Plot fit residuals against concentration on an existing axes.
 
-    Residuals are computed as ``observed - predicted``. By default, technical
-    replicates are aggregated in the same way as fitted observations.
+    Residuals are computed as ``observed - predicted``. Set ``standardized`` to
+    divide them by known observation sigma. By default, technical replicates are
+    aggregated in the same way as fitted observations.
     """
     ax = _get_axes(ax)
     resolved_compound_ids = _resolve_compound_ids(data, compound_id)
-    
     fits = _matching_fits(
         results,
         compound_ids=resolved_compound_ids,
@@ -230,7 +163,12 @@ def plot_residuals(
     default_scatter_kwargs.update(scatter_kwargs)
 
     for fit in fits:
-        residuals = _residual_table_for_fit(data.table, fit, aggregate=aggregate)
+        residuals = _residual_table_for_fit(
+            data,
+            fit,
+            aggregate=aggregate,
+            standardized=standardized,
+        )
         if residuals.empty:
             continue
 
@@ -299,11 +237,6 @@ def plot_fits(
         experiments=experiments,
     )
     resolved_colors = _resolve_series_colors(ax, n_series=len(series), colors=colors)
-    selected_table = data.table[
-        data.table["compound_id"].astype(str).isin(resolved_compound_ids)
-    ]
-    selected_table = _filter_experiments(selected_table, experiments)
-
     for spec, color in zip(series, resolved_colors, strict=False):
         spec.color = color
 
@@ -333,10 +266,11 @@ def plot_fits(
 
         if spec.fit is None:
             continue
-        if selected_table.empty:
+        if not spec.observation_groups:
             continue
+        fit_table = pd.concat(spec.observation_groups, ignore_index=True)
         grid = _make_plot_grid_from_table(
-            selected_table,
+            fit_table,
             x_grid=x_grid,
             n_points=n_points,
             xscale=xscale,

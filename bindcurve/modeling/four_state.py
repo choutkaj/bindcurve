@@ -8,23 +8,15 @@ from scipy.optimize import brentq
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
+from bindcurve.modeling.guesses import midpoint_guess
 from bindcurve.modeling.parameters import (
     STRICTLY_POSITIVE_PARAMETER_MIN,
-    ConcentrationParameterSpec,
     ParameterSpec,
 )
 
 
 def _competition_guess(compound: CompoundData) -> dict[str, float]:
-    table = compound.aggregate_replicates()
-    concentration = table["concentration"].to_numpy(dtype=float)
-    response = table["response"].to_numpy(dtype=float)
-    ymin = float(np.nanmin(response))
-    ymax = float(np.nanmax(response))
-    midpoint = ymin + 0.5 * (ymax - ymin)
-    midpoint_index = int(np.nanargmin(np.abs(response - midpoint)))
-    kd_guess = float(concentration[midpoint_index])
-    return {"ymin": ymin, "ymax": ymax, "Kd": kd_guess}
+    return midpoint_guess(compound, concentration_parameter="Kd")
 
 
 def _competitive_four_state_coefficients(
@@ -270,39 +262,6 @@ def _competitive_four_state_receptor_free(
         R_values.append(normalized_R * concentration_scale)
 
     return np.asarray(R_values, dtype=float).reshape(LT.shape)
-
-
-def _competitive_four_state_fbs(
-    R: np.ndarray,
-    LT: np.ndarray,
-    *,
-    LsT: float,
-    Kds: float,
-    Kd: float,
-    Kd3: float,
-) -> np.ndarray:
-    """Return ``(RLs + RLLs) / LsT`` from true free receptor concentration.
-
-    For fixed free receptor ``R``, the tracer and competitor mass balances can
-    be reduced to a quadratic equation in free competitor concentration ``L``.
-    The tracer-bound fraction is then obtained from the actual four-state
-    species without explicitly constructing free tracer concentration.
-    """
-    R = np.asarray(R, dtype=float)
-    LT = np.asarray(LT, dtype=float)
-
-    L = _competitive_four_state_ligand_free(
-        R,
-        LT,
-        LsT=LsT,
-        Kds=Kds,
-        Kd=Kd,
-        Kd3=Kd3,
-    )
-
-    c = R / (Kd * Kd3)
-    bound_tracer_ratio = R / Kds + c * L
-    return bound_tracer_ratio / (1.0 + bound_tracer_ratio)
 
 
 def _competitive_four_state_ligand_free(
@@ -607,77 +566,31 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
     """Four-state competitive-binding model for specific binding."""
 
     name = "comp_4st_specific"
-    required_fixed_parameters = frozenset({"RT", "LsT", "Kds", "Kd3"})
-    concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd", "Kd3"})
-    concentration_parameter_specs = (
-        ConcentrationParameterSpec(
-            parameter="RT",
-            fitted_parameter="RT",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="LsT",
-            fitted_parameter="LsT",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kds",
-            fitted_parameter="Kds",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kd3",
-            fitted_parameter="Kd3",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kd",
-            fitted_parameter="Kd",
-            fitted_scale="linear",
-            reportable=True,
-        ),
-    )
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("RT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("Kd3", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("Kd", min=STRICTLY_POSITIVE_PARAMETER_MIN),
+        *(
+            ParameterSpec(
+                name,
+                min=STRICTLY_POSITIVE_PARAMETER_MIN,
+                vary=False,
+                kind="concentration",
+                scale="log10",
+                reportable=False,
+            )
+            for name in ("RT", "LsT", "Kds", "Kd3")
+        ),
+        ParameterSpec(
+            "Kd",
+            min=STRICTLY_POSITIVE_PARAMETER_MIN,
+            kind="concentration",
+            scale="log10",
+        ),
     )
 
-    def evaluate(
-        self,
-        x: np.ndarray,
-        *,
-        ymin: float,
-        ymax: float,
-        RT: float,
-        LsT: float,
-        Kds: float,
-        Kd3: float,
-        Kd: float,
-    ) -> np.ndarray:
-        components = _competitive_four_state_specific_component_arrays(
-            np.asarray(x, dtype=float),
-            RT=RT,
-            LsT=LsT,
-            Kds=Kds,
-            Kd=Kd,
-            Kd3=Kd3,
-        )
-        Fbs = components["Fbs"]
-        return ymin + (ymax - ymin) * Fbs
-
-    def component_arrays(
+    def _component_arrays(
         self,
         concentration: np.ndarray,
-        x: np.ndarray,
         **params: float,
     ) -> dict[str, np.ndarray]:
         return _competitive_four_state_specific_component_arrays(
@@ -697,80 +610,32 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
     """Four-state competitive-binding model with nonspecific binding."""
 
     name = "comp_4st_total"
-    required_fixed_parameters = frozenset({"RT", "LsT", "Kds", "Kd3", "N"})
-    concentration_parameters = frozenset({"RT", "LsT", "Kds", "Kd", "Kd3"})
-    concentration_parameter_specs = (
-        ConcentrationParameterSpec(
-            parameter="RT",
-            fitted_parameter="RT",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="LsT",
-            fitted_parameter="LsT",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kds",
-            fitted_parameter="Kds",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kd3",
-            fitted_parameter="Kd3",
-            fitted_scale="linear",
-            reportable=False,
-        ),
-        ConcentrationParameterSpec(
-            parameter="Kd",
-            fitted_parameter="Kd",
-            fitted_scale="linear",
-            reportable=True,
-        ),
-    )
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec("RT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("LsT", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("Kds", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
-        ParameterSpec("Kd3", min=STRICTLY_POSITIVE_PARAMETER_MIN, vary=False),
+        *(
+            ParameterSpec(
+                name,
+                min=STRICTLY_POSITIVE_PARAMETER_MIN,
+                vary=False,
+                kind="concentration",
+                scale="log10",
+                reportable=False,
+            )
+            for name in ("RT", "LsT", "Kds", "Kd3")
+        ),
         ParameterSpec("N", min=0.0, vary=False),
-        ParameterSpec("Kd", min=STRICTLY_POSITIVE_PARAMETER_MIN),
+        ParameterSpec(
+            "Kd",
+            min=STRICTLY_POSITIVE_PARAMETER_MIN,
+            kind="concentration",
+            scale="log10",
+        ),
     )
 
-    def evaluate(
-        self,
-        x: np.ndarray,
-        *,
-        ymin: float,
-        ymax: float,
-        RT: float,
-        LsT: float,
-        Kds: float,
-        Kd3: float,
-        N: float,
-        Kd: float,
-    ) -> np.ndarray:
-        components = _competitive_four_state_total_component_arrays(
-            np.asarray(x, dtype=float),
-            RT=RT,
-            LsT=LsT,
-            Kds=Kds,
-            Kd=Kd,
-            Kd3=Kd3,
-            N=N,
-        )
-        Fbs = components["Fbs"]
-        return ymin + (ymax - ymin) * Fbs
-
-    def component_arrays(
+    def _component_arrays(
         self,
         concentration: np.ndarray,
-        x: np.ndarray,
         **params: float,
     ) -> dict[str, np.ndarray]:
         return _competitive_four_state_total_component_arrays(

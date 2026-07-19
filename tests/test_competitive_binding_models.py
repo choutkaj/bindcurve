@@ -6,6 +6,10 @@ import pytest
 from scipy.optimize import brentq
 
 import bindcurve as bc
+from bindcurve.modeling import (
+    CompetitiveThreeStateSpecificKdModel,
+    CompetitiveThreeStateTotalKdModel,
+)
 
 
 def receptor_free_three_state(LT, *, RT, LsT, Kds, Kd, factor=1.0):
@@ -89,11 +93,11 @@ def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData
 def test_registry_contains_competitive_three_state_models():
     assert isinstance(
         bc.get_model("comp_3st_specific"),
-        bc.CompetitiveThreeStateSpecificKdModel,
+        CompetitiveThreeStateSpecificKdModel,
     )
     assert isinstance(
         bc.get_model("comp_3st_total"),
-        bc.CompetitiveThreeStateTotalKdModel,
+        CompetitiveThreeStateTotalKdModel,
     )
 
 
@@ -110,7 +114,7 @@ def test_comp_3st_specific_recovers_kd_from_synthetic_data():
             "Kds": 0.02,
         },
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -131,7 +135,7 @@ def test_comp_3st_total_recovers_kd_from_synthetic_data():
             "N": 0.35,
         },
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()

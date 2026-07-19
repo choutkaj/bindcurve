@@ -1,156 +1,86 @@
 from __future__ import annotations
 
-import math
 from collections.abc import Iterable
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
 from scipy.stats import t as student_t
 
-from bindcurve.modeling.parameters import ConcentrationParameterSpec
-from bindcurve.quality import ResultQualityThresholds, summarize_quality_flags
+from bindcurve.modeling.base import BaseDoseResponseModel
+from bindcurve.modeling.parameters import ParameterSpec
+from bindcurve.quality import ResultQualityThresholds
+from bindcurve.results.types import (
+    ConcentrationSummary,
+    FitResult,
+    ParameterSummary,
+    ReportUncertainty,
+    SummaryRecord,
+)
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 ReportRepresentation = Literal["linear", "log", "both"]
-ReportUncertainty = Literal["sd", "sem", "ci95"]
 RoundingMode = Literal["sigfig", "decimals"]
 
 
 @dataclass(frozen=True)
-class ParameterEstimate:
-    """Estimate for one fitted parameter."""
-
-    name: str
-    value: float
-    stderr: float | None = None
-    vary: bool = True
-
-
-@dataclass(frozen=True)
-class FitMetrics:
-    """Common numerical diagnostics for one fit."""
-
-    n_data: int
-    n_varying_parameters: int
-    chisqr: float
-    redchi: float
-    aic: float | None = None
-    bic: float | None = None
-    r_squared: float | None = None
-
-
-@dataclass
-class FitResult:
-    """Result for one fitted curve."""
-
-    compound_id: str
-    model_name: str
-    experiment_id: str | None = None
-    success: bool = True
-    parameters: dict[str, ParameterEstimate] = field(default_factory=dict)
-    metrics: FitMetrics | None = None
-    lmfit_result: Any | None = None
-
-    @classmethod
-    def failed(
-        cls,
-        *,
-        compound_id: str,
-        model_name: str,
-        experiment_id: str | None,
-    ) -> FitResult:
-        """Create a failed result container."""
-        return cls(
-            compound_id=compound_id,
-            model_name=model_name,
-            experiment_id=experiment_id,
-            success=False,
-        )
-
-    def parameter(self, name: str) -> ParameterEstimate:
-        """Return a fitted parameter by name."""
-        return self.parameters[name]
-
-
-@dataclass(frozen=True)
-class ParameterSummary:
-    """Summary of one native additive parameter across independent fits."""
-
-    compound_id: str
-    parameter: str
-    N_exp: int
-    mean: float
-    sd: float | None
-    sem: float | None
-    ci95_lower: float | None
-    ci95_upper: float | None
-
-
-@dataclass(frozen=True)
-class ConcentrationSummary:
-    """Summary of one positive concentration-like quantity across fits."""
-
-    compound_id: str
-    parameter: str
-    log_parameter: str
-    N_exp: int
-    reportable: bool
-    log10_mean: float
-    log10_sd: float | None
-    log10_sem: float | None
-    log10_ci95_lower: float | None
-    log10_ci95_upper: float | None
-
-    @property
-    def center(self) -> float:
-        """Return the linear-scale center derived from the log10 mean."""
-        return float(10**self.log10_mean)
-
-    def linear_interval(
-        self,
-        uncertainty: ReportUncertainty,
-    ) -> tuple[float | None, float | None]:
-        """Return a derived linear-scale interval."""
-        if uncertainty == "sd":
-            return _back_transform_log_interval(self.log10_mean, self.log10_sd)
-        if uncertainty == "sem":
-            return _back_transform_log_interval(self.log10_mean, self.log10_sem)
-        if uncertainty == "ci95":
-            if self.log10_ci95_lower is None or self.log10_ci95_upper is None:
-                return (None, None)
-            return (
-                float(10**self.log10_ci95_lower),
-                float(10**self.log10_ci95_upper),
-            )
-        raise ValueError("uncertainty must be 'sd', 'sem', or 'ci95'.")
-
-    def log_interval(
-        self,
-        uncertainty: ReportUncertainty,
-    ) -> tuple[float | None, float | None]:
-        """Return a log10-scale interval or additive spread."""
-        if uncertainty == "sd":
-            return _symmetric_interval(self.log10_mean, self.log10_sd)
-        if uncertainty == "sem":
-            return _symmetric_interval(self.log10_mean, self.log10_sem)
-        if uncertainty == "ci95":
-            return (self.log10_ci95_lower, self.log10_ci95_upper)
-        raise ValueError("uncertainty must be 'sd', 'sem', or 'ci95'.")
-
-
-SummaryRecord: TypeAlias = ParameterSummary | ConcentrationSummary
-
-
-@dataclass
 class FitResults:
     """Collection of individual fits and parameter summaries."""
 
-    fit_results: list[FitResult]
-    summaries: list[SummaryRecord] = field(default_factory=list)
+    model: BaseDoseResponseModel
+    fit_results: tuple[FitResult, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "fit_results", tuple(self.fit_results))
+        if any(fit.model is not self.model for fit in self.fit_results):
+            raise ValueError("Every fit result must reference FitResults.model.")
+        successful = [fit for fit in self.fit_results if fit.success]
+        expected_parameters = {spec.name for spec in self.model.parameter_specs}
+        for fit in successful:
+            actual_parameters = set(fit.parameters)
+            if actual_parameters != expected_parameters:
+                raise ValueError(
+                    f"Successful fit {fit.compound_id!r}/{fit.experiment_id!r} "
+                    "does not match the model parameter schema. "
+                    f"Missing: {sorted(expected_parameters - actual_parameters)}; "
+                    f"unknown: {sorted(actual_parameters - expected_parameters)}."
+                )
+        for spec in self.model.parameter_specs:
+            estimates = [fit.parameters[spec.name] for fit in successful]
+            if not estimates:
+                continue
+            vary_values = {estimate.vary for estimate in estimates}
+            if len(vary_values) != 1:
+                raise ValueError(
+                    f"Parameter {spec.name!r} must use one fixed/varying status "
+                    "throughout a FitResults collection."
+                )
+            if not spec.vary and True in vary_values:
+                raise ValueError(
+                    f"Model-fixed parameter {spec.name!r} cannot vary in a fit."
+                )
+            if False in vary_values:
+                values = np.asarray(
+                    [estimate.value for estimate in estimates],
+                    dtype=float,
+                )
+                if not np.allclose(values, values[0], rtol=1e-9, atol=1e-12):
+                    raise ValueError(
+                        f"Fixed parameter {spec.name!r} must have one global value."
+                    )
+
+    @property
+    def summaries(self) -> tuple[SummaryRecord, ...]:
+        """Derive across-experiment summaries from immutable fit results."""
+        return tuple(
+            summarize_fit_parameters(
+                self.fit_results,
+                parameter_specs=self.model.parameter_specs,
+            )
+        )
 
     def successful(self) -> list[FitResult]:
         """Return successful fits."""
@@ -159,10 +89,6 @@ class FitResults:
     def failed(self) -> list[FitResult]:
         """Return failed fits."""
         return [fit for fit in self.fit_results if not fit.success]
-
-    def fits(self) -> pd.DataFrame:
-        """Represent individual fits as a DataFrame."""
-        return self.fit_summary()
 
     def fit_summary(self) -> pd.DataFrame:
         """Represent individual fits as a DataFrame."""
@@ -173,14 +99,20 @@ class FitResults:
                 "experiment_id": fit.experiment_id,
                 "model": fit.model_name,
                 "success": fit.success,
+                "failure_stage": fit.failure_stage,
+                "error_type": fit.error_type,
+                "error_message": fit.error_message,
+                "optimizer_message": fit.optimizer_message,
             }
             if fit.metrics is not None:
                 row.update(
                     {
                         "n_data": fit.metrics.n_data,
                         "n_varying_parameters": fit.metrics.n_varying_parameters,
-                        "chisqr": fit.metrics.chisqr,
-                        "redchi": fit.metrics.redchi,
+                        "rss": fit.metrics.rss,
+                        "reduced_rss": fit.metrics.reduced_rss,
+                        "chi_square": fit.metrics.chi_square,
+                        "reduced_chi_square": fit.metrics.reduced_chi_square,
                         "aic": fit.metrics.aic,
                         "bic": fit.metrics.bic,
                         "r_squared": fit.metrics.r_squared,
@@ -191,6 +123,78 @@ class FitResults:
                 row[f"{name}_stderr"] = estimate.stderr
             rows.append(row)
         return pd.DataFrame(rows)
+
+    def fixed_parameters(self) -> pd.DataFrame:
+        """Return fixed assay and response parameters separately from estimates."""
+        rows: list[dict[str, object]] = []
+        for fit in self.fit_results:
+            for estimate in fit.parameters.values():
+                if estimate.vary:
+                    continue
+                rows.append(
+                    {
+                        "compound_id": fit.compound_id,
+                        "experiment_id": fit.experiment_id,
+                        "parameter": estimate.name,
+                        "value": estimate.value,
+                    }
+                )
+        return pd.DataFrame(rows)
+
+    def parameter_values(self, compound_id: str) -> dict[str, float]:
+        """Return one transparent across-experiment parameter set.
+
+        Varying native parameters use their arithmetic means, varying
+        concentration parameters use their geometric centers, and globally
+        fixed parameters retain their common value.
+        """
+        compound_fits = [
+            fit
+            for fit in self.successful()
+            if str(fit.compound_id) == str(compound_id)
+        ]
+        if not compound_fits:
+            raise KeyError(f"Compound {compound_id!r} has no successful fits.")
+        summary_lookup = {
+            summary.parameter: summary
+            for summary in self.summaries
+            if str(summary.compound_id) == str(compound_id)
+        }
+
+        values: dict[str, float] = {}
+        for spec in self.model.parameter_specs:
+            estimates = [
+                fit.parameters[spec.name]
+                for fit in compound_fits
+                if spec.name in fit.parameters
+            ]
+            if not estimates:
+                raise KeyError(
+                    f"Fit results for {compound_id!r} lack parameter {spec.name!r}."
+                )
+            if not any(estimate.vary for estimate in estimates):
+                fixed_values = np.asarray(
+                    [estimate.value for estimate in estimates],
+                    dtype=float,
+                )
+                if not np.allclose(
+                    fixed_values,
+                    fixed_values[0],
+                    rtol=1.0e-9,
+                    atol=1.0e-12,
+                ):
+                    raise ValueError(
+                        f"Fixed parameter {spec.name!r} differs across experiments."
+                    )
+                values[spec.name] = float(fixed_values[0])
+                continue
+
+            summary = summary_lookup[spec.name]
+            if isinstance(summary, ConcentrationSummary):
+                values[spec.name] = summary.center
+            else:
+                values[spec.name] = summary.mean
+        return values
 
     def parameters(self) -> pd.DataFrame:
         """Represent parameter summaries as a long-form DataFrame."""
@@ -242,10 +246,10 @@ class FitResults:
     def summary(self) -> pd.DataFrame:
         """Represent compound-level summaries as one row per compound."""
         successful = self.successful()
-        if not successful:
+        if not self.fit_results:
             return pd.DataFrame()
 
-        compound_ids = _ordered_compound_ids(successful)
+        compound_ids = _ordered_compound_ids(self.fit_results)
         summary_lookup: dict[tuple[str, str], SummaryRecord] = {}
         summary_kind: dict[str, str] = {}
         alias_map: dict[str, str] = {}
@@ -275,12 +279,19 @@ class FitResults:
 
         rows: list[dict[str, object]] = []
         for compound_id in compound_ids:
+            all_compound_fits = [
+                fit
+                for fit in self.fit_results
+                if str(fit.compound_id) == str(compound_id)
+            ]
             compound_fits = [
                 fit for fit in successful if str(fit.compound_id) == str(compound_id)
             ]
             row: dict[str, object] = {
                 "compound_id": compound_id,
-                "N_exp": len(compound_fits),
+                "N_exp": _compound_N_exp(all_compound_fits),
+                "N_fit_successful": len(compound_fits),
+                "N_fit_failed": len(all_compound_fits) - len(compound_fits),
                 "N_obs": _compound_n_obs(compound_fits),
             }
 
@@ -291,11 +302,17 @@ class FitResults:
                 else:
                     _update_native_summary_row(row, name, summary)
 
-            row["R_squared"] = _compound_r_squared(compound_fits)
+            row["RSS"] = _compound_rss(compound_fits)
             row["Chi_squared"] = _compound_chi_squared(compound_fits)
             rows.append(row)
 
-        columns = ["compound_id", "N_exp", "N_obs"]
+        columns = [
+            "compound_id",
+            "N_exp",
+            "N_fit_successful",
+            "N_fit_failed",
+            "N_obs",
+        ]
         for name in parameter_order:
             if summary_kind[name] == "concentration":
                 columns.extend(
@@ -319,7 +336,7 @@ class FitResults:
                         f"{name}_CI95_upper",
                     ]
                 )
-        columns.extend(["R_squared", "Chi_squared"])
+        columns.extend(["RSS", "Chi_squared"])
         return pd.DataFrame(rows, columns=columns)
 
     def report(
@@ -336,50 +353,20 @@ class FitResults:
         include_n_exp: bool = False,
     ) -> pd.DataFrame:
         """Return manuscript-ready formatted concentration summaries."""
-        _validate_rounding_places(rounding, places_mean, places_uncertainty)
-        selected_compounds = _resolve_requested_compounds(
-            self.successful(),
-            compounds,
-        )
-        if not selected_compounds:
-            return pd.DataFrame(columns=["compound_id", "report"])
+        from bindcurve.results.reporting import format_results_report
 
-        concentration_summaries = [
-            summary
-            for summary in self.summaries
-            if isinstance(summary, ConcentrationSummary)
-        ]
-        parameter_name = _resolve_report_parameter(
-            concentration_summaries,
+        return format_results_report(
+            self,
             parameter=parameter,
-            compound_ids=selected_compounds,
+            compounds=compounds,
+            representation=representation,
+            uncertainty=uncertainty,
+            rounding=rounding,
+            places_mean=places_mean,
+            places_uncertainty=places_uncertainty,
+            unit=unit,
+            include_n_exp=include_n_exp,
         )
-
-        summary_lookup = {
-            (summary.compound_id, summary.parameter): summary
-            for summary in concentration_summaries
-        }
-        rows: list[dict[str, str]] = []
-        for compound_id in selected_compounds:
-            summary = summary_lookup.get((compound_id, parameter_name))
-            if summary is None:
-                raise KeyError(
-                    f"Compound {compound_id!r} does not have concentration summary "
-                    f"{parameter_name!r}."
-                )
-            report = _format_concentration_report(
-                summary,
-                representation=representation,
-                uncertainty=uncertainty,
-                rounding=rounding,
-                places_mean=places_mean,
-                places_uncertainty=places_uncertainty,
-                unit=unit,
-                include_n_exp=include_n_exp,
-            )
-            rows.append({"compound_id": compound_id, "report": report})
-
-        return pd.DataFrame(rows, columns=["compound_id", "report"])
 
     def quality_report(
         self,
@@ -389,64 +376,14 @@ class FitResults:
         thresholds: ResultQualityThresholds | None = None,
     ) -> pd.DataFrame:
         """Return compound-level fit and summary QC metrics."""
-        selected_compounds = _resolve_requested_compounds(self.fit_results, compounds)
-        if not selected_compounds:
-            return pd.DataFrame()
+        from bindcurve.results.quality import build_results_quality_report
 
-        resolved_thresholds = thresholds or ResultQualityThresholds()
-        parameter_name = _resolve_quality_parameter(
-            self.fit_results,
-            self.summaries,
+        return build_results_quality_report(
+            self,
             parameter=parameter,
-            compound_ids=selected_compounds,
+            compounds=compounds,
+            thresholds=thresholds,
         )
-        concentration_lookup = {
-            (summary.compound_id, summary.parameter): summary
-            for summary in self.summaries
-            if isinstance(summary, ConcentrationSummary)
-        }
-        rows: list[dict[str, object]] = []
-        for compound_id in selected_compounds:
-            compound_fits = [
-                fit
-                for fit in self.fit_results
-                if str(fit.compound_id) == str(compound_id)
-            ]
-            rows.append(
-                _compound_result_quality_row(
-                    compound_id,
-                    compound_fits,
-                    concentration_lookup.get((compound_id, parameter_name)),
-                    parameter_name=parameter_name,
-                    thresholds=resolved_thresholds,
-                )
-            )
-
-        columns = [
-            "compound_id",
-            "status",
-            "N_flag_orange",
-            "N_flag_red",
-            "flags",
-            "parameter",
-            "N_exp",
-            "N_fit_success",
-            "N_fit_failed",
-            "fit_success_fraction",
-            "R_squared_median",
-            "R_squared_min",
-            "Chi_squared_total",
-            "redchi_median",
-            "covariance_missing_fraction",
-            "stderr_missing_fraction",
-            "parameter_at_bound_fraction",
-            "inter_log10_sd",
-            "inter_log10_sem",
-            "inter_log10_ci95_width",
-            "inter_sd_fold",
-            "inter_ci95_fold",
-        ]
-        return pd.DataFrame(rows, columns=columns)
 
     def quality_dashboard(
         self,
@@ -478,6 +415,15 @@ def _ordered_compound_ids(fits: list[FitResult]) -> list[str]:
         seen.add(compound_id)
         compound_ids.append(compound_id)
     return compound_ids
+
+
+def _compound_N_exp(fits: list[FitResult]) -> int:
+    experiment_ids = {
+        str(fit.experiment_id)
+        for fit in fits
+        if fit.experiment_id is not None
+    }
+    return len(experiment_ids) if experiment_ids else len(fits)
 
 
 def _sample_sd(values: np.ndarray) -> float | None:
@@ -537,24 +483,19 @@ def _compound_n_obs(fits: list[FitResult]) -> int | None:
     return int(sum(n_data))
 
 
-def _compound_r_squared(fits: list[FitResult]) -> float | None:
-    n_data_values: list[tuple[int, float]] = []
-    for fit in fits:
-        if fit.metrics is None or fit.metrics.r_squared is None:
-            continue
-        n_data_values.append((fit.metrics.n_data, float(fit.metrics.r_squared)))
-    if not n_data_values:
+def _compound_rss(fits: list[FitResult]) -> float | None:
+    values = [float(fit.metrics.rss) for fit in fits if fit.metrics is not None]
+    if not values:
         return None
-    total_n_data = sum(n_data for n_data, _ in n_data_values)
-    if total_n_data == 0:
-        return None
-    return float(
-        sum(n_data * value for n_data, value in n_data_values) / total_n_data
-    )
+    return float(sum(values))
 
 
 def _compound_chi_squared(fits: list[FitResult]) -> float | None:
-    values = [float(fit.metrics.chisqr) for fit in fits if fit.metrics is not None]
+    values = [
+        float(fit.metrics.chi_square)
+        for fit in fits
+        if fit.metrics is not None and fit.metrics.chi_square is not None
+    ]
     if not values:
         return None
     return float(sum(values))
@@ -618,539 +559,16 @@ def _update_concentration_summary_row(
     row[f"{name}_CI95_upper"] = np.nan if ci95_upper is None else ci95_upper
 
 
-def _resolve_requested_compounds(
-    fits: list[FitResult],
-    compounds: str | Iterable[str] | None,
-) -> list[str]:
-    available = _ordered_compound_ids(fits)
-    if compounds is None:
-        return available
-
-    if isinstance(compounds, str):
-        requested = [str(compounds)]
-    else:
-        requested = [str(value) for value in compounds]
-    missing = [compound_id for compound_id in requested if compound_id not in available]
-    if missing:
-        raise KeyError(f"Unknown compound(s): {missing}")
-    return requested
-
-
-def _resolve_report_parameter(
-    summaries: list[ConcentrationSummary],
-    *,
-    parameter: str,
-    compound_ids: list[str],
-) -> str:
-    selected = [
-        summary
-        for summary in summaries
-        if summary.compound_id in compound_ids
-    ]
-    if parameter == "auto":
-        reportable = sorted(
-            {
-                summary.parameter
-                for summary in selected
-                if summary.reportable
-            }
-        )
-        if not reportable:
-            raise ValueError("No reportable concentration quantity is available.")
-        if len(reportable) > 1:
-            raise ValueError(
-                "Multiple reportable concentration quantities are available; "
-                f"specify parameter explicitly. Candidates: {reportable}"
-            )
-        return reportable[0]
-
-    requested = str(parameter)
-    available = {summary.parameter for summary in selected}
-    if requested not in available:
-        raise KeyError(
-            f"Unknown concentration report parameter {requested!r}. "
-            f"Available parameters: {sorted(available)}"
-        )
-    return requested
-
-
-def _resolve_quality_parameter(
-    fits: list[FitResult],
-    summaries: list[SummaryRecord],
-    *,
-    parameter: str,
-    compound_ids: list[str],
-) -> str:
-    selected_summaries = [
-        summary
-        for summary in summaries
-        if isinstance(summary, ConcentrationSummary)
-        and summary.compound_id in compound_ids
-    ]
-    selected_fits = [
-        fit for fit in fits if str(fit.compound_id) in compound_ids
-    ]
-    summary_available = {summary.parameter for summary in selected_summaries}
-    modeled_available = _available_concentration_parameters_from_models(selected_fits)
-    available = summary_available | modeled_available
-
-    if parameter == "auto":
-        reportable = {
-            summary.parameter for summary in selected_summaries if summary.reportable
-        }
-        if not reportable:
-            reportable = _available_concentration_parameters_from_models(
-                selected_fits,
-                reportable_only=True,
-            )
-        if not reportable:
-            raise ValueError("No reportable concentration quantity is available.")
-        if len(reportable) > 1:
-            raise ValueError(
-                "Multiple reportable concentration quantities are available; "
-                f"specify parameter explicitly. Candidates: {sorted(reportable)}"
-            )
-        return sorted(reportable)[0]
-
-    requested = str(parameter)
-    if requested not in available:
-        raise KeyError(
-            f"Unknown concentration quality parameter {requested!r}. "
-            f"Available parameters: {sorted(available)}"
-        )
-    return requested
-
-
-def _validate_rounding_places(
-    rounding: RoundingMode,
-    places_mean: int,
-    places_uncertainty: int,
-) -> None:
-    if rounding not in {"sigfig", "decimals"}:
-        raise ValueError("rounding must be 'sigfig' or 'decimals'.")
-    if not isinstance(places_mean, int) or places_mean < 0:
-        raise ValueError("places_mean must be a non-negative integer.")
-    if not isinstance(places_uncertainty, int) or places_uncertainty < 0:
-        raise ValueError("places_uncertainty must be a non-negative integer.")
-    if rounding == "sigfig" and (places_mean == 0 or places_uncertainty == 0):
-        raise ValueError("Significant-figure rounding requires positive place counts.")
-
-
-def _format_number(
-    value: float,
-    *,
-    rounding: RoundingMode,
-    places: int,
-) -> str:
-    value = float(value)
-    if rounding == "decimals":
-        return f"{value:.{places}f}"
-
-    if value == 0.0:
-        decimals = max(places - 1, 0)
-        return f"{0.0:.{decimals}f}"
-
-    absolute = abs(value)
-    exponent = math.floor(math.log10(absolute))
-    decimals = places - exponent - 1
-    if -4 <= exponent < places:
-        return f"{value:.{max(decimals, 0)}f}"
-    return f"{value:.{places - 1}e}"
-
-
-def _format_linear_clause(
-    summary: ConcentrationSummary,
-    *,
-    uncertainty: ReportUncertainty,
-    rounding: RoundingMode,
-    places_mean: int,
-    places_uncertainty: int,
-    unit: str | None,
-) -> str:
-    center_text = _format_number(
-        summary.center,
-        rounding=rounding,
-        places=places_mean,
-    )
-    lower, upper = summary.linear_interval(uncertainty)
-    if lower is None or upper is None:
-        text = center_text
-    else:
-        lower_text = _format_number(
-            lower,
-            rounding=rounding,
-            places=places_uncertainty,
-        )
-        upper_text = _format_number(
-            upper,
-            rounding=rounding,
-            places=places_uncertainty,
-        )
-        text = f"{center_text} [{lower_text}, {upper_text}]"
-    if unit:
-        return f"{text} {unit}"
-    return text
-
-
-def _format_log_clause(
-    summary: ConcentrationSummary,
-    *,
-    uncertainty: ReportUncertainty,
-    rounding: RoundingMode,
-    places_mean: int,
-    places_uncertainty: int,
-) -> str:
-    mean_text = _format_number(
-        summary.log10_mean,
-        rounding=rounding,
-        places=places_mean,
-    )
-    if uncertainty == "ci95":
-        lower, upper = summary.log_interval("ci95")
-        if lower is None or upper is None:
-            return mean_text
-        lower_text = _format_number(
-            lower,
-            rounding=rounding,
-            places=places_uncertainty,
-        )
-        upper_text = _format_number(
-            upper,
-            rounding=rounding,
-            places=places_uncertainty,
-        )
-        return f"{mean_text} [{lower_text}, {upper_text}]"
-
-    delta = summary.log10_sd if uncertainty == "sd" else summary.log10_sem
-    if delta is None:
-        return mean_text
-    delta_text = _format_number(
-        delta,
-        rounding=rounding,
-        places=places_uncertainty,
-    )
-    return f"{mean_text} ± {delta_text}"
-
-
-def _format_concentration_report(
-    summary: ConcentrationSummary,
-    *,
-    representation: ReportRepresentation,
-    uncertainty: ReportUncertainty,
-    rounding: RoundingMode,
-    places_mean: int,
-    places_uncertainty: int,
-    unit: str | None,
-    include_n_exp: bool,
-) -> str:
-    if representation not in {"linear", "log", "both"}:
-        raise ValueError("representation must be 'linear', 'log', or 'both'.")
-    if uncertainty not in {"sd", "sem", "ci95"}:
-        raise ValueError("uncertainty must be 'sd', 'sem', or 'ci95'.")
-
-    linear_text = _format_linear_clause(
-        summary,
-        uncertainty=uncertainty,
-        rounding=rounding,
-        places_mean=places_mean,
-        places_uncertainty=places_uncertainty,
-        unit=unit,
-    )
-    log_text = _format_log_clause(
-        summary,
-        uncertainty=uncertainty,
-        rounding=rounding,
-        places_mean=places_mean,
-        places_uncertainty=places_uncertainty,
-    )
-
-    if representation == "linear":
-        report = linear_text
-    elif representation == "log":
-        report = log_text
-    else:
-        report = (
-            f"{summary.parameter}: {linear_text}; "
-            f"{summary.log_parameter}: {log_text}"
-        )
-
-    if include_n_exp:
-        report = f"{report}, N_exp = {summary.N_exp}"
-    return report
-
-
-def _compound_result_quality_row(
-    compound_id: str,
-    compound_fits: list[FitResult],
-    concentration_summary: ConcentrationSummary | None,
-    *,
-    parameter_name: str,
-    thresholds: ResultQualityThresholds,
-) -> dict[str, object]:
-    successful = [fit for fit in compound_fits if fit.success]
-    N_exp = _compound_N_exp(compound_fits)
-    N_fit_success = len(successful)
-    N_fit_failed = len(compound_fits) - N_fit_success
-    fit_success_fraction = (
-        float(N_fit_success / len(compound_fits)) if compound_fits else np.nan
-    )
-
-    covariance_missing_fraction = _fraction_of_fits(
-        successful,
-        lambda fit: fit.lmfit_result is None
-        or getattr(fit.lmfit_result, "covar", None) is None,
-    )
-    stderr_missing_fraction = _fraction_of_fits(
-        successful,
-        _fit_has_missing_stderr,
-    )
-    parameter_at_bound_fraction = _fraction_of_fits(
-        successful,
-        lambda fit: _fit_has_parameter_at_bound(
-            fit,
-            rel_tol=thresholds.bound_tolerance_rel,
-            abs_tol=thresholds.bound_tolerance_abs,
-        ),
-    )
-
-    r_squared_values = [
-        float(fit.metrics.r_squared)
-        for fit in successful
-        if fit.metrics is not None and fit.metrics.r_squared is not None
-    ]
-    redchi_values = [
-        float(fit.metrics.redchi)
-        for fit in successful
-        if fit.metrics is not None
-    ]
-    chisqr_values = [
-        float(fit.metrics.chisqr)
-        for fit in successful
-        if fit.metrics is not None
-    ]
-
-    inter_log10_sd = (
-        concentration_summary.log10_sd if concentration_summary is not None else None
-    )
-    inter_log10_sem = (
-        concentration_summary.log10_sem if concentration_summary is not None else None
-    )
-    inter_log10_ci95_width = (
-        None
-        if concentration_summary is None
-        else _ci95_width_on_log_scale(concentration_summary)
-    )
-    inter_sd_fold = (
-        None
-        if concentration_summary is None
-        else _summary_interval_fold(concentration_summary, "sd")
-    )
-    inter_ci95_fold = (
-        None
-        if concentration_summary is None
-        else _summary_interval_fold(concentration_summary, "ci95")
-    )
-
-    flags: list[tuple[str, str]] = []
-    if N_fit_success == 0:
-        flags.append(("red", "no successful fits"))
-    if N_fit_failed > 0:
-        flags.append(("orange", "fit failures present"))
-    if concentration_summary is None:
-        flags.append(("red", "selected concentration summary unavailable"))
-    if N_exp < 2:
-        flags.append(("red", "fewer than 2 independent experiments"))
-    elif N_exp < thresholds.min_experiments_green:
-        flags.append(("orange", f"only {N_exp} independent experiments"))
-    if covariance_missing_fraction is not None and covariance_missing_fraction > 0.0:
-        flags.append(("orange", "missing covariance for at least one successful fit"))
-    if stderr_missing_fraction is not None and stderr_missing_fraction > 0.0:
-        flags.append(
-            (
-                "orange",
-                "missing parameter standard errors for at least one successful fit",
-            )
-        )
-    if parameter_at_bound_fraction is not None and parameter_at_bound_fraction > 0.0:
-        flags.append(
-            (
-                "orange",
-                "at least one successful fit has a varying parameter at a bound",
-            )
-        )
-    _append_quality_threshold_flag(
-        flags,
-        value=inter_ci95_fold,
-        orange_threshold=thresholds.max_inter_ci95_fold_orange,
-        red_threshold=thresholds.max_inter_ci95_fold_red,
-        orange_message="wide inter-experiment CI95 fold range",
-        red_message="very wide inter-experiment CI95 fold range",
-    )
-
-    status, N_flag_orange, N_flag_red, flag_text = summarize_quality_flags(flags)
-    return {
-        "compound_id": compound_id,
-        "status": status,
-        "N_flag_orange": N_flag_orange,
-        "N_flag_red": N_flag_red,
-        "flags": flag_text,
-        "parameter": parameter_name,
-        "N_exp": N_exp,
-        "N_fit_success": N_fit_success,
-        "N_fit_failed": N_fit_failed,
-        "fit_success_fraction": fit_success_fraction,
-        "R_squared_median": _nanmedian_or_none(r_squared_values),
-        "R_squared_min": _nanmin_or_none(r_squared_values),
-        "Chi_squared_total": None if not chisqr_values else float(sum(chisqr_values)),
-        "redchi_median": _nanmedian_or_none(redchi_values),
-        "covariance_missing_fraction": covariance_missing_fraction,
-        "stderr_missing_fraction": stderr_missing_fraction,
-        "parameter_at_bound_fraction": parameter_at_bound_fraction,
-        "inter_log10_sd": inter_log10_sd,
-        "inter_log10_sem": inter_log10_sem,
-        "inter_log10_ci95_width": inter_log10_ci95_width,
-        "inter_sd_fold": inter_sd_fold,
-        "inter_ci95_fold": inter_ci95_fold,
-    }
-
-
-def _available_concentration_parameters_from_models(
-    fits: list[FitResult],
-    *,
-    reportable_only: bool = False,
-) -> set[str]:
-    if not fits:
-        return set()
-
-    from bindcurve.modeling import get_model
-
-    parameters: set[str] = set()
-    model_names = {fit.model_name for fit in fits}
-    for model_name in model_names:
-        model = get_model(model_name)
-        for spec in model.concentration_parameter_specs:
-            if reportable_only and not spec.reportable:
-                continue
-            parameters.add(spec.parameter)
-    return parameters
-
-
-def _compound_N_exp(fits: list[FitResult]) -> int:
-    experiment_ids = {
-        str(fit.experiment_id)
-        for fit in fits
-        if fit.experiment_id is not None
-    }
-    if experiment_ids:
-        return len(experiment_ids)
-    return len(fits)
-
-
-def _fraction_of_fits(
-    fits: list[FitResult],
-    predicate: Any,
-) -> float | None:
-    if not fits:
-        return None
-    matches = sum(1 for fit in fits if predicate(fit))
-    return float(matches / len(fits))
-
-
-def _fit_has_missing_stderr(fit: FitResult) -> bool:
-    varying = [estimate for estimate in fit.parameters.values() if estimate.vary]
-    if not varying:
-        return False
-    return any(estimate.stderr is None for estimate in varying)
-
-
-def _fit_has_parameter_at_bound(
-    fit: FitResult,
-    *,
-    rel_tol: float,
-    abs_tol: float,
-) -> bool:
-    if fit.lmfit_result is None:
-        return False
-    for parameter in fit.lmfit_result.params.values():
-        if not parameter.vary:
-            continue
-        value = float(parameter.value)
-        lower = float(parameter.min)
-        upper = float(parameter.max)
-        if math.isfinite(lower) and math.isclose(
-            value,
-            lower,
-            rel_tol=rel_tol,
-            abs_tol=abs_tol,
-        ):
-            return True
-        if math.isfinite(upper) and math.isclose(
-            value,
-            upper,
-            rel_tol=rel_tol,
-            abs_tol=abs_tol,
-        ):
-            return True
-    return False
-
-
-def _ci95_width_on_log_scale(summary: ConcentrationSummary) -> float | None:
-    if summary.log10_ci95_lower is None or summary.log10_ci95_upper is None:
-        return None
-    return float(summary.log10_ci95_upper - summary.log10_ci95_lower)
-
-
-def _summary_interval_fold(
-    summary: ConcentrationSummary,
-    uncertainty: ReportUncertainty,
-) -> float | None:
-    lower, upper = summary.linear_interval(uncertainty)
-    if lower is None or upper is None or lower <= 0.0:
-        return None
-    return float(upper / lower)
-
-
-def _nanmedian_or_none(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(np.nanmedian(np.asarray(values, dtype=float)))
-
-
-def _nanmin_or_none(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(np.nanmin(np.asarray(values, dtype=float)))
-
-
-def _append_quality_threshold_flag(
-    flags: list[tuple[str, str]],
-    *,
-    value: float | None,
-    orange_threshold: float,
-    red_threshold: float,
-    orange_message: str,
-    red_message: str,
-) -> None:
-    if value is None:
-        return
-    if value > red_threshold:
-        flags.append(("red", red_message))
-    elif value > orange_threshold:
-        flags.append(("orange", orange_message))
-
-
 def summarize_fit_parameters(
-    fits: list[FitResult],
+    fits: Iterable[FitResult],
     *,
-    concentration_parameter_specs: tuple[ConcentrationParameterSpec, ...],
+    parameter_specs: tuple[ParameterSpec, ...],
 ) -> list[SummaryRecord]:
     """Summarize successful fit parameters by compound."""
     successful = [fit for fit in fits if fit.success]
     compound_ids = _ordered_compound_ids(successful)
     summaries: list[SummaryRecord] = []
-    spec_by_fitted_parameter = {
-        spec.fitted_parameter: spec for spec in concentration_parameter_specs
-    }
+    spec_by_parameter = {spec.name: spec for spec in parameter_specs}
 
     for compound_id in compound_ids:
         compound_fits = [
@@ -1173,10 +591,12 @@ def summarize_fit_parameters(
             ]
             if not estimates:
                 continue
+            if not any(estimate.vary for estimate in estimates):
+                continue
 
             values = np.asarray([estimate.value for estimate in estimates], dtype=float)
-            spec = spec_by_fitted_parameter.get(fitted_parameter)
-            if spec is None:
+            spec = spec_by_parameter[fitted_parameter]
+            if spec.kind != "concentration":
                 mean = float(np.mean(values))
                 sd = _sample_sd(values)
                 sem = _sample_sem(values)
@@ -1207,8 +627,8 @@ def summarize_fit_parameters(
             summaries.append(
                 ConcentrationSummary(
                     compound_id=compound_id,
-                    parameter=spec.parameter,
-                    log_parameter=spec.resolved_log_parameter,
+                    parameter=spec.name,
+                    log_parameter=spec.resolved_log_name,
                     N_exp=len(log_values),
                     reportable=spec.reportable,
                     log10_mean=log10_mean,
@@ -1223,15 +643,16 @@ def summarize_fit_parameters(
 
 def _to_log10_values(
     values: np.ndarray,
-    spec: ConcentrationParameterSpec,
+    spec: ParameterSpec,
 ) -> np.ndarray:
-    if spec.fitted_scale == "log10":
-        return np.asarray(values, dtype=float)
-
     linear_values = np.asarray(values, dtype=float)
     if np.any(linear_values <= 0.0):
         raise ValueError(
-            f"Concentration summary for {spec.parameter!r} requires strictly "
+            f"Concentration summary for {spec.name!r} requires strictly "
             "positive values."
+        )
+    if np.any(~np.isfinite(linear_values)):
+        raise ValueError(
+            f"Concentration summary for {spec.name!r} requires finite values."
         )
     return np.log10(linear_values)

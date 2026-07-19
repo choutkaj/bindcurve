@@ -113,37 +113,28 @@ def test_binding_component_schemas_use_only_canonical_symbols(
     assert set(evaluation.components) == expected_components
 
 
-def test_ic50_predict_and_evaluate_components_use_raw_concentration_axis():
+def test_ic50_evaluate_components_uses_raw_concentration_axis():
     concentration = np.logspace(-2, 2, 11)
     model = bc.get_model("ic50")
 
     evaluation = model.evaluate_components(
         concentration,
         ymin=0.0,
-        ymax=100.0,
+        amplitude=100.0,
         IC50=10**0.25,
-        hill_slope=-1.15,
-    )
-    predicted = model.predict(
-        concentration,
-        ymin=0.0,
-        ymax=100.0,
-        IC50=10**0.25,
-        hill_slope=-1.15,
+        hill_slope=1.15,
     )
     direct = model.evaluate(
-        model.transform_x(concentration),
+        concentration,
         ymin=0.0,
-        ymax=100.0,
+        amplitude=100.0,
         IC50=10**0.25,
-        hill_slope=-1.15,
+        hill_slope=1.15,
     )
 
     assert isinstance(evaluation, bc.ModelEvaluation)
     assert np.allclose(evaluation.concentration, concentration)
-    assert np.allclose(evaluation.transformed_x, concentration)
-    assert np.allclose(evaluation.response, predicted)
-    assert np.allclose(predicted, direct)
+    assert np.allclose(evaluation.response, direct)
     assert "fraction_response" in evaluation.components
 
 

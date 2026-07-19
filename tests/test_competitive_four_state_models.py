@@ -6,7 +6,11 @@ import pytest
 from scipy.optimize import least_squares
 
 import bindcurve as bc
-from bindcurve.modeling.competitive import (
+from bindcurve.modeling import (
+    CompetitiveFourStateSpecificKdModel,
+    CompetitiveFourStateTotalKdModel,
+)
+from bindcurve.modeling.four_state import (
     _competitive_four_state_coefficients,
     _select_physical_root,
 )
@@ -134,11 +138,11 @@ def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData
 def test_registry_contains_competitive_four_state_models():
     assert isinstance(
         bc.get_model("comp_4st_specific"),
-        bc.CompetitiveFourStateSpecificKdModel,
+        CompetitiveFourStateSpecificKdModel,
     )
     assert isinstance(
         bc.get_model("comp_4st_total"),
-        bc.CompetitiveFourStateTotalKdModel,
+        CompetitiveFourStateTotalKdModel,
     )
 
 
@@ -204,7 +208,7 @@ def test_comp_4st_specific_recovers_kd_from_synthetic_data():
             "Kd3": 0.5,
         },
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -226,7 +230,7 @@ def test_comp_4st_total_recovers_kd_from_synthetic_data():
             "N": 0.35,
         },
     )
-    fits = results.fits()
+    fits = results.fit_summary()
 
     assert len(fits) == 3
     assert fits["success"].all()
@@ -235,7 +239,7 @@ def test_comp_4st_total_recovers_kd_from_synthetic_data():
 
 def test_comp_4st_total_with_zero_n_matches_specific_model():
     concentration = np.logspace(-3, 2, 22)
-    specific = bc.CompetitiveFourStateSpecificKdModel().evaluate(
+    specific = CompetitiveFourStateSpecificKdModel().evaluate(
         concentration,
         ymin=5.0,
         ymax=95.0,
@@ -245,7 +249,7 @@ def test_comp_4st_total_with_zero_n_matches_specific_model():
         Kd=1.6,
         Kd3=0.5,
     )
-    total = bc.CompetitiveFourStateTotalKdModel().evaluate(
+    total = CompetitiveFourStateTotalKdModel().evaluate(
         concentration,
         ymin=5.0,
         ymax=95.0,
