@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from scipy.optimize import brentq
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
@@ -39,7 +40,7 @@ def _competition_guess(compound: CompoundData) -> dict[str, float]:
 
 
 def _competitive_three_state_receptor_free(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
@@ -47,168 +48,229 @@ def _competitive_three_state_receptor_free(
     Kd: float,
     nonspecific_factor: float = 1.0,
 ) -> np.ndarray:
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    LT = np.asarray(LT, dtype=float)
+    if RT == 0.0:
+        return np.zeros_like(LT, dtype=float)
+
     scaled_kd = nonspecific_factor * Kd
+    concentration_scale = float(RT)
+    normalized_LsT = LsT / concentration_scale
+    normalized_Kds = Kds / concentration_scale
+    normalized_Kd = scaled_kd / concentration_scale
 
-    a = Kds + scaled_kd + LsT + ligand_total - RT
-    b = Kds * (ligand_total - RT) + scaled_kd * (LsT - RT) + Kds * scaled_kd
-    c = -Kds * scaled_kd * RT
+    R_values = []
+    for concentration in LT.ravel():
+        normalized_LT = float(concentration) / concentration_scale
 
-    discriminant = np.maximum(a**2 - 3.0 * b, 0.0)
-    denominator = 2.0 * np.sqrt(discriminant**3)
-    numerator = -2.0 * a**3 + 9.0 * a * b - 27.0 * c
-    argument = np.divide(
-        numerator,
-        denominator,
-        out=np.zeros_like(numerator, dtype=float),
-        where=denominator > 0.0,
-    )
-    theta = np.arccos(np.clip(argument, -1.0, 1.0))
-    return -(a / 3.0) + (2.0 / 3.0) * np.sqrt(discriminant) * np.cos(theta / 3.0)
+        def mass_balance(
+            normalized_R: float,
+            normalized_LT: float = normalized_LT,
+        ) -> float:
+            RLs = (
+                normalized_LsT
+                * normalized_R
+                / (normalized_Kds + normalized_R)
+            )
+            RL = (
+                normalized_LT
+                * normalized_R
+                / (normalized_Kd + normalized_R)
+            )
+            return normalized_R + RLs + RL - 1.0
+
+        normalized_R = brentq(
+            mass_balance,
+            0.0,
+            1.0,
+            xtol=np.finfo(float).tiny,
+            rtol=4.0 * np.finfo(float).eps,
+            maxiter=200,
+        )
+        R_values.append(normalized_R * concentration_scale)
+
+    return np.asarray(R_values, dtype=float).reshape(LT.shape)
 
 
 def _direct_specific_receptor_free(
-    receptor_total: np.ndarray,
+    RT: np.ndarray,
     *,
     LsT: float,
     Kds: float,
 ) -> np.ndarray:
-    receptor_total = np.asarray(receptor_total, dtype=float)
-    a = Kds + LsT - receptor_total
-    b = -Kds * receptor_total
-    return (-a + np.sqrt(np.maximum(a**2 - 4.0 * b, 0.0))) / 2.0
+    RT = np.asarray(RT, dtype=float)
+    a = Kds + LsT - RT
+    b = -Kds * RT
+    square_root = np.hypot(a, 2.0 * np.sqrt(-b))
+    direct_root = (-a + square_root) / 2.0
+    stable_root = np.divide(
+        -2.0 * b,
+        a + square_root,
+        out=np.zeros_like(RT, dtype=float),
+        where=(a + square_root) != 0.0,
+    )
+    return np.where(a >= 0.0, stable_root, direct_root)
 
 
 def _direct_total_receptor_free(
-    receptor_total: np.ndarray,
+    RT: np.ndarray,
     *,
     LsT: float,
     Ns: float,
     Kds: float,
 ) -> np.ndarray:
-    receptor_total = np.asarray(receptor_total, dtype=float)
-    a = (1.0 + Ns) * Kds + LsT - receptor_total
-    b = -Kds * receptor_total * (1.0 + Ns)
-    return (-a + np.sqrt(np.maximum(a**2 - 4.0 * b, 0.0))) / 2.0
+    RT = np.asarray(RT, dtype=float)
+    a = (1.0 + Ns) * Kds + LsT - RT
+    b = -Kds * RT * (1.0 + Ns)
+    square_root = np.hypot(a, 2.0 * np.sqrt(-b))
+    direct_root = (-a + square_root) / 2.0
+    stable_root = np.divide(
+        -2.0 * b,
+        a + square_root,
+        out=np.zeros_like(RT, dtype=float),
+        where=(a + square_root) != 0.0,
+    )
+    return np.where(a >= 0.0, stable_root, direct_root)
 
 
 def _direct_specific_component_arrays(
-    receptor_total: np.ndarray,
+    RT: np.ndarray,
     *,
     LsT: float,
     Kds: float,
 ) -> dict[str, np.ndarray]:
-    receptor_total = np.asarray(receptor_total, dtype=float)
-    receptor_free = _direct_specific_receptor_free(
-        receptor_total,
+    RT = np.asarray(RT, dtype=float)
+    R = _direct_specific_receptor_free(
+        RT,
         LsT=LsT,
         Kds=Kds,
     )
-    tracer_bound = np.clip(receptor_total - receptor_free, 0.0, None)
-    tracer_free = np.clip(LsT - tracer_bound, 0.0, None)
-    fraction_bound = np.divide(
-        tracer_bound,
+    RLs = np.clip(RT - R, 0.0, None)
+    Ls = np.clip(LsT - RLs, 0.0, None)
+    Fbs = np.divide(
+        RLs,
         LsT,
-        out=np.zeros_like(tracer_bound, dtype=float),
+        out=np.zeros_like(RLs, dtype=float),
         where=LsT != 0.0,
     )
     return {
-        "R_total": receptor_total,
-        "R_free": receptor_free,
-        "Lstar_total": np.full_like(receptor_total, LsT, dtype=float),
-        "Lstar_free": tracer_free,
-        "RLstar": tracer_bound,
-        "fraction_bound": fraction_bound,
+        "RT": RT,
+        "R": R,
+        "LsT": np.full_like(RT, LsT, dtype=float),
+        "Ls": Ls,
+        "RLs": RLs,
+        "Fbs": Fbs,
     }
 
 
 def _direct_total_component_arrays(
-    receptor_total: np.ndarray,
+    RT: np.ndarray,
     *,
     LsT: float,
     Ns: float,
     Kds: float,
 ) -> dict[str, np.ndarray]:
-    receptor_total = np.asarray(receptor_total, dtype=float)
-    receptor_free = _direct_total_receptor_free(
-        receptor_total,
+    """Return the direct-binding state with linear tracer immobilization.
+
+    This follows Roehrl, Wang & Wagner, Biochemistry 2004, 43,
+    16056-16066, equations 4 and 7 (doi:10.1021/bi048233g).
+    Nonspecific binding is nonsaturable and proportional to free tracer:
+    ``Ls_nonspecific_bound = Ns * Ls``.
+    """
+    RT = np.asarray(RT, dtype=float)
+    R = _direct_total_receptor_free(
+        RT,
         LsT=LsT,
         Ns=Ns,
         Kds=Kds,
     )
-    tracer_bound_specific = np.clip(receptor_total - receptor_free, 0.0, None)
-    tracer_bound_nonspecific = Ns * tracer_bound_specific
-    tracer_bound_total = tracer_bound_specific + tracer_bound_nonspecific
-    tracer_free = np.clip(LsT - tracer_bound_total, 0.0, None)
-    fraction_bound = np.divide(
-        receptor_free,
-        Kds + receptor_free,
-        out=np.zeros_like(receptor_free, dtype=float),
-        where=(Kds + receptor_free) != 0.0,
+    Ls = np.divide(
+        LsT,
+        1.0 + Ns + R / Kds,
+        out=np.zeros_like(R, dtype=float),
+        where=(1.0 + Ns + R / Kds) != 0.0,
+    )
+    RLs = R * Ls / Kds
+    Ls_nonspecific_bound = Ns * Ls
+    Ls_bound_total = RLs + Ls_nonspecific_bound
+    Fbs_specific = np.divide(
+        RLs,
+        LsT,
+        out=np.zeros_like(RLs, dtype=float),
+        where=LsT != 0.0,
+    )
+    Fbs_total = np.divide(
+        Ls_bound_total,
+        LsT,
+        out=np.zeros_like(Ls_bound_total, dtype=float),
+        where=LsT != 0.0,
     )
     return {
-        "R_total": receptor_total,
-        "R_free": receptor_free,
-        "Lstar_total": np.full_like(receptor_total, LsT, dtype=float),
-        "Lstar_free": tracer_free,
-        "RLstar": tracer_bound_specific,
-        "Lstar_nonspecific_bound": tracer_bound_nonspecific,
-        "Lstar_bound_total": tracer_bound_total,
-        "fraction_bound": fraction_bound,
+        "RT": RT,
+        "R": R,
+        "LsT": np.full_like(RT, LsT, dtype=float),
+        "Ls": Ls,
+        "RLs": RLs,
+        "Ls_nonspecific_bound": Ls_nonspecific_bound,
+        "Ls_bound_total": Ls_bound_total,
+        "Fbs_specific": Fbs_specific,
+        "Fbs_total": Fbs_total,
+        # With fitted lower and upper asymptotes, baseline-normalizing Roehrl's
+        # total-bound fraction reduces exactly to the specific-bound fraction.
+        "Fbs": Fbs_specific,
     }
 
 
 def _competitive_three_state_specific_component_arrays(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
     Kds: float,
     Kd: float,
 ) -> dict[str, np.ndarray]:
-    ligand_total = np.asarray(ligand_total, dtype=float)
-    receptor_free = _competitive_three_state_receptor_free(
-        ligand_total,
+    LT = np.asarray(LT, dtype=float)
+    R = _competitive_three_state_receptor_free(
+        LT,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
     )
-    tracer_bound = np.divide(
-        LsT * receptor_free,
-        Kds + receptor_free,
-        out=np.zeros_like(receptor_free, dtype=float),
-        where=(Kds + receptor_free) != 0.0,
+    RLs = np.divide(
+        LsT * R,
+        Kds + R,
+        out=np.zeros_like(R, dtype=float),
+        where=(Kds + R) != 0.0,
     )
-    tracer_free = np.clip(LsT - tracer_bound, 0.0, None)
-    competitor_bound = np.divide(
-        ligand_total * receptor_free,
-        Kd + receptor_free,
-        out=np.zeros_like(receptor_free, dtype=float),
-        where=(Kd + receptor_free) != 0.0,
+    Ls = np.clip(LsT - RLs, 0.0, None)
+    RL = np.divide(
+        LT * R,
+        Kd + R,
+        out=np.zeros_like(R, dtype=float),
+        where=(Kd + R) != 0.0,
     )
-    competitor_free = np.clip(ligand_total - competitor_bound, 0.0, None)
-    fraction_tracer_bound = np.divide(
-        tracer_bound,
+    L = np.clip(LT - RL, 0.0, None)
+    Fbs = np.divide(
+        RLs,
         LsT,
-        out=np.zeros_like(tracer_bound, dtype=float),
+        out=np.zeros_like(RLs, dtype=float),
         where=LsT != 0.0,
     )
     return {
-        "L_total": ligand_total,
-        "R_total": np.full_like(ligand_total, RT, dtype=float),
-        "R_free": receptor_free,
-        "Lstar_total": np.full_like(ligand_total, LsT, dtype=float),
-        "Lstar_free": tracer_free,
-        "L_free": competitor_free,
-        "RLstar": tracer_bound,
-        "RL": competitor_bound,
-        "fraction_tracer_bound": fraction_tracer_bound,
+        "LT": LT,
+        "RT": np.full_like(LT, RT, dtype=float),
+        "R": R,
+        "LsT": np.full_like(LT, LsT, dtype=float),
+        "Ls": Ls,
+        "L": L,
+        "RLs": RLs,
+        "RL": RL,
+        "Fbs": Fbs,
     }
 
 
 def _competitive_three_state_total_component_arrays(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
@@ -216,52 +278,55 @@ def _competitive_three_state_total_component_arrays(
     N: float,
     Kd: float,
 ) -> dict[str, np.ndarray]:
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    LT = np.asarray(LT, dtype=float)
     effective_factor = 1.0 + N
-    receptor_free = _competitive_three_state_receptor_free(
-        ligand_total,
+    R = _competitive_three_state_receptor_free(
+        LT,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
         nonspecific_factor=effective_factor,
     )
-    tracer_bound = np.divide(
-        LsT * receptor_free,
-        Kds + receptor_free,
-        out=np.zeros_like(receptor_free, dtype=float),
-        where=(Kds + receptor_free) != 0.0,
+    RLs = np.divide(
+        LsT * R,
+        Kds + R,
+        out=np.zeros_like(R, dtype=float),
+        where=(Kds + R) != 0.0,
     )
-    tracer_free = np.clip(LsT - tracer_bound, 0.0, None)
-    competitor_bound_specific = np.divide(
-        ligand_total * receptor_free,
-        effective_factor * Kd + receptor_free,
-        out=np.zeros_like(receptor_free, dtype=float),
-        where=(effective_factor * Kd + receptor_free) != 0.0,
+    Ls = np.clip(LsT - RLs, 0.0, None)
+    RL = np.divide(
+        LT * R,
+        effective_factor * Kd + R,
+        out=np.zeros_like(R, dtype=float),
+        where=(effective_factor * Kd + R) != 0.0,
     )
-    competitor_bound_nonspecific = N * competitor_bound_specific
-    competitor_bound_total = (
-        competitor_bound_specific + competitor_bound_nonspecific
+    L = np.divide(
+        LT * Kd,
+        effective_factor * Kd + R,
+        out=np.zeros_like(R, dtype=float),
+        where=(effective_factor * Kd + R) != 0.0,
     )
-    competitor_free = np.clip(ligand_total - competitor_bound_total, 0.0, None)
-    fraction_tracer_bound = np.divide(
-        tracer_bound,
+    L_nonspecific_bound = N * L
+    L_bound_total = RL + L_nonspecific_bound
+    Fbs = np.divide(
+        RLs,
         LsT,
-        out=np.zeros_like(tracer_bound, dtype=float),
+        out=np.zeros_like(RLs, dtype=float),
         where=LsT != 0.0,
     )
     return {
-        "L_total": ligand_total,
-        "R_total": np.full_like(ligand_total, RT, dtype=float),
-        "R_free": receptor_free,
-        "Lstar_total": np.full_like(ligand_total, LsT, dtype=float),
-        "Lstar_free": tracer_free,
-        "L_free": competitor_free,
-        "RLstar": tracer_bound,
-        "RL": competitor_bound_specific,
-        "L_nonspecific_bound": competitor_bound_nonspecific,
-        "L_bound_total": competitor_bound_total,
-        "fraction_tracer_bound": fraction_tracer_bound,
+        "LT": LT,
+        "RT": np.full_like(LT, RT, dtype=float),
+        "R": R,
+        "LsT": np.full_like(LT, LsT, dtype=float),
+        "Ls": Ls,
+        "L": L,
+        "RLs": RLs,
+        "RL": RL,
+        "L_nonspecific_bound": L_nonspecific_bound,
+        "L_bound_total": L_bound_total,
+        "Fbs": Fbs,
     }
 
 
@@ -270,8 +335,8 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
 
     The model assumes the x-axis is free receptor concentration and evaluates::
 
-        fraction_bound = R / (Kds + R)
-        y = ymin + (ymax - ymin) * fraction_bound
+        Fbs = R / (Kds + R)
+        y = ymin + (ymax - ymin) * Fbs
     """
 
     name = "dir_simple"
@@ -298,9 +363,9 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
         ymax: float,
         Kds: float,
     ) -> np.ndarray:
-        receptor = np.asarray(x, dtype=float)
-        fraction_bound = receptor / (Kds + receptor)
-        return ymin + (ymax - ymin) * fraction_bound
+        R = np.asarray(x, dtype=float)
+        Fbs = R / (Kds + R)
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,
@@ -308,17 +373,17 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
         x: np.ndarray,
         **params: float,
     ) -> dict[str, np.ndarray]:
-        receptor = np.asarray(concentration, dtype=float)
+        R = np.asarray(concentration, dtype=float)
         kds = float(params["Kds"])
-        fraction_bound = np.divide(
-            receptor,
-            kds + receptor,
-            out=np.zeros_like(receptor, dtype=float),
-            where=(kds + receptor) != 0.0,
+        Fbs = np.divide(
+            R,
+            kds + R,
+            out=np.zeros_like(R, dtype=float),
+            where=(kds + R) != 0.0,
         )
         return {
-            "R_free": receptor,
-            "fraction_bound": fraction_bound,
+            "R": R,
+            "Fbs": Fbs,
         }
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
@@ -361,14 +426,14 @@ class DirectSpecificKdModel(BaseDoseResponseModel):
         LsT: float,
         Kds: float,
     ) -> np.ndarray:
-        receptor_total = np.asarray(x, dtype=float)
+        RT = np.asarray(x, dtype=float)
         components = _direct_specific_component_arrays(
-            receptor_total,
+            RT,
             LsT=LsT,
             Kds=Kds,
         )
-        fraction_bound = components["fraction_bound"]
-        return ymin + (ymax - ymin) * fraction_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,
@@ -424,15 +489,15 @@ class DirectTotalKdModel(BaseDoseResponseModel):
         Ns: float,
         Kds: float,
     ) -> np.ndarray:
-        receptor_total = np.asarray(x, dtype=float)
+        RT = np.asarray(x, dtype=float)
         components = _direct_total_component_arrays(
-            receptor_total,
+            RT,
             LsT=LsT,
             Ns=Ns,
             Kds=Kds,
         )
-        fraction_bound = components["fraction_bound"]
-        return ymin + (ymax - ymin) * fraction_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,
@@ -510,8 +575,8 @@ class CompetitiveThreeStateSpecificKdModel(BaseDoseResponseModel):
             Kds=Kds,
             Kd=Kd,
         )
-        fraction_tracer_bound = components["fraction_tracer_bound"]
-        return ymin + (ymax - ymin) * fraction_tracer_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,
@@ -593,8 +658,8 @@ class CompetitiveThreeStateTotalKdModel(BaseDoseResponseModel):
             N=N,
             Kd=Kd,
         )
-        fraction_tracer_bound = components["fraction_tracer_bound"]
-        return ymin + (ymax - ymin) * fraction_tracer_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from functools import partial
+
 import numpy as np
+from scipy.optimize import brentq
 
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
@@ -24,7 +28,7 @@ def _competition_guess(compound: CompoundData) -> dict[str, float]:
 
 
 def _competitive_four_state_coefficients(
-    ligand_total: float,
+    LT: float,
     *,
     RT: float,
     LsT: float,
@@ -40,13 +44,13 @@ def _competitive_four_state_coefficients(
 
     After the physical root is selected in ``0 <= R <= RT``, the observable
     tracer-bound fraction is computed from the actual four-state species
-    ``RS + RLS`` rather than from a transformed receptor-like coordinate.
+    ``RLs + RLLs`` rather than from a transformed receptor-like coordinate.
 
     The total/nonspecific model should call this with an effective ``Kd`` of
     ``(1 + N) * Kd`` rather than maintaining a duplicated coefficient
     expression.
     """
-    LT = float(ligand_total)
+    LT = float(LT)
 
     a = Kds - Kd3
     b = (
@@ -144,6 +148,8 @@ def _select_physical_root(
     *,
     lower_bound: float,
     upper_bound: float,
+    candidate_score: Callable[[float], float] | None = None,
+    score_tolerance: float = 1.0e-10,
     imaginary_tolerance: float = 1.0e-7,
     interval_tolerance: float = 1.0e-8,
 ) -> float:
@@ -151,8 +157,9 @@ def _select_physical_root(
 
     The physical root must be effectively real and lie in the feasible interval
     for literal free receptor concentration. For the four-state receptor
-    polynomial this interval is ``0 <= R <= RT``. Among feasible candidates, the
-    root with the smallest scaled polynomial residual is selected.
+    polynomial this interval is ``0 <= R <= RT``. If ``candidate_score`` is
+    provided, candidates must also reconstruct a physically consistent state;
+    otherwise, the scaled polynomial residual is used as the selector.
     """
     coefficients = _trim_leading_near_zero(coefficients)
     roots = np.roots(coefficients)
@@ -176,14 +183,31 @@ def _select_physical_root(
             f"{roots!r}"
         )
 
-    return min(
-        candidates,
-        key=lambda root: _scaled_polynomial_residual(coefficients, root),
-    )
+    if candidate_score is None:
+        return min(
+            candidates,
+            key=lambda root: _scaled_polynomial_residual(coefficients, root),
+        )
+
+    scored_candidates = [
+        (
+            float(candidate_score(root)),
+            _scaled_polynomial_residual(coefficients, root),
+            root,
+        )
+        for root in candidates
+    ]
+    score, _, selected = min(scored_candidates)
+    if not np.isfinite(score) or score > score_tolerance:
+        raise ValueError(
+            "No four-state polynomial root satisfied the physical mass balances. "
+            f"Candidate scores were: {scored_candidates!r}"
+        )
+    return selected
 
 
 def _competitive_four_state_receptor_free(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
@@ -191,86 +215,99 @@ def _competitive_four_state_receptor_free(
     Kd: float,
     Kd3: float,
 ) -> np.ndarray:
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    LT = np.asarray(LT, dtype=float)
     if RT == 0.0:
-        return np.zeros_like(ligand_total, dtype=float)
+        return np.zeros_like(LT, dtype=float)
 
-    flat_ligand_total = ligand_total.ravel()
-    receptor_free = []
+    # Normalize every concentration by RT before constructing the polynomial.
+    # This keeps the root interval at [0, 1] and makes root selection invariant
+    # to a consistent change of concentration units.
+    concentration_scale = float(RT)
+    normalized_LsT = LsT / concentration_scale
+    normalized_Kds = Kds / concentration_scale
+    normalized_Kd = Kd / concentration_scale
+    normalized_Kd3 = Kd3 / concentration_scale
 
-    for concentration in flat_ligand_total:
+    flat_LT = LT.ravel()
+    R_values = []
+
+    for concentration in flat_LT:
+        normalized_LT = float(concentration) / concentration_scale
         coefficients = _competitive_four_state_coefficients(
-            float(concentration),
-            RT=RT,
-            LsT=LsT,
-            Kds=Kds,
-            Kd=Kd,
-            Kd3=Kd3,
+            normalized_LT,
+            RT=1.0,
+            LsT=normalized_LsT,
+            Kds=normalized_Kds,
+            Kd=normalized_Kd,
+            Kd3=normalized_Kd3,
         )
-        receptor_free.append(
-            _select_physical_root(
+        score_candidate = partial(
+            _competitive_four_state_mass_balance_score,
+            LT=normalized_LT,
+            RT=1.0,
+            LsT=normalized_LsT,
+            Kds=normalized_Kds,
+            Kd=normalized_Kd,
+            Kd3=normalized_Kd3,
+        )
+
+        try:
+            normalized_R = _select_physical_root(
                 coefficients,
                 lower_bound=0.0,
-                upper_bound=RT,
+                upper_bound=1.0,
+                candidate_score=score_candidate,
             )
-        )
+        except ValueError:
+            normalized_R = _solve_four_state_receptor_mass_balance(
+                normalized_LT,
+                RT=1.0,
+                LsT=normalized_LsT,
+                Kds=normalized_Kds,
+                Kd=normalized_Kd,
+                Kd3=normalized_Kd3,
+            )
+        R_values.append(normalized_R * concentration_scale)
 
-    return np.asarray(receptor_free, dtype=float).reshape(ligand_total.shape)
+    return np.asarray(R_values, dtype=float).reshape(LT.shape)
 
 
-def _competitive_four_state_fraction_tracer_bound(
-    receptor_free: np.ndarray,
-    ligand_total: np.ndarray,
+def _competitive_four_state_fbs(
+    R: np.ndarray,
+    LT: np.ndarray,
     *,
     LsT: float,
     Kds: float,
     Kd: float,
     Kd3: float,
 ) -> np.ndarray:
-    """Return ``(RS + RLS) / LsT`` from true free receptor concentration.
+    """Return ``(RLs + RLLs) / LsT`` from true free receptor concentration.
 
     For fixed free receptor ``R``, the tracer and competitor mass balances can
     be reduced to a quadratic equation in free competitor concentration ``L``.
     The tracer-bound fraction is then obtained from the actual four-state
     species without explicitly constructing free tracer concentration.
     """
-    receptor_free = np.asarray(receptor_free, dtype=float)
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    R = np.asarray(R, dtype=float)
+    LT = np.asarray(LT, dtype=float)
 
-    a = 1.0 + receptor_free / Kds
-    b = 1.0 + receptor_free / Kd
-    c = receptor_free / (Kd * Kd3)
-
-    quadratic_a = b * c
-    quadratic_b = a * b + c * LsT - c * ligand_total
-    quadratic_c = -a * ligand_total
-
-    discriminant = np.maximum(
-        quadratic_b**2 - 4.0 * quadratic_a * quadratic_c,
-        0.0,
-    )
-    denominator = 2.0 * quadratic_a
-    fallback = np.divide(
-        ligand_total,
-        b,
-        out=np.zeros_like(ligand_total, dtype=float),
-        where=b != 0.0,
-    )
-    ligand_free = np.array(fallback, copy=True, dtype=float)
-    np.divide(
-        -quadratic_b + np.sqrt(discriminant),
-        denominator,
-        out=ligand_free,
-        where=np.abs(denominator) > np.finfo(float).tiny,
+    L = _competitive_four_state_ligand_free(
+        R,
+        LT,
+        LsT=LsT,
+        Kds=Kds,
+        Kd=Kd,
+        Kd3=Kd3,
     )
 
-    bound_tracer_ratio = receptor_free / Kds + c * ligand_free
+    c = R / (Kd * Kd3)
+    bound_tracer_ratio = R / Kds + c * L
     return bound_tracer_ratio / (1.0 + bound_tracer_ratio)
 
 
 def _competitive_four_state_ligand_free(
-    receptor_free: np.ndarray,
-    ligand_total: np.ndarray,
+    R: np.ndarray,
+    LT: np.ndarray,
     *,
     LsT: float,
     Kds: float,
@@ -278,40 +315,172 @@ def _competitive_four_state_ligand_free(
     Kd3: float,
 ) -> np.ndarray:
     """Return free competitor concentration for the specific four-state model."""
-    receptor_free = np.asarray(receptor_free, dtype=float)
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    R = np.asarray(R, dtype=float)
+    LT = np.asarray(LT, dtype=float)
 
-    a = 1.0 + receptor_free / Kds
-    b = 1.0 + receptor_free / Kd
-    c = receptor_free / (Kd * Kd3)
+    a = 1.0 + R / Kds
+    b = 1.0 + R / Kd
+    c = R / (Kd * Kd3)
 
     quadratic_a = b * c
-    quadratic_b = a * b + c * LsT - c * ligand_total
-    quadratic_c = -a * ligand_total
+    quadratic_b = a * b + c * LsT - c * LT
+    quadratic_c = -a * LT
 
     discriminant = np.maximum(
         quadratic_b**2 - 4.0 * quadratic_a * quadratic_c,
         0.0,
     )
-    denominator = 2.0 * quadratic_a
+    square_root = np.sqrt(discriminant)
     fallback = np.divide(
-        ligand_total,
-        b,
-        out=np.zeros_like(ligand_total, dtype=float),
-        where=b != 0.0,
+        -quadratic_c,
+        quadratic_b,
+        out=np.zeros_like(LT, dtype=float),
+        where=quadratic_b != 0.0,
     )
-    ligand_free = np.array(fallback, copy=True, dtype=float)
+    L = np.array(fallback, copy=True, dtype=float)
+
+    positive_b = (quadratic_a > np.finfo(float).tiny) & (quadratic_b >= 0.0)
+    stable_denominator = quadratic_b + square_root
     np.divide(
-        -quadratic_b + np.sqrt(discriminant),
-        denominator,
-        out=ligand_free,
-        where=np.abs(denominator) > np.finfo(float).tiny,
+        -2.0 * quadratic_c,
+        stable_denominator,
+        out=L,
+        where=positive_b & (stable_denominator > 0.0),
     )
-    return ligand_free
+
+    negative_b = (quadratic_a > np.finfo(float).tiny) & (quadratic_b < 0.0)
+    np.divide(
+        -quadratic_b + square_root,
+        2.0 * quadratic_a,
+        out=L,
+        where=negative_b,
+    )
+    return np.maximum(L, 0.0)
+
+
+def _competitive_four_state_mass_balance_residual(
+    R: float,
+    LT: float,
+    *,
+    RT: float,
+    LsT: float,
+    Kds: float,
+    Kd: float,
+    Kd3: float,
+) -> float:
+    """Return the receptor mass-balance residual for one candidate root."""
+    R_array = np.asarray(R, dtype=float)
+    LT_array = np.asarray(LT, dtype=float)
+    L = _competitive_four_state_ligand_free(
+        R_array,
+        LT_array,
+        LsT=LsT,
+        Kds=Kds,
+        Kd=Kd,
+        Kd3=Kd3,
+    ).item()
+    Ls = LsT / (
+        1.0 + R / Kds + R * L / (Kd * Kd3)
+    )
+    RLs = R * Ls / Kds
+    RL = R * L / Kd
+    RLLs = R * L * Ls / (Kd * Kd3)
+    return float(R + RLs + RL + RLLs - RT)
+
+
+def _competitive_four_state_mass_balance_score(
+    R: float,
+    LT: float,
+    *,
+    RT: float,
+    LsT: float,
+    Kds: float,
+    Kd: float,
+    Kd3: float,
+) -> float:
+    """Score a candidate using physical bounds and normalized mass balance."""
+    R_array = np.asarray(R, dtype=float)
+    L = _competitive_four_state_ligand_free(
+        R_array,
+        np.asarray(LT, dtype=float),
+        LsT=LsT,
+        Kds=Kds,
+        Kd=Kd,
+        Kd3=Kd3,
+    ).item()
+    Ls = LsT / (
+        1.0 + R / Kds + R * L / (Kd * Kd3)
+    )
+    tolerance = 1.0e-8
+    if (
+        not np.isfinite(L)
+        or not np.isfinite(Ls)
+        or L < -tolerance * max(1.0, LT)
+        or L > LT + tolerance * max(1.0, LT)
+        or Ls < -tolerance * max(1.0, LsT)
+        or Ls > LsT + tolerance * max(1.0, LsT)
+    ):
+        return np.inf
+    residual = _competitive_four_state_mass_balance_residual(
+        R,
+        LT,
+        RT=RT,
+        LsT=LsT,
+        Kds=Kds,
+        Kd=Kd,
+        Kd3=Kd3,
+    )
+    return abs(residual) / max(abs(RT), np.finfo(float).tiny)
+
+
+def _solve_four_state_receptor_mass_balance(
+    LT: float,
+    *,
+    RT: float,
+    LsT: float,
+    Kds: float,
+    Kd: float,
+    Kd3: float,
+) -> float:
+    """Solve the physical receptor balance directly as a robust fallback."""
+    residual = partial(
+        _competitive_four_state_mass_balance_residual,
+        LT=LT,
+        RT=RT,
+        LsT=LsT,
+        Kds=Kds,
+        Kd=Kd,
+        Kd3=Kd3,
+    )
+    lower_residual = residual(0.0)
+    upper_residual = residual(RT)
+    tolerance = 1.0e-12 * max(1.0, abs(RT))
+    if abs(lower_residual) <= tolerance:
+        return 0.0
+    if abs(upper_residual) <= tolerance:
+        return float(RT)
+    if lower_residual >= 0.0 or upper_residual <= 0.0:
+        raise ValueError(
+            "Could not bracket the physical four-state receptor mass balance: "
+            f"f(0)={lower_residual}, f(RT)={upper_residual}."
+        )
+    return float(
+        brentq(
+            residual,
+            0.0,
+            RT,
+            # The normalized physical root may be far below 1e-14 when tracer
+            # is present in extreme excess, so an ordinary absolute tolerance
+            # can collapse a valid positive root to zero.
+            xtol=np.finfo(float).tiny,
+            rtol=4.0 * np.finfo(float).eps,
+            maxiter=200,
+        )
+    )
 
 
 def _competitive_four_state_specific_component_arrays(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
@@ -319,72 +488,72 @@ def _competitive_four_state_specific_component_arrays(
     Kd: float,
     Kd3: float,
 ) -> dict[str, np.ndarray]:
-    ligand_total = np.asarray(ligand_total, dtype=float)
-    receptor_free = _competitive_four_state_receptor_free(
-        ligand_total,
+    LT = np.asarray(LT, dtype=float)
+    R = _competitive_four_state_receptor_free(
+        LT,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
         Kd3=Kd3,
     )
-    ligand_free = _competitive_four_state_ligand_free(
-        receptor_free,
-        ligand_total,
+    L = _competitive_four_state_ligand_free(
+        R,
+        LT,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
         Kd3=Kd3,
     )
-    tracer_free = np.divide(
+    Ls = np.divide(
         LsT,
-        1.0 + receptor_free / Kds + receptor_free * ligand_free / (Kd * Kd3),
-        out=np.zeros_like(receptor_free, dtype=float),
+        1.0 + R / Kds + R * L / (Kd * Kd3),
+        out=np.zeros_like(R, dtype=float),
         where=(
-            1.0 + receptor_free / Kds + receptor_free * ligand_free / (Kd * Kd3)
+            1.0 + R / Kds + R * L / (Kd * Kd3)
         )
         != 0.0,
     )
-    rs = np.divide(
-        receptor_free * tracer_free,
+    RLs = np.divide(
+        R * Ls,
         Kds,
-        out=np.zeros_like(receptor_free, dtype=float),
+        out=np.zeros_like(R, dtype=float),
         where=Kds != 0.0,
     )
-    rl = np.divide(
-        receptor_free * ligand_free,
+    RL = np.divide(
+        R * L,
         Kd,
-        out=np.zeros_like(receptor_free, dtype=float),
+        out=np.zeros_like(R, dtype=float),
         where=Kd != 0.0,
     )
-    rls = np.divide(
-        receptor_free * ligand_free * tracer_free,
+    RLLs = np.divide(
+        R * L * Ls,
         Kd * Kd3,
-        out=np.zeros_like(receptor_free, dtype=float),
+        out=np.zeros_like(R, dtype=float),
         where=(Kd * Kd3) != 0.0,
     )
-    fraction_tracer_bound = np.divide(
-        rs + rls,
+    Fbs = np.divide(
+        RLs + RLLs,
         LsT,
-        out=np.zeros_like(receptor_free, dtype=float),
+        out=np.zeros_like(R, dtype=float),
         where=LsT != 0.0,
     )
     return {
-        "L_total": ligand_total,
-        "R_total": np.full_like(ligand_total, RT, dtype=float),
-        "R_free": receptor_free,
-        "L_free": ligand_free,
-        "Lstar_total": np.full_like(ligand_total, LsT, dtype=float),
-        "Lstar_free": tracer_free,
-        "RS": rs,
-        "RL": rl,
-        "RLS": rls,
-        "fraction_tracer_bound": fraction_tracer_bound,
+        "LT": LT,
+        "RT": np.full_like(LT, RT, dtype=float),
+        "R": R,
+        "L": L,
+        "LsT": np.full_like(LT, LsT, dtype=float),
+        "Ls": Ls,
+        "RLs": RLs,
+        "RL": RL,
+        "RLLs": RLLs,
+        "Fbs": Fbs,
     }
 
 
 def _competitive_four_state_total_component_arrays(
-    ligand_total: np.ndarray,
+    LT: np.ndarray,
     *,
     RT: float,
     LsT: float,
@@ -393,45 +562,44 @@ def _competitive_four_state_total_component_arrays(
     Kd3: float,
     N: float,
 ) -> dict[str, np.ndarray]:
-    ligand_total = np.asarray(ligand_total, dtype=float)
+    LT = np.asarray(LT, dtype=float)
     effective_kd = (1.0 + N) * Kd
     effective_components = _competitive_four_state_specific_component_arrays(
-        ligand_total,
+        LT,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
         Kd=effective_kd,
         Kd3=Kd3,
     )
-    competitor_bound_total = np.clip(
-        ligand_total - effective_components["L_free"],
-        0.0,
-        None,
-    )
-    competitor_bound_specific_equivalent = np.divide(
-        competitor_bound_total,
+    # Under Roehrl et al. eq 29, LT = L + RL + RLLs + N*L. Replacing
+    # Kd by (1 + N)*Kd solves the same observable equilibrium, but the
+    # specific solver's apparent free ligand is (1 + N)*L.
+    L = np.divide(
+        effective_components["L"],
         1.0 + N,
-        out=np.zeros_like(competitor_bound_total, dtype=float),
+        out=np.zeros_like(LT, dtype=float),
         where=(1.0 + N) != 0.0,
     )
-    competitor_bound_nonspecific = (
-        competitor_bound_total - competitor_bound_specific_equivalent
-    )
-    tracer_bound_total = (
-        effective_components["RS"] + effective_components["RLS"]
-    )
+    L_bound_specific = effective_components["RL"] + effective_components["RLLs"]
+    L_nonspecific_bound = N * L
+    L_bound_total = L_bound_specific + L_nonspecific_bound
+    RLs_plus_RLLs = effective_components["RLs"] + effective_components["RLLs"]
     return {
-        "L_total": ligand_total,
-        "R_total": np.full_like(ligand_total, RT, dtype=float),
-        "R_free": effective_components["R_free"],
-        "L_free": effective_components["L_free"],
-        "Lstar_total": np.full_like(ligand_total, LsT, dtype=float),
-        "Lstar_free": effective_components["Lstar_free"],
-        "RS_plus_RLS": tracer_bound_total,
-        "L_bound_total": competitor_bound_total,
-        "L_bound_specific_equivalent": competitor_bound_specific_equivalent,
-        "L_nonspecific_bound": competitor_bound_nonspecific,
-        "fraction_tracer_bound": effective_components["fraction_tracer_bound"],
+        "LT": LT,
+        "RT": np.full_like(LT, RT, dtype=float),
+        "R": effective_components["R"],
+        "L": L,
+        "LsT": np.full_like(LT, LsT, dtype=float),
+        "Ls": effective_components["Ls"],
+        "RLs": effective_components["RLs"],
+        "RL": effective_components["RL"],
+        "RLLs": effective_components["RLLs"],
+        "RLs_plus_RLLs": RLs_plus_RLLs,
+        "L_bound_total": L_bound_total,
+        "L_bound_specific": L_bound_specific,
+        "L_nonspecific_bound": L_nonspecific_bound,
+        "Fbs": effective_components["Fbs"],
     }
 
 
@@ -503,8 +671,8 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
             Kd=Kd,
             Kd3=Kd3,
         )
-        fraction_tracer_bound = components["fraction_tracer_bound"]
-        return ymin + (ymax - ymin) * fraction_tracer_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,
@@ -596,8 +764,8 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
             Kd3=Kd3,
             N=N,
         )
-        fraction_tracer_bound = components["fraction_tracer_bound"]
-        return ymin + (ymax - ymin) * fraction_tracer_bound
+        Fbs = components["Fbs"]
+        return ymin + (ymax - ymin) * Fbs
 
     def component_arrays(
         self,

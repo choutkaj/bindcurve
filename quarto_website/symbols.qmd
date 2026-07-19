@@ -13,6 +13,15 @@ BindCurve uses the following symbols:
 | $[RL^*]$   | `RLs`          | Concentration of (receptor-labelled ligand) complex.                  |
 | $[RL]$     | `RL`           | Concentration of (receptor-unlabelled ligand) complex.                |
 | $[RLL^*]$  | `RLLs`         | Concentration of (receptor-unlabelled ligand-labelled ligand) complex.|
+| $F_b^*$    | `Fbs`          | Fraction of total labelled ligand bound in the model observable.      |
+| $F_{b,\mathrm{specific}}^*$ | `Fbs_specific` | Specifically bound fraction of total labelled ligand.       |
+| $F_{b,\mathrm{total}}^*$ | `Fbs_total` | Specifically plus nonspecifically bound fraction of total labelled ligand. |
+| $[RL^*] + [RLL^*]$ | `RLs_plus_RLLs` | Total receptor-bound labelled ligand in a four-state model. |
+| $[L^*]_{\mathrm{NS}}$ | `Ls_nonspecific_bound` | Nonspecifically bound labelled ligand.                 |
+| $[L^*]_{\mathrm{bound}}$ | `Ls_bound_total` | Total bound labelled ligand.                             |
+| $[L]_{\mathrm{specific}}$ | `L_bound_specific` | Specifically bound unlabelled ligand.                  |
+| $[L]_{\mathrm{NS}}$ | `L_nonspecific_bound` | Nonspecifically bound unlabelled ligand.                    |
+| $[L]_{\mathrm{bound}}$ | `L_bound_total` | Total bound unlabelled ligand.                                |
 | $K_d^*$    | `Kds`          | Dissociation constant of labelled ligand.                             |
 | $K_d$      | `Kd`           | Dissociation constant of unlabelled ligand.                           |
 | $K_{d3}$   | `Kd3`          | The third dissociation constant in four-state models.                 |

@@ -3,32 +3,51 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.optimize import brentq
 
 import bindcurve as bc
 
 
 def dir_simple_curve(x, *, ymin=2.0, ymax=88.0, Kds=1.4):
-    receptor = np.asarray(x, dtype=float)
-    fraction_bound = receptor / (Kds + receptor)
-    return ymin + (ymax - ymin) * fraction_bound
+    R = np.asarray(x, dtype=float)
+    Fbs = R / (Kds + R)
+    return ymin + (ymax - ymin) * Fbs
 
 
 def dir_specific_curve(x, *, ymin=3.0, ymax=91.0, LsT=0.35, Kds=1.8):
-    receptor_total = np.asarray(x, dtype=float)
-    a = Kds + LsT - receptor_total
-    b = -Kds * receptor_total
-    receptor_free = (-a + np.sqrt(a**2 - 4.0 * b)) / 2.0
-    fraction_bound = receptor_free / (Kds + receptor_free)
-    return ymin + (ymax - ymin) * fraction_bound
+    RT = np.asarray(x, dtype=float)
+    Fbs = []
+    for total in np.atleast_1d(RT):
+        R = brentq(
+            lambda free, total=total: free
+            + free * (LsT / (Kds + free))
+            - float(total),
+            0.0,
+            float(total),
+        )
+        Ls = LsT / (1.0 + R / Kds)
+        RLs = R * Ls / Kds
+        Fbs.append(RLs / LsT)
+    response = ymin + (ymax - ymin) * np.asarray(Fbs)
+    return response.item() if RT.ndim == 0 else response
 
 
 def dir_total_curve(x, *, ymin=4.0, ymax=86.0, LsT=0.4, Ns=0.25, Kds=2.2):
-    receptor_total = np.asarray(x, dtype=float)
-    a = (1.0 + Ns) * Kds + LsT - receptor_total
-    b = -Kds * receptor_total * (1.0 + Ns)
-    receptor_free = (-a + np.sqrt(a**2 - 4.0 * b)) / 2.0
-    fraction_bound = receptor_free / (Kds + receptor_free)
-    return ymin + (ymax - ymin) * fraction_bound
+    RT = np.asarray(x, dtype=float)
+    Fbs = []
+    for total in np.atleast_1d(RT):
+        R = brentq(
+            lambda free, total=total: free
+            + free * LsT / ((1.0 + Ns) * Kds + free)
+            - float(total),
+            0.0,
+            float(total),
+        )
+        Ls = LsT / (1.0 + Ns + R / Kds)
+        RLs = R * Ls / Kds
+        Fbs.append(RLs / LsT)
+    response = ymin + (ymax - ymin) * np.asarray(Fbs)
+    return response.item() if RT.ndim == 0 else response
 
 
 def make_saturation_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:

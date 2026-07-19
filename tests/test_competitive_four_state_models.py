@@ -3,12 +3,64 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.optimize import least_squares
 
 import bindcurve as bc
 from bindcurve.modeling.competitive import (
     _competitive_four_state_coefficients,
     _select_physical_root,
 )
+
+
+def numerical_four_state_fbs(
+    x,
+    *,
+    RT,
+    LsT,
+    Kds,
+    Kd,
+    Kd3,
+    N=0.0,
+):
+    LT_values = np.asarray(x, dtype=float)
+    Fbs_values = []
+    for LT in np.atleast_1d(LT_values):
+        scales = np.array([RT, LsT, LT], dtype=float)
+
+        def residuals(
+            free_concentrations,
+            LT=LT,
+            scales=scales,
+        ):
+            R, Ls, L = free_concentrations
+            RLs = R * Ls / Kds
+            RL = R * L / Kd
+            RLLs = R * L * Ls / (Kd * Kd3)
+            return np.array(
+                [
+                    R + RLs + RL + RLLs - RT,
+                    Ls + RLs + RLLs - LsT,
+                    (1.0 + N) * L + RL + RLLs - LT,
+                ]
+            ) / scales
+
+        solution = least_squares(
+            residuals,
+            x0=scales / 2.0,
+            bounds=(np.zeros(3), scales),
+            xtol=1.0e-13,
+            ftol=1.0e-13,
+            gtol=1.0e-13,
+            max_nfev=10_000,
+        )
+        assert solution.success
+        assert np.max(np.abs(residuals(solution.x))) < 1.0e-8
+        R, Ls, L = solution.x
+        RLs = R * Ls / Kds
+        RLLs = R * L * Ls / (Kd * Kd3)
+        Fbs_values.append((RLs + RLLs) / LsT)
+    Fbs_values = np.asarray(Fbs_values)
+    return Fbs_values.item() if LT_values.ndim == 0 else Fbs_values
 
 
 def comp_4st_specific_curve(
@@ -22,17 +74,15 @@ def comp_4st_specific_curve(
     Kd=1.6,
     Kd3=0.5,
 ):
-    model = bc.CompetitiveFourStateSpecificKdModel()
-    return model.evaluate(
-        np.asarray(x, dtype=float),
-        ymin=ymin,
-        ymax=ymax,
+    Fbs = numerical_four_state_fbs(
+        x,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
         Kd3=Kd3,
     )
+    return ymin + (ymax - ymin) * Fbs
 
 
 def comp_4st_total_curve(
@@ -47,11 +97,8 @@ def comp_4st_total_curve(
     Kd3=0.8,
     N=0.35,
 ):
-    model = bc.CompetitiveFourStateTotalKdModel()
-    return model.evaluate(
-        np.asarray(x, dtype=float),
-        ymin=ymin,
-        ymax=ymax,
+    Fbs = numerical_four_state_fbs(
+        x,
         RT=RT,
         LsT=LsT,
         Kds=Kds,
@@ -59,6 +106,7 @@ def comp_4st_total_curve(
         Kd3=Kd3,
         N=N,
     )
+    return ymin + (ymax - ymin) * Fbs
 
 
 def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:

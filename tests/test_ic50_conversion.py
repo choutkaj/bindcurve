@@ -11,12 +11,12 @@ def legacy_cheng_prusoff(LsT, Kds, IC50):
     return IC50 / (1.0 + LsT / Kds)
 
 
-def legacy_cheng_prusoff_corr(LsT, Kds, y0, IC50):
+def munson_rodbard(LsT, Kds, y0, IC50):
     denominator = 1.0 + (LsT * (y0 + 2.0) / (2.0 * Kds * (y0 + 1.0)) + y0)
-    return IC50 / denominator + Kds * (y0 / (y0 + 2.0))
+    return IC50 / denominator - Kds * (y0 / (y0 + 2.0))
 
 
-def legacy_coleska(RT, LsT, Kds, IC50):
+def coleska_forward_ic50(RT, LsT, Kds, Kd):
     a = LsT + Kds - RT
     b = -Kds * RT
     R0 = (-a + np.sqrt(a**2 - 4.0 * b)) / 2.0
@@ -24,9 +24,10 @@ def legacy_coleska(RT, LsT, Kds, IC50):
     RLs0 = RT / (1.0 + Kds / Ls0)
     RLs50 = RLs0 / 2.0
     Ls50 = LsT - RLs50
-    RL50 = RT + Kds * (RLs50 / Ls50) + RLs50
-    L50 = IC50 - RL50
-    return L50 / ((Ls50 / Kds) + (R0 / Kds) + 1.0)
+    R50 = Kds * RLs50 / Ls50
+    RL50 = RT - R50 - RLs50
+    L50 = Kd * RL50 / R50
+    return L50 + RL50
 
 
 def test_cheng_prusoff_matches_legacy_formula():
@@ -35,16 +36,42 @@ def test_cheng_prusoff_matches_legacy_formula():
     assert result == pytest.approx(legacy_cheng_prusoff(2.0, 4.0, 10.0))
 
 
-def test_cheng_prusoff_corrected_matches_legacy_formula():
+def test_cheng_prusoff_corrected_matches_munson_rodbard_erratum():
     result = bc.cheng_prusoff_corrected(IC50=10.0, LsT=2.0, Kds=4.0, y0=0.25)
 
-    assert result == pytest.approx(legacy_cheng_prusoff_corr(2.0, 4.0, 0.25, 10.0))
+    assert result == pytest.approx(munson_rodbard(2.0, 4.0, 0.25, 10.0))
 
 
-def test_coleska_matches_legacy_formula():
-    result = bc.coleska(IC50=10.0, RT=0.5, LsT=2.0, Kds=4.0)
+def test_cheng_prusoff_corrected_matches_erratum_numerical_example():
+    result = bc.cheng_prusoff_corrected(IC50=1.0, LsT=0.1, Kds=1.0, y0=0.1)
 
-    assert result == pytest.approx(legacy_coleska(0.5, 2.0, 4.0, 10.0))
+    assert result == pytest.approx(0.7889, abs=5.0e-5)
+
+
+def test_coleska_recovers_kd_from_competitive_equilibrium():
+    expected_kd = 3.0
+    IC50 = coleska_forward_ic50(RT=0.5, LsT=2.0, Kds=4.0, Kd=expected_kd)
+
+    result = bc.coleska(IC50=IC50, RT=0.5, LsT=2.0, Kds=4.0)
+
+    assert result == pytest.approx(expected_kd)
+
+
+@pytest.mark.parametrize(
+    ("RT", "IC50", "reported_kd"),
+    [
+        (30.0, 1160.0, 430.0),
+        (60.0, 2520.0, 570.0),
+        (120.0, 3100.0, 400.0),
+        (240.0, 8100.0, 550.0),
+    ],
+)
+def test_coleska_matches_nikolovska_coleska_table_2(RT, IC50, reported_kd):
+    # Table 2 uses 5 nM tracer with Kd = 17.92 nM. Its reported Ki values are
+    # rounded to tens of nM (doi:10.1016/j.ab.2004.05.055).
+    result = bc.coleska(IC50=IC50, RT=RT, LsT=5.0, Kds=17.92)
+
+    assert result == pytest.approx(reported_kd, abs=9.0)
 
 
 def test_scalar_conversion_returns_result_container():

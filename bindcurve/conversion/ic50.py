@@ -38,7 +38,7 @@ def _optional_positive(name: str, value: float | None) -> float | None:
     return _require_positive(name, value)
 
 
-def _require_fraction_like(name: str, value: float) -> float:
+def _require_nonnegative(name: str, value: float) -> float:
     value = float(value)
     if not np.isfinite(value):
         raise ValueError(f"{name} must be finite.")
@@ -62,16 +62,25 @@ def cheng_prusoff_corrected(
     Kds: float,
     y0: float,
 ) -> float:
-    """Convert IC50 to Kd with the corrected Cheng-Prusoff expression.
+    """Convert IC50 to Kd with the exact Munson-Rodbard correction.
 
-    This preserves the legacy bindcurve formula under a clearer name.
+    Exactness is conditional on its one-site competitive-equilibrium model.
+    ``y0`` is the bound-to-free tracer ratio before competitor is added.
     """
     IC50 = _require_positive("IC50", IC50)
     LsT = _require_positive("LsT", LsT)
     Kds = _require_positive("Kds", Kds)
-    y0 = _require_fraction_like("y0", y0)
+    y0 = _require_nonnegative("y0", y0)
     denominator = 1.0 + (LsT * (y0 + 2.0) / (2.0 * Kds * (y0 + 1.0)) + y0)
-    return IC50 / denominator + Kds * (y0 / (y0 + 2.0))
+    # Munson & Rodbard, J Receptor Res. 1989-90;9(6):511, erratum
+    # (doi:10.3109/10799898909066075): the printed plus sign is a minus sign.
+    Kd = IC50 / denominator - Kds * (y0 / (y0 + 2.0))
+    if not np.isfinite(Kd) or Kd <= 0.0:
+        raise ValueError(
+            "Converted Kd is non-positive or non-finite. Check whether IC50 "
+            "is physically compatible with LsT, Kds, and y0."
+        )
+    return float(Kd)
 
 
 def coleska(*, IC50: float, RT: float, LsT: float, Kds: float) -> float:
@@ -83,20 +92,26 @@ def coleska(*, IC50: float, RT: float, LsT: float, Kds: float) -> float:
 
     a = LsT + Kds - RT
     b = -Kds * RT
-    R0 = (-a + np.sqrt(a**2 - 4.0 * b)) / 2.0
+    square_root = np.hypot(a, 2.0 * np.sqrt(-b))
+    if a >= 0.0:
+        R0 = -2.0 * b / (a + square_root)
+    else:
+        R0 = (-a + square_root) / 2.0
 
     Ls0 = LsT / (1.0 + R0 / Kds)
     RLs0 = RT / (1.0 + Kds / Ls0)
     RLs50 = RLs0 / 2.0
     Ls50 = LsT - RLs50
-    RL50 = RT + Kds * (RLs50 / Ls50) + RLs50
+    # Receptor mass balance from Appendix A.4.2 of Nikolovska-Coleska et al.,
+    # Anal Biochem. 2004;332:261-273. doi:10.1016/j.ab.2004.05.055.
+    RL50 = RT - Kds * (RLs50 / Ls50) - RLs50
     L50 = IC50 - RL50
     Kd = L50 / ((Ls50 / Kds) + (R0 / Kds) + 1.0)
 
-    if Kd <= 0.0:
+    if not np.isfinite(Kd) or Kd <= 0.0:
         raise ValueError(
-            "Converted Kd is non-positive. Check whether IC50 is physically "
-            "compatible with RT, LsT, and Kds."
+            "Converted Kd is non-positive or non-finite. Check whether IC50 "
+            "is physically compatible with RT, LsT, and Kds."
         )
     return float(Kd)
 
@@ -152,7 +167,7 @@ def convert_ic50_to_kd(
     LsT = _optional_positive("LsT", LsT)
     Kds = _optional_positive("Kds", Kds)
     if y0 is not None:
-        y0 = _require_fraction_like("y0", y0)
+        y0 = _require_nonnegative("y0", y0)
 
     if data is None:
         if IC50 is None:

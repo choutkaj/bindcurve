@@ -3,27 +3,27 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.optimize import brentq
 
 import bindcurve as bc
 
 
-def receptor_free_three_state(ligand_total, *, RT, LsT, Kds, Kd, factor=1.0):
-    ligand_total = np.asarray(ligand_total, dtype=float)
-    scaled_kd = factor * Kd
-    a = Kds + scaled_kd + LsT + ligand_total - RT
-    b = Kds * (ligand_total - RT) + scaled_kd * (LsT - RT) + Kds * scaled_kd
-    c = -Kds * scaled_kd * RT
-    discriminant = np.maximum(a**2 - 3.0 * b, 0.0)
-    denominator = 2.0 * np.sqrt(discriminant**3)
-    numerator = -2.0 * a**3 + 9.0 * a * b - 27.0 * c
-    argument = np.divide(
-        numerator,
-        denominator,
-        out=np.zeros_like(numerator, dtype=float),
-        where=denominator > 0.0,
-    )
-    theta = np.arccos(np.clip(argument, -1.0, 1.0))
-    return -(a / 3.0) + (2.0 / 3.0) * np.sqrt(discriminant) * np.cos(theta / 3.0)
+def receptor_free_three_state(LT, *, RT, LsT, Kds, Kd, factor=1.0):
+    LT = np.asarray(LT, dtype=float)
+    roots = []
+    for total in np.atleast_1d(LT):
+        roots.append(
+            brentq(
+                lambda free, total=total: free
+                + LsT * free / (Kds + free)
+                + float(total) * free / (factor * Kd + free)
+                - RT,
+                0.0,
+                RT,
+            )
+        )
+    roots = np.asarray(roots)
+    return roots.item() if LT.ndim == 0 else roots
 
 
 def comp_specific_curve(
@@ -36,9 +36,9 @@ def comp_specific_curve(
     Kds=0.02,
     Kd=1.6,
 ):
-    receptor_free = receptor_free_three_state(x, RT=RT, LsT=LsT, Kds=Kds, Kd=Kd)
-    fraction_tracer_bound = receptor_free / (Kds + receptor_free)
-    return ymin + (ymax - ymin) * fraction_tracer_bound
+    R = receptor_free_three_state(x, RT=RT, LsT=LsT, Kds=Kds, Kd=Kd)
+    Fbs = R / (Kds + R)
+    return ymin + (ymax - ymin) * Fbs
 
 
 def comp_total_curve(
@@ -52,7 +52,7 @@ def comp_total_curve(
     Kd=2.4,
     N=0.35,
 ):
-    receptor_free = receptor_free_three_state(
+    R = receptor_free_three_state(
         x,
         RT=RT,
         LsT=LsT,
@@ -60,8 +60,8 @@ def comp_total_curve(
         Kd=Kd,
         factor=1.0 + N,
     )
-    fraction_tracer_bound = receptor_free / (Kds + receptor_free)
-    return ymin + (ymax - ymin) * fraction_tracer_bound
+    Fbs = R / (Kds + R)
+    return ymin + (ymax - ymin) * Fbs
 
 
 def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:

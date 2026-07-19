@@ -162,8 +162,8 @@ evaluation = model.evaluate_components(
 )
 
 response = evaluation.response
-free_receptor = evaluation.components["R_free"]
-tracer_bound = evaluation.components["RLstar"]
+R = evaluation.components["R"]
+RLs = evaluation.components["RLs"]
 ```
 
 `predict(...)` returns only the observable response, while
