@@ -11,6 +11,7 @@ prune .github
 prune algebra
 prune assets
 prune docs
+prune docs_legacy
 prune logo
 prune quarto_website
 prune tutorials
