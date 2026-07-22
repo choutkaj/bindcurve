@@ -39,7 +39,7 @@ def test_model_registry_contains_ic50_model():
 
 def test_ic50_model_fits_synthetic_inhibition_data():
     data = make_data(ic50_curve)
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     fits = results.fit_summary()
 
     assert len(fits) == 3
@@ -52,18 +52,22 @@ def test_ec50_model_is_not_registered():
         bc.get_model("ec50")
 
 
-def test_ic50_parameterization_rejects_the_old_orientation_symmetry():
+def test_ic50_uses_direct_plateaus_and_rejects_amplitude_alias():
     model = IC50Model()
     concentration = np.logspace(-3, 3, 20)
     valid = {
         "ymin": 0.0,
-        "amplitude": 100.0,
+        "ymax": 100.0,
         "IC50": 1.0,
         "hill_slope": 1.0,
     }
 
-    with pytest.raises(ValueError, match="amplitude"):
-        model.evaluate(concentration, **{**valid, "amplitude": -100.0})
+    response = model.evaluate(concentration, **valid)
+    assert response[0] == pytest.approx(100.0, rel=1e-3)
+    assert response[-1] < 0.11
+
+    with pytest.raises(TypeError, match="amplitude"):
+        model.evaluate(concentration, **valid, amplitude=100.0)
     with pytest.raises(ValueError, match="hill_slope"):
         model.evaluate(concentration, **{**valid, "hill_slope": -1.0})
 
@@ -75,7 +79,7 @@ def test_ic50_evaluation_is_finite_and_monotone_at_extreme_concentrations():
     response = model.evaluate(
         concentration,
         ymin=5.0,
-        amplitude=90.0,
+        ymax=95.0,
         IC50=1.0,
         hill_slope=2.0,
     )
@@ -87,7 +91,7 @@ def test_ic50_evaluation_is_finite_and_monotone_at_extreme_concentrations():
 
 def test_ic50_summary_exposes_derived_log_face_in_parameters():
     data = make_data(ic50_curve)
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     summary = results.summary()
     parameters = results.parameters()
 

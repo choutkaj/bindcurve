@@ -41,7 +41,7 @@ data = bc.DoseResponseData.from_dataframe(observations)
 results = bc.fit(
     data,
     model="ic50",
-    fixed={"ymin": 0.0, "amplitude": 100.0},
+    fixed={"ymin": 0.0, "ymax": 100.0},
 )
 
 print(results.summary()[["compound_id", "IC50"]])

@@ -53,7 +53,7 @@ def test_dose_response_data_validates_positive_concentrations():
 
 def test_default_strategy_fits_one_curve_per_independent_experiment():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     fits = results.fit_summary()
 
@@ -71,7 +71,7 @@ def test_default_strategy_fits_one_curve_per_independent_experiment():
 
 def test_summary_reports_one_row_per_compound_with_ic50_triplets():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     summary = results.summary()
 
     assert len(summary) == 2
@@ -110,7 +110,7 @@ def test_summary_reports_one_row_per_compound_with_ic50_triplets():
 
 def test_parameters_keeps_detailed_parameter_rows():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
     parameters = results.parameters()
 
     assert len(parameters) == 4
@@ -128,7 +128,7 @@ def test_parameters_keeps_detailed_parameter_rows():
 
 def test_report_formats_geometric_center_and_intervals():
     data = make_synthetic_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     report = results.report(
         uncertainty="sem",
@@ -178,7 +178,7 @@ def test_collect_errors_continues_after_experiment_failure():
         data,
         model=FailsForExp2Model(),
         settings=bc.FitSettings(errors="collect"),
-        fixed={"ymin": 0.0, "amplitude": 100.0},
+        fixed={"ymin": 0.0, "ymax": 100.0},
     )
 
     successful_experiments = {fit.experiment_id for fit in results.successful()}

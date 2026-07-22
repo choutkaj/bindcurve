@@ -30,8 +30,8 @@ def make_ambiguous_results() -> bc.FitResults:
             experiment_id=f"exp{index}",
             parameters={
                 "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
-                "amplitude": bc.ParameterEstimate(
-                    "amplitude", 100.0, vary=False
+                "ymax": bc.ParameterEstimate(
+                    "ymax", 100.0, vary=False
                 ),
                 "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
                 "hill_slope": bc.ParameterEstimate(
@@ -89,7 +89,7 @@ def make_single_experiment_data() -> bc.DoseResponseData:
 
 def test_report_representation_both_labels_linear_and_log_faces():
     data = make_multi_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     report = results.report(
         representation="both",
@@ -111,7 +111,7 @@ def test_report_representation_both_labels_linear_and_log_faces():
 
 def test_report_omits_missing_uncertainty_for_single_experiment():
     data = make_single_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     summary = results.summary()
     report = results.report(rounding="decimals", places_mean=2, places_uncertainty=2)
@@ -124,7 +124,7 @@ def test_report_omits_missing_uncertainty_for_single_experiment():
 
 def test_fit_summary_exposes_explicit_optimizer_and_failure_diagnostics():
     data = make_single_experiment_data()
-    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     columns = set(results.fit_summary().columns)
     assert {

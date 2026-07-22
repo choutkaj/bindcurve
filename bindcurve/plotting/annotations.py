@@ -32,14 +32,8 @@ def _asymptote_value(fit: FitResult, name: AsymptoteName) -> float | None:
     """Resolve response-scale asymptotes from a fit's native parameters."""
     if name == "ymin" and "ymin" in fit.parameters:
         return fit.parameters["ymin"].value
-    if name == "ymax":
-        if "ymax" in fit.parameters:
-            return fit.parameters["ymax"].value
-        if "ymin" in fit.parameters and "amplitude" in fit.parameters:
-            return (
-                fit.parameters["ymin"].value
-                + fit.parameters["amplitude"].value
-            )
+    if name == "ymax" and "ymax" in fit.parameters:
+        return fit.parameters["ymax"].value
     return None
 
 

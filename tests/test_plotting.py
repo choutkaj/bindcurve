@@ -45,7 +45,7 @@ def make_data() -> bc.DoseResponseData:
 
 
 def make_results(data: bc.DoseResponseData) -> bc.FitResults:
-    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
 
 def errorbar_half_heights(ax: plt.Axes, *, container_index: int = 0) -> np.ndarray:
@@ -250,7 +250,7 @@ def test_plot_fits_supports_multi_compound_data_by_default():
     results = bc.fit(
         multi,
         model="ic50",
-        fixed={"ymin": 0.0, "amplitude": 100.0},
+        fixed={"ymin": 0.0, "ymax": 100.0},
     )
 
     fig, ax = plt.subplots()
@@ -290,7 +290,7 @@ def test_plot_fits_uses_each_fit_observation_range_for_its_curve_grid():
     data = bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
     results = bc.fit(
         data,
-        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.0},
+        fixed={"ymin": 0.0, "ymax": 100.0, "hill_slope": 1.0},
     )
     fig, ax = plt.subplots()
 

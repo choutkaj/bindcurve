@@ -65,7 +65,7 @@ def make_multi_compound_data() -> bc.DoseResponseData:
 
 def test_fit_runs_one_curve_per_experiment():
     data = make_multi_experiment_data()
-    results = bc.fit(data, fixed={"ymin": 0.0, "amplitude": 100.0})
+    results = bc.fit(data, fixed={"ymin": 0.0, "ymax": 100.0})
     fits = results.fit_summary()
 
     assert len(fits) == 3
@@ -298,13 +298,13 @@ def test_fixed_parameters_and_bounds_are_respected():
     data = make_multi_experiment_data()
     results = bc.fit(
         data,
-        fixed={"ymin": 0.0, "amplitude": 100.0},
+        fixed={"ymin": 0.0, "ymax": 100.0},
         bounds={"IC50": (0.1, 10.0), "hill_slope": (0.1, 3.0)},
     )
     fits = results.fit_summary()
 
     assert fits["ymin"].eq(0.0).all()
-    assert fits["amplitude"].eq(100.0).all()
+    assert fits["ymax"].eq(100.0).all()
     assert fits["IC50"].between(0.1, 10.0).all()
     assert fits["hill_slope"].between(0.1, 3.0).all()
 
@@ -332,7 +332,7 @@ def test_fixed_zero_concentration_parameter_is_rejected():
     with pytest.raises(ValueError, match="IC50.*strictly positive"):
         bc.fit(
             data,
-            fixed={"ymin": 0.0, "amplitude": 100.0, "IC50": 0.0},
+            fixed={"ymin": 0.0, "ymax": 100.0, "IC50": 0.0},
         )
 
 
@@ -342,7 +342,7 @@ def test_zero_lower_bound_for_concentration_parameter_is_rejected():
     with pytest.raises(ValueError, match="Lower bound.*IC50.*strictly positive"):
         bc.fit(
             data,
-            fixed={"ymin": 0.0, "amplitude": 100.0},
+            fixed={"ymin": 0.0, "ymax": 100.0},
             bounds={"IC50": (0.0, 10.0)},
         )
 

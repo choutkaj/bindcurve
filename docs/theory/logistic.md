@@ -6,27 +6,27 @@ response as the concentration increases:
 
 $$
 y(x) = y_{\min}
-     + \frac{A}{1 + \left(\dfrac{x}{\mathrm{IC}_{50}}\right)^h}.
+     + \frac{y_{\max}-y_{\min}}
+       {1 + \left(\dfrac{x}{\mathrm{IC}_{50}}\right)^h}.
 $$
 
 The parameters are:
 
 - $x \ge 0$: the **raw**, untransformed concentration;
 - $y_{\min}$: the response approached at high concentration;
-- $A > 0$: the response amplitude;
+- $y_{\max}$: the response approached at zero concentration;
 - $\mathrm{IC}_{50} > 0$: the concentration at the midpoint;
 - $h > 0$: the Hill slope, exposed as `hill_slope`.
 
-The upper response is $y_{\max}=y_{\min}+A$. At the fitted midpoint,
-
 $$
-y(\mathrm{IC}_{50}) = y_{\min} + \frac{A}{2}.
+y(\mathrm{IC}_{50}) = \frac{y_{\min}+y_{\max}}{2}.
 $$
 
-The model is therefore identifiable in one orientation: `amplitude` and
-`hill_slope` are constrained to be positive, and increasing concentration
-always decreases the predicted response. It does not represent an activating
-curve by reversing the sign of the slope.
+This corresponds to GraphPad Prism's
+[variable-slope inhibitory dose-response equation](https://www.graphpad.com/guides/prism/latest/curve-fitting/reg_dr_inhibit_variable_2.htm):
+`ymax` is **Top** and `ymin` is **Bottom**. `bindcurve` writes the inhibitory
+Hill slope as the positive quantity $h$; it is the negative of Prism's signed
+`HillSlope`. The curve decreases when $y_{\max}>y_{\min}$.
 
 ## Concentration and logarithms
 

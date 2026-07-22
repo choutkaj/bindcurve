@@ -50,7 +50,7 @@ def make_uncertain_data(*, uncertainty: str = "sigma") -> bc.DoseResponseData:
 def fit_one_parameter(data: bc.DoseResponseData) -> bc.FitResults:
     return bc.fit(
         data,
-        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.2},
+        fixed={"ymin": 0.0, "ymax": 100.0, "hill_slope": 1.2},
     )
 
 
@@ -121,7 +121,7 @@ def test_all_fixed_parameters_are_evaluated_without_false_optimizer_failure():
         data,
         fixed={
             "ymin": 0.0,
-            "amplitude": 100.0,
+            "ymax": 100.0,
             "IC50": 1.7,
             "hill_slope": 1.2,
         },
@@ -286,12 +286,12 @@ def test_fit_selectors_are_stably_deduplicated_and_empty_is_explicit():
     results = bc.fit(
         data,
         compounds=["cmpd_b", "cmpd_b", "cmpd_a"],
-        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.2},
+        fixed={"ymin": 0.0, "ymax": 100.0, "hill_slope": 1.2},
     )
     empty = bc.fit(
         data,
         compounds=[],
-        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.2},
+        fixed={"ymin": 0.0, "ymax": 100.0, "hill_slope": 1.2},
     )
 
     assert [fit.compound_id for fit in results.fit_results] == ["cmpd_b", "cmpd_a"]
@@ -308,7 +308,7 @@ def test_custom_model_instance_flows_through_fit_results_and_plotting():
     results = bc.fit(
         data,
         model=model,
-        fixed={"ymin": 0.0, "amplitude": 100.0, "hill_slope": 1.2},
+        fixed={"ymin": 0.0, "ymax": 100.0, "hill_slope": 1.2},
     )
     fig, ax = plt.subplots()
 
@@ -363,8 +363,8 @@ def test_fit_results_reject_schema_drift_and_non_global_fixed_values():
         bc.FitResults(fit.model, (incomplete,))
 
     changed_parameters = dict(fit.parameters)
-    changed_parameters["amplitude"] = replace(
-        changed_parameters["amplitude"],
+    changed_parameters["ymax"] = replace(
+        changed_parameters["ymax"],
         value=101.0,
     )
     changed_fixed = replace(
@@ -392,7 +392,7 @@ def test_model_contract_rejects_duplicate_specs_and_invalid_outputs():
 
     parameters = {
         "ymin": 0.0,
-        "amplitude": 100.0,
+        "ymax": 100.0,
         "IC50": 1.0,
         "hill_slope": 1.0,
     }

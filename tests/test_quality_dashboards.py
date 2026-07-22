@@ -38,8 +38,8 @@ def make_ambiguous_results() -> bc.FitResults:
             experiment_id=f"exp{index}",
             parameters={
                 "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
-                "amplitude": bc.ParameterEstimate(
-                    "amplitude", 100.0, vary=False
+                "ymax": bc.ParameterEstimate(
+                    "ymax", 100.0, vary=False
                 ),
                 "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
                 "hill_slope": bc.ParameterEstimate(
@@ -88,7 +88,7 @@ def make_quality_data(
 
 def make_results() -> bc.FitResults:
     data = make_quality_data()
-    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "amplitude": 100.0})
+    return bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
 
 def test_data_quality_dashboard_returns_three_panel_figure_for_one_compound():

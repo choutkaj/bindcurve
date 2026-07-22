@@ -16,7 +16,7 @@ def test_ic50_is_midpoint_and_strictly_decreasing(hill_slope):
     response = model.evaluate(
         concentration,
         ymin=2.0,
-        amplitude=8.0,
+        ymax=10.0,
         IC50=IC50,
         hill_slope=hill_slope,
     )
@@ -31,7 +31,7 @@ def test_ic50_model_is_invariant_to_concentration_units():
     reference = model.evaluate(
         concentration,
         ymin=1.0,
-        amplitude=8.0,
+        ymax=9.0,
         IC50=2.5,
         hill_slope=1.3,
     )
@@ -40,7 +40,7 @@ def test_ic50_model_is_invariant_to_concentration_units():
     scaled = model.evaluate(
         concentration * scale,
         ymin=1.0,
-        amplitude=8.0,
+        ymax=9.0,
         IC50=2.5 * scale,
         hill_slope=1.3,
     )

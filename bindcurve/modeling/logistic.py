@@ -26,21 +26,20 @@ def _fraction_response_from_ic50(
 
 
 class IC50Model(BaseDoseResponseModel):
-    """Identifiable four-parameter inhibitory IC50 / Hill model.
+    """Four-parameter inhibitory IC50 / Hill model.
 
     The model is written as::
 
-        y = ymin + amplitude / (1 + (x / IC50) ** hill_slope)
+        y = ymin + (ymax - ymin) / (1 + (x / IC50) ** hill_slope)
 
-    ``amplitude`` and ``hill_slope`` are strictly positive. Consequently the
-    model has one inhibitory orientation and cannot reproduce the same curve by
-    swapping asymptotes and reversing the Hill-slope sign.
+    ``ymin`` and ``ymax`` are the lower and upper response plateaus, and
+    ``hill_slope`` is strictly positive.
     """
 
     name = "ic50"
     parameter_specs = (
         ParameterSpec("ymin"),
-        ParameterSpec("amplitude", min=STRICTLY_POSITIVE_PARAMETER_MIN),
+        ParameterSpec("ymax"),
         ParameterSpec(
             "IC50",
             min=STRICTLY_POSITIVE_PARAMETER_MIN,
@@ -76,19 +75,12 @@ class IC50Model(BaseDoseResponseModel):
         components: dict[str, np.ndarray],
         *,
         ymin: float,
-        amplitude: float,
+        ymax: float,
         **params: float,
     ) -> np.ndarray:
         fraction = np.asarray(components["fraction_response"], dtype=float)
-        return float(ymin) + float(amplitude) * fraction
+        return float(ymin) + (float(ymax) - float(ymin)) * fraction
 
     def guess(self, compound: CompoundData) -> dict[str, float]:
         guesses = midpoint_guess(compound, concentration_parameter="IC50")
-        ymin = guesses.pop("ymin")
-        ymax = guesses.pop("ymax")
-        return {
-            "ymin": ymin,
-            "amplitude": max(ymax - ymin, np.finfo(float).eps),
-            "IC50": guesses["IC50"],
-            "hill_slope": 1.0,
-        }
+        return {**guesses, "hill_slope": 1.0}

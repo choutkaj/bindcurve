@@ -120,14 +120,14 @@ def test_ic50_evaluate_components_uses_raw_concentration_axis():
     evaluation = model.evaluate_components(
         concentration,
         ymin=0.0,
-        amplitude=100.0,
+        ymax=100.0,
         IC50=10**0.25,
         hill_slope=1.15,
     )
     direct = model.evaluate(
         concentration,
         ymin=0.0,
-        amplitude=100.0,
+        ymax=100.0,
         IC50=10**0.25,
         hill_slope=1.15,
     )

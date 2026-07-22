@@ -9,7 +9,7 @@ import pytest
 import bindcurve as bc
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / "tutorials" / "tutorial_data" / "synthetic"
+DATA_DIR = ROOT / "docs" / "tutorials" / "data"
 
 
 def make_round_trip_data(*, metadata: dict | None = None) -> bc.DoseResponseData:
@@ -59,84 +59,63 @@ def assert_same_long_table(left: pd.DataFrame, right: pd.DataFrame) -> None:
     )
 
 
-def test_from_csv_loads_long_format_example():
-    data = bc.DoseResponseData.from_csv(
-        DATA_DIR / "direct_binding_long.csv",
-        format="long",
+def test_from_csv_loads_long_format_example(tmp_path):
+    wide = bc.DoseResponseData.from_csv(
+        DATA_DIR / "direct-binding.csv",
+        format="wide",
     )
+    path = tmp_path / "direct-binding-long.csv"
+    wide.to_csv(path, format="long")
 
-    # 3 compounds * 3 experiments * 11 points * 5 replicates = 495 rows
-    assert len(data.table) == 495
-    assert data.compounds == ["cmpd_1", "cmpd_2", "cmpd_3"]
-    assert set(data.table["experiment_id"]) == {"exp_1", "exp_2", "exp_3"}
+    data = bc.DoseResponseData.from_csv(path, format="long")
+
+    assert len(data.table) == 216
+    assert data.compounds == ["simple", "specific", "total"]
+    assert set(data.table["experiment_id"]) == {"exp_1", "exp_2"}
     assert set(data.table["replicate_id"]) == {
-        "rep_1",
-        "rep_2",
-        "rep_3",
-        "rep_4",
-        "rep_5",
+        "response_1",
+        "response_2",
+        "response_3",
     }
 
 
 def test_from_csv_loads_wide_format_example():
     data = bc.DoseResponseData.from_csv(
-        DATA_DIR / "direct_binding_wide.csv",
+        DATA_DIR / "direct-binding.csv",
         format="wide",
     )
 
-    # 3 compounds * 3 experiments * 11 points = 99 rows (in long format it's 495)
-    # The DoseResponseData.from_csv might return the long format table? 
-    # Let's check bc.DoseResponseData.from_csv implementation if needed.
-    # But usually it's the number of unique points.
-    assert len(data.table) == 495
-    assert data.compounds == ["cmpd_1", "cmpd_2", "cmpd_3"]
-    assert set(data.table["experiment_id"]) == {"exp_1", "exp_2", "exp_3"}
+    assert len(data.table) == 216
+    assert data.compounds == ["simple", "specific", "total"]
+    assert set(data.table["experiment_id"]) == {"exp_1", "exp_2"}
     assert set(data.table["replicate_id"]) == {
-        "response_1", "response_2", "response_3", "response_4", "response_5"
+        "response_1",
+        "response_2",
+        "response_3",
     }
 
 
-def test_long_and_wide_examples_contain_same_direct_binding_values():
-    long = bc.DoseResponseData.from_csv(
-        DATA_DIR / "direct_binding_long.csv",
-        format="long",
-    ).table
+def test_long_and_wide_examples_contain_same_direct_binding_values(tmp_path):
     wide = bc.DoseResponseData.from_csv(
-        DATA_DIR / "direct_binding_wide.csv",
+        DATA_DIR / "direct-binding.csv",
         format="wide",
-    ).table
-
-    long_normalized = long.copy()
-    long_normalized["replicate_id"] = long_normalized["replicate_id"].str.replace(
-        "rep_", "response_", regex=False
     )
+    path = tmp_path / "direct-binding-long.csv"
+    wide.to_csv(path, format="long")
+    long = bc.DoseResponseData.from_csv(path, format="long")
 
-    sort_cols = ["compound_id", "experiment_id", "concentration", "replicate_id"]
-    long_normalized = long_normalized.sort_values(sort_cols).reset_index(drop=True)
-    wide = wide.sort_values(sort_cols).reset_index(drop=True)
-
-    assert long_normalized[sort_cols + ["response"]].equals(
-        wide[sort_cols + ["response"]]
-    )
+    assert_same_long_table(long.table, wide.table)
 
 
 def test_from_csv_loads_competitive_examples():
-    long = bc.DoseResponseData.from_csv(
-        DATA_DIR / "competitive_binding_long.csv",
-        format="long",
-    )
     wide = bc.DoseResponseData.from_csv(
-        DATA_DIR / "competitive_binding_wide.csv",
+        DATA_DIR / "competitive-binding.csv",
         format="wide",
     )
 
-    # 3 compounds * 3 experiments * 11 points * 5 replicates = 495 rows
-    assert len(long.table) == 495
-    assert len(wide.table) == 495
-    assert len(long.compounds) == 3
-    assert len(wide.compounds) == 3
-    assert set(long.table["experiment_id"]) == {"exp_1", "exp_2", "exp_3"}
-    assert set(wide.table["experiment_id"]) == {"exp_1", "exp_2", "exp_3"}
+    assert len(wide.table) == 312
+    assert wide.compounds == ["four_state", "ic50_a", "ic50_b", "three_state"]
+    assert set(wide.table["experiment_id"]) == {"exp_1", "exp_2"}
 
 
 def test_from_csv_rejects_unknown_format(tmp_path):
