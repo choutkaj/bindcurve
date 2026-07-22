@@ -5,7 +5,7 @@ authors:
   given-names: "Jan"
   orcid: "https://orcid.org/0000-0001-6290-9787"
 title: "BindCurve: Fitting and plotting of experimental binding curves in Python."
-version: 0.1.2
+version: 0.2.0
 doi: 10.5281/zenodo.15776819
-date-released: 2025-6-30
+date-released: 2026-07-22
 url: "https://github.com/choutkaj/bindcurve"
