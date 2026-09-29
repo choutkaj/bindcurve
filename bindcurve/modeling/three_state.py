@@ -39,17 +39,14 @@ def _competitive_three_state_receptor_free(
             normalized_R: float,
             normalized_LT: float = normalized_LT,
         ) -> float:
-            RLs = (
-                normalized_LsT
-                * normalized_R
-                / (normalized_Kds + normalized_R)
+            RLs = normalized_LsT * normalized_R / (normalized_Kds + normalized_R)
+            # Combine RL - 1 algebraically before evaluation. Near LT = RT,
+            # subtracting 1 from a nearly saturated RL loses the small terms
+            # that determine free receptor in the tight-binding limit.
+            RL_minus_RT = ((normalized_LT - 1.0) * normalized_R - normalized_Kd) / (
+                normalized_Kd + normalized_R
             )
-            RL = (
-                normalized_LT
-                * normalized_R
-                / (normalized_Kd + normalized_R)
-            )
-            return normalized_R + RLs + RL - 1.0
+            return normalized_R + RLs + RL_minus_RT
 
         normalized_R = brentq(
             mass_balance,
@@ -86,14 +83,14 @@ def _competitive_three_state_specific_component_arrays(
         out=np.zeros_like(R, dtype=float),
         where=(Kds + R) != 0.0,
     )
-    Ls = np.clip(LsT - RLs, 0.0, None)
+    Ls = LsT * Kds / (Kds + R)
     RL = np.divide(
         LT * R,
         Kd + R,
         out=np.zeros_like(R, dtype=float),
         where=(Kd + R) != 0.0,
     )
-    L = np.clip(LT - RL, 0.0, None)
+    L = LT * Kd / (Kd + R)
     Fbs = np.divide(
         RLs,
         LsT,
@@ -138,7 +135,7 @@ def _competitive_three_state_total_component_arrays(
         out=np.zeros_like(R, dtype=float),
         where=(Kds + R) != 0.0,
     )
-    Ls = np.clip(LsT - RLs, 0.0, None)
+    Ls = LsT * Kds / (Kds + R)
     RL = np.divide(
         LT * R,
         effective_factor * Kd + R,

@@ -60,14 +60,10 @@ def _direct_specific_component_arrays(
 ) -> dict[str, np.ndarray]:
     RT = np.asarray(RT, dtype=float)
     R = _direct_specific_receptor_free(RT, LsT=LsT, Kds=Kds)
-    RLs = np.clip(RT - R, 0.0, None)
-    Ls = np.clip(LsT - RLs, 0.0, None)
-    Fbs = np.divide(
-        RLs,
-        LsT,
-        out=np.zeros_like(RLs, dtype=float),
-        where=LsT != 0.0,
-    )
+    # Reconstruct from equilibrium, retaining tracer too small for RT - R.
+    Fbs = R / (Kds + R)
+    RLs = LsT * Fbs
+    Ls = LsT * Kds / (Kds + R)
     return {
         "RT": RT,
         "R": R,
