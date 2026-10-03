@@ -45,10 +45,10 @@ def ic50_curve(x, *, ymin=0.0, ymax=100.0, ic50=1.8, hill_slope=1.0):
     return ymin + (ymax - ymin) / (1.0 + (x / ic50) ** hill_slope)
 
 
-def make_multi_experiment_data() -> bc.DoseResponseData:
+def make_data(offsets=(-0.03, 0.0, 0.04)) -> bc.DoseResponseData:
     concentrations = np.logspace(-2, 2, 12)
     rows = []
-    for experiment_id, offset in {"exp1": -0.03, "exp2": 0.0, "exp3": 0.04}.items():
+    for index, offset in enumerate(offsets, start=1):
         effective_ic50 = 1.8 * (10**offset)
         for concentration in concentrations:
             base_response = ic50_curve(concentration, ic50=effective_ic50)
@@ -56,7 +56,7 @@ def make_multi_experiment_data() -> bc.DoseResponseData:
                 rows.append(
                     {
                         "compound_id": "cmpd_a",
-                        "experiment_id": experiment_id,
+                        "experiment_id": f"exp{index}",
                         "concentration": concentration,
                         "replicate_id": f"rep{replicate_id}",
                         "response": base_response + noise,
@@ -65,26 +65,8 @@ def make_multi_experiment_data() -> bc.DoseResponseData:
     return bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
 
 
-def make_single_experiment_data() -> bc.DoseResponseData:
-    concentrations = np.logspace(-2, 2, 12)
-    rows = []
-    for concentration in concentrations:
-        base_response = ic50_curve(concentration, ic50=1.8)
-        for replicate_id, noise in enumerate([-0.3, 0.0, 0.3], start=1):
-            rows.append(
-                {
-                    "compound_id": "cmpd_a",
-                    "experiment_id": "exp1",
-                    "concentration": concentration,
-                    "replicate_id": f"rep{replicate_id}",
-                    "response": base_response + noise,
-                }
-            )
-    return bc.DoseResponseData.from_dataframe(pd.DataFrame(rows))
-
-
 def test_report_representation_both_labels_linear_and_log_faces():
-    data = make_multi_experiment_data()
+    data = make_data()
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     report = results.report(
@@ -106,7 +88,7 @@ def test_report_representation_both_labels_linear_and_log_faces():
 
 
 def test_report_omits_missing_uncertainty_for_single_experiment():
-    data = make_single_experiment_data()
+    data = make_data(offsets=(0.0,))
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     summary = results.summary()
@@ -119,7 +101,7 @@ def test_report_omits_missing_uncertainty_for_single_experiment():
 
 
 def test_fit_summary_exposes_explicit_optimizer_and_failure_diagnostics():
-    data = make_single_experiment_data()
+    data = make_data(offsets=(0.0,))
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
     columns = set(results.fit_summary().columns)
@@ -155,7 +137,7 @@ def test_report_rejects_invalid_options_independently_of_fit_success(
 ):
     model = bc.get_model("ic50")
     if state == "successful":
-        results = bc.fit(make_single_experiment_data(), model=model)
+        results = bc.fit(make_data(offsets=(0.0,)), model=model)
     elif state == "failed":
         failed = bc.FitResult.failed(
             model=model,

@@ -146,3 +146,18 @@ Preserve independent equilibrium, mass-balance, concentration-scale, cancellatio
 weighting, and uncertainty tests when refactoring. Numerical root selection,
 stability expressions, and solver tolerances are scientific implementation
 choices, not formatting opportunities.
+
+Run the complete suite with `uv run --group test pytest`. To run just the public
+workflows, use `uv run --group test pytest tests/test_end_to_end.py`.
+
+The end-to-end tests cover CSV input, all eight models, experiment summaries and
+intervals, formatted reports, exported tables, and saved plots. They also cover
+sigma/reciprocal-weight fitting and standardized residuals, real partial failures,
+and conversion of an actual IC50 summary with its confidence limits. They run in
+the regular suite and in CI against the installed wheel using the tests shipped
+in the source distribution.
+
+Keep regression expectations small and independently justified: analytic values,
+mass balances, and numerical tolerances. Avoid optimizer-output snapshots and
+pixel comparisons. Share repetitive input construction where useful, but keep
+scientific reference calculations independent of production model evaluation.

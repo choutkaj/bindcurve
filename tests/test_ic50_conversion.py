@@ -106,50 +106,11 @@ def test_dataframe_conversion_with_confidence_limits():
         upper_col="upper_IC50",
     )
 
-    expected_kd = [
-        legacy_cheng_prusoff(2.0, 4.0, 10.0),
-        legacy_cheng_prusoff(2.0, 4.0, 20.0),
-    ]
-    expected_lower = [
-        legacy_cheng_prusoff(2.0, 4.0, 8.0),
-        legacy_cheng_prusoff(2.0, 4.0, 18.0),
-    ]
-    expected_upper = [
-        legacy_cheng_prusoff(2.0, 4.0, 12.0),
-        legacy_cheng_prusoff(2.0, 4.0, 22.0),
-    ]
-
     assert list(converted["compound_id"]) == ["cmpd_a", "cmpd_b"]
     assert list(converted["model"]) == ["cheng_prusoff", "cheng_prusoff"]
-    assert np.allclose(converted["Kd"], expected_kd)
-    assert np.allclose(converted["lower_Kd"], expected_lower)
-    assert np.allclose(converted["upper_Kd"], expected_upper)
-
-
-def test_dataframe_conversion_supports_fit_results_column_names():
-    df = pd.DataFrame(
-        {
-            "compound_id": ["cmpd_a"],
-            "IC50": [10.0],
-            "IC50_lower_ci": [8.0],
-            "IC50_upper_ci": [12.0],
-        }
-    )
-
-    converted = bc.convert_ic50_to_kd(
-        df,
-        model="cheng_prusoff",
-        LsT=2.0,
-        Kds=4.0,
-        lower_col="IC50_lower_ci",
-        upper_col="IC50_upper_ci",
-    )
-
-    assert converted.loc[0, "lower_Kd"] == pytest.approx(
-        legacy_cheng_prusoff(2.0, 4.0, 8.0)
-    )
-    assert converted.loc[0, "upper_Kd"] == pytest.approx(
-        legacy_cheng_prusoff(2.0, 4.0, 12.0)
+    np.testing.assert_allclose(
+        converted[["Kd", "lower_Kd", "upper_Kd"]],
+        df[["IC50", "lower_IC50", "upper_IC50"]].to_numpy() / 1.5,
     )
 
 

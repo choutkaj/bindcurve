@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 import pytest
 from scipy.optimize import brentq
 
@@ -70,28 +69,6 @@ def comp_total_curve(
     return ymin + (ymax - ymin) * Fbs
 
 
-def make_competition_data(curve, *, compound_id="cmpd_a") -> bc.DoseResponseData:
-    concentrations = np.logspace(-3, 2, 22)
-    rows = []
-    multipliers = {"exp1": 0.95, "exp2": 1.00, "exp3": 1.05}
-    for experiment_id, multiplier in multipliers.items():
-        for concentration in concentrations:
-            response = curve(concentration * multiplier)
-            for replicate_id, noise in enumerate([-0.08, 0.0, 0.08], start=1):
-                rows.append(
-                    {
-                        "compound_id": compound_id,
-                        "experiment_id": experiment_id,
-                        "concentration": concentration,
-                        "replicate_id": f"rep{replicate_id}",
-                        "response": response + noise,
-                    }
-                )
-    return bc.DoseResponseData.from_dataframe(
-        pd.DataFrame(rows),
-    )
-
-
 def test_registry_contains_competitive_three_state_models():
     assert isinstance(
         bc.get_model("comp_3st_specific"),
@@ -103,7 +80,7 @@ def test_registry_contains_competitive_three_state_models():
     )
 
 
-def test_comp_3st_specific_recovers_kd_from_synthetic_data():
+def test_comp_3st_specific_recovers_kd_from_synthetic_data(make_competition_data):
     data = make_competition_data(comp_specific_curve)
     results = bc.fit(
         data,
@@ -123,7 +100,7 @@ def test_comp_3st_specific_recovers_kd_from_synthetic_data():
     assert np.allclose(fits["Kd"].mean(), 1.6, rtol=0.15)
 
 
-def test_comp_3st_total_recovers_kd_from_synthetic_data():
+def test_comp_3st_total_recovers_kd_from_synthetic_data(make_competition_data):
     data = make_competition_data(comp_total_curve)
     results = bc.fit(
         data,
@@ -144,7 +121,7 @@ def test_comp_3st_total_recovers_kd_from_synthetic_data():
     assert np.allclose(fits["Kd"].mean(), 2.4, rtol=0.15)
 
 
-def test_comp_3st_specific_requires_constants():
+def test_comp_3st_specific_requires_constants(make_competition_data):
     data = make_competition_data(comp_specific_curve)
 
     with pytest.raises(ValueError, match="RT"):
@@ -155,7 +132,7 @@ def test_comp_3st_specific_requires_constants():
         )
 
 
-def test_comp_3st_total_requires_nonspecific_constant():
+def test_comp_3st_total_requires_nonspecific_constant(make_competition_data):
     data = make_competition_data(comp_total_curve)
 
     with pytest.raises(ValueError, match="N"):
