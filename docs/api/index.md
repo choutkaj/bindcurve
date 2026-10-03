@@ -15,7 +15,7 @@ class members are generated from the source docstrings.
    bindcurve.fit
 ```
 
-## Results and quality
+## Results
 
 ```{eval-rst}
 .. autosummary::
@@ -27,8 +27,6 @@ class members are generated from the source docstrings.
    bindcurve.ParameterEstimate
    bindcurve.ParameterSummary
    bindcurve.ConcentrationSummary
-   bindcurve.DataQualityThresholds
-   bindcurve.ResultQualityThresholds
 ```
 
 ## Plotting
@@ -83,7 +81,7 @@ class members are generated from the source docstrings.
 :maxdepth: 2
 
 data-fitting
-results-quality
+results
 plotting
 modeling
 conversion

@@ -338,9 +338,7 @@ def _competitive_four_state_mass_balance_residual(
         Kd=Kd,
         Kd3=Kd3,
     ).item()
-    Ls = LsT / (
-        1.0 + R / Kds + R * L / (Kd * Kd3)
-    )
+    Ls = LsT / (1.0 + R / Kds + R * L / (Kd * Kd3))
     RLs = R * Ls / Kds
     RL = R * L / Kd
     RLLs = R * L * Ls / (Kd * Kd3)
@@ -367,9 +365,7 @@ def _competitive_four_state_mass_balance_score(
         Kd=Kd,
         Kd3=Kd3,
     ).item()
-    Ls = LsT / (
-        1.0 + R / Kds + R * L / (Kd * Kd3)
-    )
+    Ls = LsT / (1.0 + R / Kds + R * L / (Kd * Kd3))
     tolerance = 1.0e-8
     if (
         not np.isfinite(L)
@@ -468,10 +464,7 @@ def _competitive_four_state_specific_component_arrays(
         LsT,
         1.0 + R / Kds + R * L / (Kd * Kd3),
         out=np.zeros_like(R, dtype=float),
-        where=(
-            1.0 + R / Kds + R * L / (Kd * Kd3)
-        )
-        != 0.0,
+        where=(1.0 + R / Kds + R * L / (Kd * Kd3)) != 0.0,
     )
     RLs = np.divide(
         R * Ls,

@@ -2,6 +2,7 @@ include README.md
 include LICENSE
 include CITATION.cff
 include architecture.md
+include data_formats.md
 include .python-version
 
 recursive-include bindcurve *.py
@@ -15,6 +16,10 @@ prune docs_legacy
 prune logo
 prune quarto_website
 prune tutorials
+
+# Keep the inputs required by the tests shipped in the source distribution.
+recursive-include docs/api *.md
+recursive-include docs/tutorials/data *.csv
 
 prune __pycache__
 prune .pytest_cache

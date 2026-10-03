@@ -282,10 +282,7 @@ def test_comp_4st_specific_evaluate_components_returns_species_balances():
 
     assert np.allclose(
         components["RT"],
-        components["R"]
-        + components["RLs"]
-        + components["RL"]
-        + components["RLLs"],
+        components["R"] + components["RLs"] + components["RL"] + components["RLLs"],
         atol=1.0e-9,
     )
     assert np.allclose(

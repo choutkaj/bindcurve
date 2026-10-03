@@ -221,9 +221,7 @@ class _FitCalculator:
             float(rss / degrees_of_freedom) if degrees_of_freedom > 0 else None
         )
         chi_square = (
-            float(np.sum((raw_residual / sigma) ** 2))
-            if sigma is not None
-            else None
+            float(np.sum((raw_residual / sigma) ** 2)) if sigma is not None else None
         )
         reduced_chi_square = (
             float(chi_square / degrees_of_freedom)
@@ -238,13 +236,10 @@ class _FitCalculator:
             # Known heteroscedastic sigma requires the actual Gaussian
             # likelihood, including its observation-specific normalization.
             negative_twice_log_likelihood = float(
-                chi_square
-                + np.sum(np.log(2.0 * np.pi) + 2.0 * np.log(sigma))
+                chi_square + np.sum(np.log(2.0 * np.pi) + 2.0 * np.log(sigma))
             )
             aic = float(negative_twice_log_likelihood + 2.0 * n_varying)
-            bic = float(
-                negative_twice_log_likelihood + n_varying * np.log(n_data)
-            )
+            bic = float(negative_twice_log_likelihood + n_varying * np.log(n_data))
         ss_tot = float(np.sum((y - np.mean(y)) ** 2))
         r_squared = 1.0 - rss / ss_tot if ss_tot > 0 else None
         return FitMetrics(

@@ -86,9 +86,7 @@ def _fit_confidence_band(
         raise ValueError("finite_difference_step must be finite and positive.")
     if fit.metrics is None:
         raise ValueError("Cannot plot confidence bands without fit metrics.")
-    degrees_of_freedom = (
-        fit.metrics.n_data - fit.metrics.n_varying_parameters
-    )
+    degrees_of_freedom = fit.metrics.n_data - fit.metrics.n_varying_parameters
     multiplier = _confidence_multiplier(
         confidence_level,
         degrees_of_freedom=degrees_of_freedom,
@@ -126,9 +124,7 @@ def _fit_confidence_band(
                 _evaluate_model(fit, x, minus_parameters),
                 dtype=float,
             )
-            jacobian[:, index] = (
-                y_plus - y_minus
-            ) / (2.0 * symmetric_step)
+            jacobian[:, index] = (y_plus - y_minus) / (2.0 * symmetric_step)
             continue
 
         if distance_up > 0.0:

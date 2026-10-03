@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 
 import numpy as np
+import pandas as pd
 from matplotlib.axes import Axes
 
 from bindcurve.datasets import DoseResponseData
@@ -15,12 +16,13 @@ from bindcurve.plotting.common import (
     _make_plot_grid_from_table,
     _normalize_dose_representation,
     _normalize_error_style,
+    _plot_series_curve,
     _resolve_compound_ids,
     _resolve_series_colors,
 )
 from bindcurve.plotting.observations import (
     _observation_groups_for_compound,
-    _plot_series_observation_group,
+    _plot_series_observations,
 )
 from bindcurve.results import FitResults
 
@@ -33,16 +35,16 @@ def _build_compound_series(
     dose_representation: DoseRepresentation,
 ) -> list[CurveSeries]:
     series = []
+    table = data.table
+    fits_by_compound = results._fits_by_compound()
     for compound_id in compound_ids:
         observation_groups = _observation_groups_for_compound(
-            data,
+            table,
             compound_id=str(compound_id),
             dose_representation=dose_representation,
         )
         fits = tuple(
-            fit
-            for fit in results.successful()
-            if str(fit.compound_id) == str(compound_id)
+            fit for fit in fits_by_compound.get(str(compound_id), []) if fit.success
         )
         if not observation_groups and not fits:
             continue
@@ -103,32 +105,20 @@ def plot_compounds(
 
     for spec in series:
         label_on_curve = show_curves and bool(spec.fits)
-        observations_visible = show_markers or error_style is not None
-        if observations_visible:
-            label_used = False
-            for group in spec.observation_groups:
-                group_label = "_nolegend_"
-                if not label_on_curve and not label_used:
-                    group_label = spec.label
-                plotted = _plot_series_observation_group(
-                    ax,
-                    group,
-                    label=group_label,
-                    color=spec.color,
-                    show_markers=show_markers,
-                    marker_kind=marker_kind,
-                    marker_size=marker_size,
-                    error_style=error_style,
-                    errorbar_linewidth=errorbar_linewidth,
-                    errorbar_capsize=errorbar_capsize,
-                )
-                if plotted and group_label != "_nolegend_":
-                    label_used = True
+        _plot_series_observations(
+            ax,
+            spec,
+            label_on_curve=label_on_curve,
+            show_markers=show_markers,
+            marker_kind=marker_kind,
+            marker_size=marker_size,
+            error_style=error_style,
+            errorbar_linewidth=errorbar_linewidth,
+            errorbar_capsize=errorbar_capsize,
+        )
 
         if show_curves and spec.fits:
-            compound_table = data.table[
-                data.table["compound_id"].astype(str) == spec.compound_id
-            ]
+            compound_table = pd.concat(spec.observation_groups, ignore_index=True)
             if compound_table.empty:
                 continue
             grid = _make_plot_grid_from_table(
@@ -137,27 +127,22 @@ def plot_compounds(
                 n_points=n_points,
                 xscale=xscale,
             )
-            line_kwargs: dict[str, object] = {
-                "label": spec.label,
-                "color": spec.color,
-                "linewidth": curve_width,
-                "linestyle": curve_style,
-            }
-            if show_markers:
-                line_kwargs.update(
-                    {
-                        "marker": marker_kind,
-                        "markersize": marker_size,
-                        "markerfacecolor": spec.color,
-                        "markeredgecolor": spec.color,
-                        "markevery": [],
-                    }
-                )
             predictions = np.stack(
                 [np.asarray(_evaluate_fit(fit, grid), dtype=float) for fit in spec.fits]
             )
             response = np.mean(predictions, axis=0)
-            ax.plot(grid, response, **line_kwargs)
+            _plot_series_curve(
+                ax,
+                grid,
+                response,
+                label=spec.label,
+                color=spec.color,
+                show_markers=show_markers,
+                marker_kind=marker_kind,
+                marker_size=marker_size,
+                curve_width=curve_width,
+                curve_style=curve_style,
+            )
 
     if xscale is not None:
         ax.set_xscale(xscale)

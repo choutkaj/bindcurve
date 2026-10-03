@@ -191,3 +191,42 @@ def test_from_json_rejects_conflicting_requested_format():
 
     with pytest.raises(ValueError, match="does not match"):
         bc.DoseResponseData.from_json(payload, format="long")
+
+
+@pytest.mark.parametrize("serializer", ["to_dataframe", "to_csv", "to_json"])
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"response_col": "compound_id"},
+        {"compound_col": "dose", "concentration_col": "dose"},
+        {"format": "wide", "compound_col": "response_1"},
+        {"format": "wide", "experiment_col": "concentration"},
+    ],
+)
+def test_exports_reject_colliding_column_names(serializer, options):
+    data = make_round_trip_data()
+
+    with pytest.raises(ValueError, match="Output column names must be unique"):
+        getattr(data, serializer)(**options)
+
+
+def test_export_rejects_collision_with_preserved_metadata_column():
+    table = make_round_trip_data().table
+    table["signal"] = "plate A"
+    data = bc.DoseResponseData(table)
+
+    with pytest.raises(ValueError, match="Output column names must be unique"):
+        data.to_json(response_col="signal")
+
+
+def test_custom_long_column_names_preserve_data_and_metadata():
+    table = make_round_trip_data().table
+    table["plate"] = "A"
+    data = bc.DoseResponseData(table)
+    names = dict(
+        compound_col="compound", concentration_col="dose", response_col="signal"
+    )
+
+    restored = bc.DoseResponseData.from_json(data.to_json(**names), **names)
+
+    pd.testing.assert_frame_equal(restored.table, data.table)

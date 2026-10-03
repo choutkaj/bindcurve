@@ -2,18 +2,19 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from bindcurve.quality import resolve_requested_compounds
-from bindcurve.results.types import ConcentrationSummary, ReportUncertainty
+from bindcurve.results.types import (
+    ConcentrationSummary,
+    ReportRepresentation,
+    ReportUncertainty,
+    RoundingMode,
+)
 
 if TYPE_CHECKING:
     from bindcurve.results.core import FitResults
-
-ReportRepresentation = Literal["linear", "log", "both"]
-RoundingMode = Literal["sigfig", "decimals"]
 
 
 def format_results_report(
@@ -30,9 +31,20 @@ def format_results_report(
     include_n_exp: bool,
 ) -> pd.DataFrame:
     """Build manuscript-ready concentration summaries."""
+    if representation not in {"linear", "log", "both"}:
+        raise ValueError("representation must be 'linear', 'log', or 'both'.")
+    if uncertainty not in {"sd", "sem", "ci95"}:
+        raise ValueError("uncertainty must be 'sd', 'sem', or 'ci95'.")
     _validate_rounding_places(rounding, places_mean, places_uncertainty)
-    selected_compounds = resolve_requested_compounds(
-        _ordered_compound_ids(results),
+    available = {spec.name for spec in results.model.concentration_parameter_specs}
+    if parameter != "auto" and parameter not in available:
+        raise KeyError(
+            f"Unknown concentration parameter {parameter!r}. "
+            f"Available parameters: {sorted(available)}"
+        )
+    fits_by_compound = results._fits_by_compound()
+    selected_compounds = _resolve_requested_compounds(
+        fits_by_compound,
         compounds,
     )
     columns = [
@@ -82,11 +94,7 @@ def format_results_report(
     }
     rows: list[dict[str, object]] = []
     for compound_id in selected_compounds:
-        compound_fits = [
-            fit
-            for fit in results.fit_results
-            if str(fit.compound_id) == str(compound_id)
-        ]
+        compound_fits = fits_by_compound[compound_id]
         n_successful = sum(fit.success for fit in compound_fits)
         n_failed = len(compound_fits) - n_successful
         summary = summary_lookup.get((compound_id, parameter_name))
@@ -113,17 +121,6 @@ def format_results_report(
             }
         )
     return pd.DataFrame(rows, columns=columns)
-
-
-def _ordered_compound_ids(results: FitResults) -> list[str]:
-    ordered: list[str] = []
-    seen: set[str] = set()
-    for fit in results.fit_results:
-        compound_id = str(fit.compound_id)
-        if compound_id not in seen:
-            seen.add(compound_id)
-            ordered.append(compound_id)
-    return ordered
 
 
 def _resolve_report_parameter(
@@ -280,10 +277,6 @@ def _format_concentration_report(
     unit: str | None,
     include_n_exp: bool,
 ) -> str:
-    if representation not in {"linear", "log", "both"}:
-        raise ValueError("representation must be 'linear', 'log', or 'both'.")
-    if uncertainty not in {"sd", "sem", "ci95"}:
-        raise ValueError("uncertainty must be 'sd', 'sem', or 'ci95'.")
 
     linear_text = _format_linear_clause(
         summary,
@@ -306,7 +299,28 @@ def _format_concentration_report(
         report = log_text
     else:
         report = (
-            f"{summary.parameter}: {linear_text}; "
-            f"{summary.log_parameter}: {log_text}"
+            f"{summary.parameter}: {linear_text}; {summary.log_parameter}: {log_text}"
         )
     return f"{report}, N_exp = {summary.N_exp}" if include_n_exp else report
+
+
+def _resolve_requested_compounds(
+    available: Iterable[str],
+    compounds: str | Iterable[str] | None,
+) -> list[str]:
+    """Return requested compound identifiers while preserving user order."""
+    available_list = [str(compound_id) for compound_id in available]
+    if compounds is None:
+        return available_list
+
+    if isinstance(compounds, str):
+        requested = [str(compounds)]
+    else:
+        requested = [str(value) for value in compounds]
+
+    missing = [
+        compound_id for compound_id in requested if compound_id not in available_list
+    ]
+    if missing:
+        raise KeyError(f"Unknown compound(s): {missing}")
+    return list(dict.fromkeys(requested))

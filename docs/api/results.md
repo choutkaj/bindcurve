@@ -1,7 +1,8 @@
-# Results and quality
+# Results
 
-Fit results expose individual estimates, aggregate summaries, diagnostic
-metrics, and configurable quality thresholds.
+Fit results expose individual estimates, aggregate summaries, and numerical
+diagnostics. Use `fit_summary()` for per-experiment metrics and failure details,
+`summary()` for compound-level estimates, and `report()` for formatted results.
 
 ## `FitResults`
 
@@ -51,18 +52,3 @@ metrics, and configurable quality thresholds.
    :show-inheritance:
 ```
 
-## `DataQualityThresholds`
-
-```{eval-rst}
-.. autoclass:: bindcurve.DataQualityThresholds
-   :members:
-   :show-inheritance:
-```
-
-## `ResultQualityThresholds`
-
-```{eval-rst}
-.. autoclass:: bindcurve.ResultQualityThresholds
-   :members:
-   :show-inheritance:
-```

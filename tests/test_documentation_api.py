@@ -14,8 +14,7 @@ AUTODOC_OBJECT = re.compile(
 
 def test_api_reference_documents_exactly_the_public_root_api():
     sources = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted(API_DOCS_DIR.glob("*.md"))
+        path.read_text(encoding="utf-8") for path in sorted(API_DOCS_DIR.glob("*.md"))
     )
     documented = set(AUTODOC_OBJECT.findall(sources))
 

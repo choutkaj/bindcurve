@@ -30,13 +30,9 @@ def make_ambiguous_results() -> bc.FitResults:
             experiment_id=f"exp{index}",
             parameters={
                 "ymin": bc.ParameterEstimate("ymin", 0.0, vary=False),
-                "ymax": bc.ParameterEstimate(
-                    "ymax", 100.0, vary=False
-                ),
+                "ymax": bc.ParameterEstimate("ymax", 100.0, vary=False),
                 "IC50": bc.ParameterEstimate("IC50", 1.0 + index, stderr=0.1),
-                "hill_slope": bc.ParameterEstimate(
-                    "hill_slope", 1.0, vary=False
-                ),
+                "hill_slope": bc.ParameterEstimate("hill_slope", 1.0, vary=False),
                 "Kd": bc.ParameterEstimate("Kd", 2.0 + index, stderr=0.1),
             },
         )
@@ -143,3 +139,55 @@ def test_report_auto_raises_for_multiple_reportable_quantities():
         match="Multiple reportable concentration quantities",
     ):
         results.report()
+
+
+@pytest.mark.parametrize("state", ["successful", "failed", "empty"])
+@pytest.mark.parametrize(
+    ("options", "error"),
+    [
+        ({"parameter": "typo"}, KeyError),
+        ({"representation": "typo"}, ValueError),
+        ({"uncertainty": "typo"}, ValueError),
+    ],
+)
+def test_report_rejects_invalid_options_independently_of_fit_success(
+    state, options, error
+):
+    model = bc.get_model("ic50")
+    if state == "successful":
+        results = bc.fit(make_single_experiment_data(), model=model)
+    elif state == "failed":
+        failed = bc.FitResult.failed(
+            model=model,
+            compound_id="a",
+            experiment_id="exp1",
+            stage="fit_experiment",
+            error=ValueError("insufficient observations"),
+        )
+        results = bc.FitResults(model, (failed,))
+    else:
+        results = bc.FitResults(model, ())
+
+    with pytest.raises(error):
+        results.report(**options)
+
+
+def test_all_failed_report_retains_failure_counts_and_unavailable_summary():
+    model = bc.get_model("ic50")
+    failed = bc.FitResult.failed(
+        model=model,
+        compound_id="a",
+        experiment_id="exp1",
+        stage="fit_experiment",
+        error=ValueError("insufficient observations"),
+    )
+    results = bc.FitResults(model, (failed,))
+
+    assert results.report(parameter="IC50").to_dict("records") == [
+        {
+            "compound_id": "a",
+            "report": "unavailable: no successful fit summary",
+            "N_fit_successful": 0,
+            "N_fit_failed": 1,
+        }
+    ]

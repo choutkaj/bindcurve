@@ -30,7 +30,6 @@ class CurveSeries:
     color: object | None = None
 
 
-
 def _get_axes(ax: Axes | None) -> Axes:
     if ax is not None:
         return ax
@@ -144,3 +143,36 @@ def _resolve_series_colors(
     if not all(is_color_like(color) for color in resolved):
         raise ValueError("Every entry in colors must be a valid Matplotlib color.")
     return resolved
+
+
+def _plot_series_curve(
+    ax: Axes,
+    grid: np.ndarray,
+    response: np.ndarray,
+    *,
+    label: str,
+    color: object,
+    show_markers: bool,
+    marker_kind: str,
+    marker_size: float,
+    curve_width: float,
+    curve_style: str,
+) -> None:
+    line_kwargs: dict[str, object] = {
+        "label": label,
+        "color": color,
+        "linewidth": curve_width,
+        "linestyle": curve_style,
+    }
+    if show_markers:
+        # Keep markers in the legend handle, not on the fitted line itself.
+        line_kwargs.update(
+            {
+                "marker": marker_kind,
+                "markersize": marker_size,
+                "markerfacecolor": color,
+                "markeredgecolor": color,
+                "markevery": [],
+            }
+        )
+    ax.plot(grid, response, **line_kwargs)

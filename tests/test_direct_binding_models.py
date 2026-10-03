@@ -24,9 +24,7 @@ def dir_specific_curve(x, *, ymin=3.0, ymax=91.0, LsT=0.35, Kds=1.8):
     Fbs = []
     for total in np.atleast_1d(RT):
         R = brentq(
-            lambda free, total=total: free
-            + free * (LsT / (Kds + free))
-            - float(total),
+            lambda free, total=total: free + free * (LsT / (Kds + free)) - float(total),
             0.0,
             float(total),
         )
@@ -42,9 +40,9 @@ def dir_total_curve(x, *, ymin=4.0, ymax=86.0, LsT=0.4, Ns=0.25, Kds=2.2):
     Fbs = []
     for total in np.atleast_1d(RT):
         R = brentq(
-            lambda free, total=total: free
-            + free * LsT / ((1.0 + Ns) * Kds + free)
-            - float(total),
+            lambda free, total=total: (
+                free + free * LsT / ((1.0 + Ns) * Kds + free) - float(total)
+            ),
             0.0,
             float(total),
         )

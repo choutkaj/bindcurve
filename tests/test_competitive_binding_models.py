@@ -18,10 +18,12 @@ def receptor_free_three_state(LT, *, RT, LsT, Kds, Kd, factor=1.0):
     for total in np.atleast_1d(LT):
         roots.append(
             brentq(
-                lambda free, total=total: free
-                + LsT * free / (Kds + free)
-                + float(total) * free / (factor * Kd + free)
-                - RT,
+                lambda free, total=total: (
+                    free
+                    + LsT * free / (Kds + free)
+                    + float(total) * free / (factor * Kd + free)
+                    - RT
+                ),
                 0.0,
                 RT,
             )

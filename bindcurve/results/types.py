@@ -9,6 +9,8 @@ import numpy as np
 
 from bindcurve.modeling.base import BaseDoseResponseModel
 
+ReportRepresentation = Literal["linear", "log", "both"]
+RoundingMode = Literal["sigfig", "decimals"]
 ReportUncertainty = Literal["sd", "sem", "ci95"]
 
 

@@ -144,10 +144,7 @@ def test_plot_compounds_averages_experiment_level_predictions_without_refitting(
         [
             fit.model.evaluate(
                 grid,
-                **{
-                    name: estimate.value
-                    for name, estimate in fit.parameters.items()
-                },
+                **{name: estimate.value for name, estimate in fit.parameters.items()},
             )
             for fit in results.successful()
             if fit.compound_id == "cmpd_a"
@@ -473,9 +470,7 @@ def test_fit_confidence_band_uses_student_t_multiplier():
 
     variance = np.einsum("ij,jk,ik->i", jacobian, covariance, jacobian)
     assert fit.metrics is not None
-    degrees_of_freedom = (
-        fit.metrics.n_data - fit.metrics.n_varying_parameters
-    )
+    degrees_of_freedom = fit.metrics.n_data - fit.metrics.n_varying_parameters
     multiplier = float(student_t.ppf(0.975, df=degrees_of_freedom))
     expected_half_width = multiplier * np.sqrt(np.maximum(variance, 0.0))
 

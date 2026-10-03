@@ -233,7 +233,5 @@ def test_specific_four_state_preserves_tiny_physical_root_in_tracer_excess():
     ).components
 
     assert components["R"][0] > 0.0
-    RT_reconstructed = sum(
-        components[name][0] for name in ("R", "RLs", "RL", "RLLs")
-    )
+    RT_reconstructed = sum(components[name][0] for name in ("R", "RLs", "RL", "RLLs"))
     assert RT_reconstructed == pytest.approx(1.0, rel=1.0e-12)

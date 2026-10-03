@@ -35,22 +35,11 @@ class BaseDoseResponseModel(ABC):
             raise ValueError("Model names must be non-empty strings.")
         parameter_names = [spec.name for spec in self.parameter_specs]
         if len(parameter_names) != len(set(parameter_names)):
-            raise ValueError(
-                f"Model {self.name!r} contains duplicate parameter names."
-            )
+            raise ValueError(f"Model {self.name!r} contains duplicate parameter names.")
 
     def evaluate(self, concentration: np.ndarray, **params: float) -> np.ndarray:
         """Evaluate the observable response on the raw concentration axis."""
-        concentration = self._validated_concentration(concentration)
-        params = self._validated_parameters(params)
-        components = self._normalized_components(
-            self._component_arrays(concentration, **params),
-            expected_shape=concentration.shape,
-        )
-        return self._validated_response(
-            self.response_from_components(components, **params),
-            expected_shape=concentration.shape,
-        )
+        return self._evaluate(concentration, **params).response
 
     @abstractmethod
     def guess(self, compound: CompoundData) -> dict[str, float]:
@@ -81,6 +70,14 @@ class BaseDoseResponseModel(ABC):
         **params: float,
     ) -> ModelEvaluation:
         """Evaluate the observable response and any model-specific components."""
+        return self._evaluate(concentration, **params)
+
+    def _evaluate(
+        self,
+        concentration: np.ndarray,
+        **params: float,
+    ) -> ModelEvaluation:
+        """Validate and evaluate once for both public evaluation methods."""
         concentration = self._validated_concentration(concentration)
         params = self._validated_parameters(params)
         components = self._normalized_components(
@@ -299,8 +296,7 @@ class BaseDoseResponseModel(ABC):
             value = self._finite_parameter_value(spec.name, params[spec.name])
             if not spec.min <= value <= spec.max:
                 raise ValueError(
-                    f"Parameter {spec.name!r} must lie within "
-                    f"[{spec.min}, {spec.max}]."
+                    f"Parameter {spec.name!r} must lie within [{spec.min}, {spec.max}]."
                 )
             values[spec.name] = value
         return values

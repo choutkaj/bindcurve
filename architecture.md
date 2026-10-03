@@ -1,430 +1,148 @@
 # BindCurve architecture
 
-This document describes the intended architecture for the rewritten `bindcurve` package.
+BindCurve fits dose-response and equilibrium-binding data through one canonical
+pipeline. ITC, SPR, and kinetic traces are outside its scope.
 
-## Scope
+## Package boundaries
 
-The refactor focuses only on dose-response and binding-curve fitting through `DoseResponseData`. Other assay types such as ITC, SPR, and kinetic traces are intentionally out of scope for this first rewrite.
+- `datasets/dose_response.py` owns validated observations, selection, and the
+  public import/export methods. Public tables and metadata are isolated copies.
+- `datasets/formats.py` handles table layouts, column mappings, and JSON sources.
+- `datasets/aggregation.py` computes arithmetic response means, sample SD, and SEM.
+- `modeling/` owns equations, physical components, parameter specifications,
+  initial guesses, and conversion between physical and optimizer coordinates.
+- `fitting/` coordinates experiment-level fitting through lmfit. It contains no
+  model-specific equations.
+- `results/types.py` defines result records and uncertainty representations.
+- `results/summaries.py` computes across-experiment parameter statistics.
+- `results/core.py` validates result collections and exposes numerical tables.
+- `results/reporting.py` formats manuscript-facing reports.
+- `plotting/` renders observations, fitted predictions, residuals, confidence
+  bands, and annotations. Plotting never performs a new fit.
+- `conversion/` implements IC50-to-Kd conversions and their input validation.
 
-## Design principles
+## Scientific contract
 
-- Data are validated.
-- Models are registered.
-- Fitting is generic.
-- Results are structured.
-- Plotting is separate.
-- Failures are explicit.
+The following rules are shared by fitting, summaries, and plotting. Architectural
+cleanup must preserve them, along with model equations and numerical tolerances.
 
-## Package organization
+### Canonical observations
 
-```text
-bindcurve/
-  __init__.py
-  datasets/
-    __init__.py
-    dose_response.py
-  modeling/
-    __init__.py
-    parameters.py
-    base.py
-    logistic.py
-    registry.py
-  fitting/
-    __init__.py
-    settings.py
-    calculator.py
-  quality.py
-  results/
-    __init__.py
-    core.py
-  plotting/
-    # future plotting functions
-```
-
-Legacy wrappers are intentionally not included in this rewrite.
-
-## Data model
-
-The primary data object is `DoseResponseData`. Internally, data are stored in normalized long-form format:
+The canonical table is long-form:
 
 ```text
 compound_id | experiment_id | concentration | replicate_id | response | metadata...
 ```
 
-Required columns:
+`compound_id`, `concentration`, and `response` are required. Missing experiment
+identifiers default to `experiment_1`; missing replicate identifiers are generated
+within each compound, experiment, and concentration group. Observations have unique
+compound/experiment/concentration/replicate identities. Concentrations are finite
+and positive; responses are finite. See [data formats](data_formats.md).
 
-```text
-compound_id | concentration | response
-```
+BindCurve is unitless. All concentration-like values supplied together must use
+one consistent numerical scale. Fitted concentration parameters retain that scale.
+Model evaluation also accepts zero concentration for evaluating limits.
 
-Optional columns:
+### One fit per independent experiment
 
-```text
-experiment_id | replicate_id | metadata...
-```
+For each compound, the fitter:
 
-If `experiment_id` or `replicate_id` is missing, `DoseResponseData` fills sensible defaults.
+1. Selects each independent experiment.
+2. Averages technical replicate responses at each concentration arithmetically.
+3. Generates initial guesses and applies fixed values and bounds.
+4. Fits the experiment-level observations.
+5. Summarizes successful fitted parameters across independent experiments.
 
-Nested concepts such as compounds and experiments are views over the canonical table, not independent data owners.
+Technical replicates do not count as independent experiments. A `FitResults`
+collection rejects duplicate compound/experiment identities, inconsistent model
+instances, incompatible parameter schemas, and inconsistent fixed parameters.
 
-## Notation
+### Known observation uncertainty
 
-For one compound, BindCurve uses the following notation:
+Input may contain either `sigma` (known observation standard deviation) or
+`weight` (reciprocal standard deviation). Both must be finite and positive.
+For independent replicate errors, uncertainty of an arithmetic mean is propagated
+as `sqrt(sum(sigma_i**2)) / n`. Fitting standardizes residuals by this propagated
+sigma. Without known sigma, fitting uses unweighted residuals. Empirical replicate
+SD or SEM is not substituted for known observation sigma.
 
-- `N_exp`: number of independent experiments.
-- `N_conc`: number of assayed concentration points per experiment.
-- `N_rep(e, c)`: number of technical replicates in experiment `e` at concentration `c`.
+Fit diagnostics distinguish RSS and reduced RSS from chi-square and reduced
+chi-square. Chi-square is available only when observation uncertainty is known.
+The known-sigma likelihood includes its Gaussian normalization. Optimizer
+covariance is transformed back to public physical parameter coordinates.
 
-For balanced assay designs, this may be shortened to a constant `N_rep`.
+### Parameter summaries
 
-Indices:
+Native additive parameters use arithmetic means, sample SD (`ddof=1`),
+`SEM = SD / sqrt(N_exp)`, and two-sided Student-t 95% confidence intervals.
 
-- `e = 1, ..., N_exp` for experiment.
-- `c = 1, ..., N_conc` for concentration.
-- `r = 1, ..., N_rep(e, c)` for replicate.
+Positive concentration parameters use those same statistics on `log10` values.
+Their linear center is `10**log10_mean`; linear SD, SEM, and CI95 intervals are
+back-transformed log intervals. Linear concentration uncertainty is consequently
+asymmetric. With one successful experiment, spread and confidence intervals are
+unavailable. Fixed parameters are excluded from estimated-parameter summaries.
 
-Response notation:
+`parameter_values()` returns arithmetic means for varying native parameters,
+geometric centers for varying concentration parameters, and the common values
+of fixed parameters. It does not fit another curve.
 
-- `y_ecr`: raw response from experiment `e`, concentration `c`, replicate `r`.
-- `ybar_ec`: arithmetic mean response within experiment `e` at concentration `c`.
-- `ybar_c_grand`: grand mean response at concentration `c`, defined as the arithmetic mean of the experiment-level means contributing at that concentration.
+### Plotting
 
-## Numerical scale
+`plot_fits()` displays observations and predictions for successful experiment-level
+fits. Optional bands are covariance-based pointwise confidence bands around each
+fitted mean curve, using a Student-t multiplier.
 
-`bindcurve` is unitless.
+`plot_compounds()` draws the pointwise arithmetic mean of successful experiment
+predictions. Its grand-mean observations are arithmetic means of experiment means,
+so experiments contribute equally regardless of their technical replicate counts.
+Its SD/SEM error bars describe inter-experiment response variability. Failed fits
+are excluded from the prediction average; observations retain the selected data.
+Compound plots do not have confidence bands.
 
-The numerical core accepts floats and does not perform automatic unit conversion. Users must provide all concentration-like values on a consistent numerical scale.
+Each plotted series shares one base color and legend entry across markers and
+curves. Asymptotes and arbitrary curve points have dedicated annotation functions.
 
-Fitted concentration-like parameters such as `IC50` and `Kd` are returned on that same numerical scale.
-
-## Canonical fitting pipeline
-
-`bindcurve` uses one canonical fitting pipeline.
-
-For each compound:
-
-1. Split data by independent experiment.
-2. Aggregate technical replicates within each experiment at each concentration.
-3. Fit one curve to each independent experiment.
-4. Summarize fitted parameters across independent experiments.
-
-For `N_exp = 3` and `N_rep = 5`, this yields three fitted curves per compound. This avoids pseudoreplication and treats inter-experiment variability as the main source of final biological uncertainty.
-
-## Replicate aggregation
-
-Technical replicates are aggregated before fitting.
-
-Technical replicate responses are always aggregated using the arithmetic mean:
-
-- within each experiment, `y_ecr` values are collapsed to `ybar_ec`;
-- for `plot_compounds()`, the experiment-level means are then collapsed to `ybar_c_grand`.
-
-Technical replicate variance may be stored for diagnostics, but final uncertainty for IC50/Kd-like values should usually come from variation between independent experiments.
-
-For compound-level visualization in `plot_compounds()`, BindCurve also computes a plotting-only master fit from grand-mean response values. The grand mean is the arithmetic mean of experiment-level means at each concentration, so each independent experiment contributes equally regardless of replicate count.
-
-## Uncertainty model
-
-BindCurve distinguishes two uncertainty regimes:
-
-- `intra-experiment uncertainty`: agreement or disagreement among technical replicates within one experiment at one concentration. This is the spread of `y_ecr` values around `ybar_ec` and is usually interpreted as measurement or instrument noise.
-- `inter-experiment uncertainty`: agreement or disagreement among independent experiments. This is reflected by the spread of `ybar_ec` values across experiments at fixed concentration, and by the spread of fitted parameters such as `IC50` or `Kd` across experiment-level fits.
-
-In BindCurve, inter-experiment uncertainty is treated as the primary biological uncertainty. Intra-experiment uncertainty is still useful for diagnostics and plotting, but it is not the main uncertainty used to summarize compound-level potency or affinity.
-
-## Statistical summaries
-
-BindCurve distinguishes two summary families:
-
-- `ParameterSummary`: native additive summaries for parameters such as `ymin`, `ymax`, and `hill_slope`.
-- `ConcentrationSummary`: geometric summaries for positive concentration-like quantities such as `IC50`, `Kd`, `Ki`, `Kds`, and `Kd3`.
-
-`ParameterSummary` is used for parameters whose natural statistical home is their fitted scale. For one parameter across `N_exp` experiment-level fits, BindCurve stores:
-
-- arithmetic `mean`
-- sample `SD`
-- `SEM = SD / sqrt(N_exp)`
-- two-sided `CI95 = mean ± t_(0.975, N_exp - 1) * SEM`
-
-`ConcentrationSummary` is used for positive concentration quantities. These quantities are canonical on the `log10` scale:
-
-- BindCurve transforms each positive experiment-level concentration estimate such as `IC50` or `Kd` to `log10` before summarization
-
-For one concentration quantity across `N_exp` experiment-level fits, BindCurve stores:
-
-- `log10_mean`
-- sample `log10_sd`
-- `log10_sem`
-- two-sided `log10_ci95`
-
-The linear face is derived from those log10 statistics:
-
-- `center = 10 ** log10_mean`
-- `SD interval = [10 ** (log10_mean - log10_sd), 10 ** (log10_mean + log10_sd)]`
-- `SEM interval = [10 ** (log10_mean - log10_sem), 10 ** (log10_mean + log10_sem)]`
-- `CI95 interval = [10 ** log10_ci95_lower, 10 ** log10_ci95_upper]`
-
-This means concentration uncertainty is asymmetric on the linear scale after back-transformation. BindCurve therefore never treats concentration uncertainty as additive `IC50 ± x`.
-
-In short:
-
-- response aggregation and plotting use arithmetic means
-- native additive parameters use arithmetic summaries on their fitted scale
-- positive concentration quantities use canonical `log10` summaries and derived linear intervals
-
-## Models
-
-Each model should know:
-
-- its name;
-- its parameter specifications;
-- which parameters are concentration-like;
-- which parameters are response-like;
-- how to evaluate `y = f(x, parameters)`;
-- how to generate initial guesses;
-- how to build lmfit parameters;
-- how to compute residuals.
-
-The base class is `BaseDoseResponseModel`.
-
-The first implemented model is `IC50Model`.
-
-## Model registry
-
-A registry maps string names to model objects:
-
-```python
-model = get_model("ic50")
-```
-
-This supports a simple public API:
-
-```python
-results = bindcurve.fit(data, model="ic50")
-```
-
-without hard-coding model-specific logic into the calculator.
-
-## Calculator
-
-`FitCalculator` is the generic fitting coordinator. It should not know model equations. It coordinates:
-
-- data selection;
-- replicate aggregation;
-- experiment splitting;
-- initial parameter generation;
-- lmfit minimization;
-- result construction;
-- summary calculation;
-- error handling.
-
-Typical usage:
+## Public fitting and results API
 
 ```python
 import bindcurve as bc
 
-calculator = bc.FitCalculator(
-    model=bc.IC50Model(),
-    settings=bc.FitSettings(),
-)
-
-results = calculator.fit(data, fixed={"ymin": 0.0, "ymax": 100.0})
-```
-
-A convenience wrapper also exists:
-
-```python
-results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})
-```
-
-## Settings
-
-Large function signatures are avoided. Fitting behavior is controlled through settings objects.
-
-Example:
-
-```python
-FitSettings(
-    lmfit_method="leastsq",
-    errors="raise",
+results = bc.fit(
+    data,
+    model="ic50",
+    settings=bc.FitSettings(errors="raise"),
+    fixed={"ymin": 0.0, "ymax": 100.0},
 )
 ```
 
+`get_model(name)` resolves built-in models. `fit()` also accepts a custom
+`BaseDoseResponseModel` instance, which is retained in its results. The calculator
+is an internal implementation detail.
 
-## Results
+- `fit_summary()` provides per-experiment estimates, numerical metrics, optimizer
+  messages, and failure details.
+- `fixed_parameters()` lists fixed values separately.
+- `parameters()` provides long-form native and concentration summaries, including
+  canonical log10 concentration statistics.
+- `summary()` provides one row per compound, experiment and fit counts,
+  observation counts, parameter centers/intervals, RSS, and chi-square.
+- `report()` formats a selected concentration summary in linear, log, or both
+  representations. Invalid options are rejected even if all fits failed.
 
-Results are structured objects:
+The default error mode re-raises fitting exceptions. `FitSettings(errors="collect")`
+records exceptions as failed `FitResult` objects and continues with other
+experiments. Optimizer-reported failures retain their diagnostic context. Failed
+fits remain visible in result tables and are excluded from parameter summaries.
 
-```text
-ParameterEstimate
-FitMetrics
-FitResult
-ParameterSummary
-ConcentrationSummary
-FitResults
-```
+## Maintenance
 
-`FitResult` represents one fitted curve: one compound in one independent experiment.
+The maintained user documentation lives in `docs/` and is built with Sphinx.
+`quarto_website/` and `docs_legacy/` are historical material, not current API
+references. The root architecture and data-format documents describe the current
+implementation.
 
-`FitResults` is a collection of `FitResult` objects plus summary records derived across experiments. It exposes:
-
-- `fit_summary()` and `fits()` as per-experiment fit tables
-- `parameters()` as the detailed long-form summary table
-- `summary()` as the one-row-per-compound wide summary table
-- `report()` as the manuscript-oriented formatted report table
-
-`parameters()` stores both summary families explicitly:
-
-- native `ParameterSummary` rows contain `mean`, `SD`, `SEM`, and `CI95`
-- `ConcentrationSummary` rows contain both the canonical log10 face and the derived linear face
-
-`summary()` keeps one row per compound with:
-
-- `compound_id`
-- `N_exp`
-- total aggregated observations `N_obs`
-- native additive columns:
-  - `<param>`
-  - `<param>_SD`
-  - `<param>_SEM`
-  - `<param>_CI95_lower`
-  - `<param>_CI95_upper`
-- concentration interval columns:
-  - `<param>`
-  - `<param>_SD_lower`, `<param>_SD_upper`
-  - `<param>_SEM_lower`, `<param>_SEM_upper`
-  - `<param>_CI95_lower`, `<param>_CI95_upper`
-- compound-level `R_squared`
-- compound-level `Chi_squared`
-
-The wide summary intentionally exposes only the linear face of concentration quantities. Log-scale concentration summaries remain available in `parameters()` and in `report(representation="log"|"both")`.
-
-`report()` is the manuscript-facing layer. For one selected concentration quantity, it can render:
-
-- linear representation:
-  - `center [lower, upper]`
-- log representation:
-  - `mean ± SD`
-  - `mean ± SEM`
-  - or `mean [lower, upper]` for `CI95`
-- both representations together in one formatted string if requested
-
-`quality_report()` is the quality-control layer. It is intentionally separate from `report()`:
-
-- `DoseResponseData.quality_report()` evaluates assay structure and technical replicate behavior.
-- `FitResults.quality_report()` evaluates fit stability and cross-experiment concentration uncertainty.
-
-## Failure handling
-
-Silent failures are not allowed.
-
-Default behavior:
-
-```python
-FitSettings(errors="raise")
-```
-
-Optional behavior:
-
-```python
-FitSettings(errors="collect")
-```
-
-In collect mode, failed fits are returned as `FitResult` objects with `success = False`.
-
-## Quality control
-
-BindCurve separates quality control into two levels:
-
-- `data-level QC`: implemented by `DoseResponseData.quality_report()`
-- `results-level QC`: implemented by `FitResults.quality_report()`
-
-This separation is intentional.
-
-Technical replicate behavior belongs to the raw data layer because it depends on the spread of `y_ecr` values inside one `(experiment, concentration)` cell. Fit stability and cross-experiment agreement belong to the results layer because they depend on experiment-level fitted curves and concentration summaries.
-
-### Data-level QC
-
-`DoseResponseData.quality_report()` keeps one row per compound and reports:
-
-- experiment count `N_exp`
-- observation count `N_obs`
-- concentration-grid completeness
-- replicate-count balance
-- fraction of single-replicate cells
-- intra-experiment noise scaled by experiment response range
-
-Its goal is to answer:
-
-- do I have enough independent experiments?
-- is my experiment-concentration grid complete?
-- are technical replicates present and reasonably consistent?
-
-The key intra-experiment noise metrics are:
-
-- median `response_sd / experiment_response_range`
-- 90th percentile `response_sd / experiment_response_range`
-
-These are descriptive heuristics, not model-based inference.
-
-### Results-level QC
-
-`FitResults.quality_report()` also keeps one row per compound and reports:
-
-- number of successful and failed fits
-- fit-success fraction
-- descriptive fit metrics such as `R_squared`, `Chi_squared`, and `redchi`
-- covariance availability
-- missing parameter standard errors
-- parameters landing on bounds
-- inter-experiment concentration uncertainty from `ConcentrationSummary`
-
-For concentration quantities, the relevant uncertainty metrics come from the canonical `log10` summary:
-
-- `log10_sd`
-- `log10_sem`
-- `log10_ci95_width`
-- derived linear fold ranges such as `CI95_upper / CI95_lower`
-
-BindCurve may flag very wide concentration intervals, but it should not flag linear asymmetry by itself. Asymmetry is expected when log-scale uncertainty is back-transformed to the linear concentration scale.
-
-### QC verdicts
-
-Both QC methods produce:
-
-- explicit numeric metrics
-- a traffic-light `status` of `green`, `orange`, or `red`
-- a readable semicolon-separated `flags` string
-
-These thresholds are heuristics. They are intended to highlight likely problems, not to serve as universal hard rules across every assay type and model.
-
-Both container types may also expose a graphical `quality_dashboard()` method:
-
-- `DoseResponseData.quality_dashboard()` is the visual companion to data-level QC and should show compound-level status plus per-experiment replicate structure and replicate noise.
-- `FitResults.quality_dashboard()` is the visual companion to results-level QC and should show compound-level status plus per-experiment fitted concentration estimates and per-fit diagnostic details.
-
-The dashboard layer should consume the same underlying QC metrics as `quality_report()` rather than inventing a second QC logic path.
-
-## Plotting
-
-Plotting should be separate from fitting. Most plotting functions should consume `DoseResponseData + FitResults` directly. `plot_compounds()` is an intentional exception: it may compute a plotting-only master fit from grand-mean response values in order to draw a single compound-level summary curve.
-
-For the high-level wrapper plots:
-
-- one plotted series should behave like one logical object, so markers and fitted curve share one legend label and one base color by default;
-- `plot_fits()` is the experiment-level wrapper and keeps confidence bands as an option;
-- `plot_compounds()` is the compound-summary wrapper and keeps asymptotes / arbitrary curve points out of scope;
-- asymptotes and curve-point annotations should remain available through their dedicated plotting functions.
-
-For uncertainty display:
-
-- `plot_fits()` may show covariance-based pointwise confidence bands around experiment-level fitted mean curves.
-- `plot_compounds()` should not show confidence bands. Compound-level uncertainty is communicated by SD/SEM error bars on grand-mean observations, reflecting inter-experiment variability.
-
-Potential future functions:
-
-```python
-plot_curves(data, results)
-plot_grid(data, results)
-plot_residuals(results)
-```
+Preserve independent equilibrium, mass-balance, concentration-scale, cancellation,
+weighting, and uncertainty tests when refactoring. Numerical root selection,
+stability expressions, and solver tolerances are scientific implementation
+choices, not formatting opportunities.

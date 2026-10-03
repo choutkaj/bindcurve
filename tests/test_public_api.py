@@ -10,7 +10,6 @@ def test_public_api_exports_new_objects():
         "BaseDoseResponseModel",
         "ConcentrationSummary",
         "CurvePoint",
-        "DataQualityThresholds",
         "DoseResponseData",
         "FitMetrics",
         "FitResult",
@@ -21,7 +20,6 @@ def test_public_api_exports_new_objects():
         "ParameterEstimate",
         "ParameterSummary",
         "ParameterSpec",
-        "ResultQualityThresholds",
         "cheng_prusoff",
         "cheng_prusoff_corrected",
         "coleska",
@@ -46,6 +44,8 @@ def test_low_level_implementation_objects_are_not_exported_at_package_root():
         "plot_confidence_bands",
         "plot_fit_lines",
         "plot_observations",
+        "DataQualityThresholds",
+        "ResultQualityThresholds",
     }
 
     assert removed.isdisjoint(bc.__all__)

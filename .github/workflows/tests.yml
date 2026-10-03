@@ -29,6 +29,9 @@ jobs:
       - name: Run Ruff
         run: uv run --frozen ruff check bindcurve tests
 
+      - name: Check formatting
+        run: uv run --frozen ruff format --check bindcurve tests
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -79,3 +82,10 @@ jobs:
           uv venv .venv-smoke
           uv pip install --python .venv-smoke/bin/python dist/*.whl
           .venv-smoke/bin/python -c "import bindcurve; print(bindcurve.__version__)"
+
+      - name: Test source distribution against the installed wheel
+        run: |
+          uv pip install --python .venv-smoke/bin/python pytest
+          .venv-smoke/bin/python -c "import pathlib, tarfile; tarfile.open(next(pathlib.Path('dist').glob('*.tar.gz'))).extractall('dist/sdist-check', filter='data')"
+          source_dir=$(find dist/sdist-check -mindepth 1 -maxdepth 1 -type d)
+          .venv-smoke/bin/python -I -m pytest --import-mode=importlib "$source_dir/tests"

@@ -62,9 +62,7 @@ def test_sigma_fit_metrics_match_independent_residual_calculation():
     data = make_uncertain_data(uncertainty="sigma")
     fit = fit_one_parameter(data).successful()[0]
     observations = data.select_compound("cmpd_a").fit_observations()
-    parameters = {
-        name: estimate.value for name, estimate in fit.parameters.items()
-    }
+    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
     predicted = fit.model.evaluate(
         observations["concentration"].to_numpy(dtype=float),
         **parameters,
@@ -78,15 +76,13 @@ def test_sigma_fit_metrics_match_independent_residual_calculation():
         float(np.sum((residual / sigma) ** 2))
     )
     assert fit.metrics.reduced_chi_square == pytest.approx(
-        fit.metrics.chi_square
-        / (fit.metrics.n_data - fit.metrics.n_varying_parameters)
+        fit.metrics.chi_square / (fit.metrics.n_data - fit.metrics.n_varying_parameters)
     )
     negative_twice_log_likelihood = fit.metrics.chi_square + float(
         np.sum(np.log(2.0 * np.pi) + 2.0 * np.log(sigma))
     )
     assert fit.metrics.aic == pytest.approx(
-        negative_twice_log_likelihood
-        + 2.0 * fit.metrics.n_varying_parameters
+        negative_twice_log_likelihood + 2.0 * fit.metrics.n_varying_parameters
     )
     assert fit.metrics.bic == pytest.approx(
         negative_twice_log_likelihood
@@ -153,18 +149,14 @@ def test_replicate_sigma_is_propagated_for_the_arithmetic_mean():
 
     assert observations.loc[0, "response"] == pytest.approx(12.0)
     assert observations.loc[0, "sigma"] == pytest.approx(np.sqrt(13.0) / 2.0)
-    assert observations.loc[0, "weight"] == pytest.approx(
-        2.0 / np.sqrt(13.0)
-    )
+    assert observations.loc[0, "weight"] == pytest.approx(2.0 / np.sqrt(13.0))
 
 
 def test_standardized_residual_plot_uses_the_same_sigma_definition():
     data = make_uncertain_data(uncertainty="sigma")
     fit = fit_one_parameter(data).successful()[0]
     observations = data.select_compound("cmpd_a").fit_observations()
-    parameters = {
-        name: estimate.value for name, estimate in fit.parameters.items()
-    }
+    parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
     predicted = fit.model.evaluate(
         observations["concentration"].to_numpy(dtype=float),
         **parameters,
@@ -374,6 +366,60 @@ def test_fit_results_reject_schema_drift_and_non_global_fixed_values():
     )
     with pytest.raises(ValueError, match="global value"):
         bc.FitResults(fit.model, (fit, changed_fixed))
+
+
+@pytest.mark.parametrize("experiment_id", ["exp1", None])
+@pytest.mark.parametrize("success", [True, False])
+def test_fit_results_reject_duplicate_experiment_identity(experiment_id, success):
+    fit = fit_one_parameter(make_uncertain_data()).successful()[0]
+    fit = replace(fit, experiment_id=experiment_id, success=success)
+
+    with pytest.raises(ValueError, match="Duplicate fit results"):
+        bc.FitResults(fit.model, (fit, fit))
+
+
+def test_aggregation_and_export_copies_cannot_mutate_subsequent_fitting():
+    data = make_uncertain_data()
+    compound = data.select_compound("cmpd_a").select_experiment("exp1")
+    expected = compound.aggregate_replicates()
+    aggregated = compound.aggregate_replicates()
+    aggregated.loc[0, "response"] = -999.0
+    selected_table = compound.table
+    selected_table.loc[0, "response"] = -999.0
+    exported = data.to_dataframe()
+    exported.loc[0, "response"] = -999.0
+
+    pd.testing.assert_frame_equal(compound.aggregate_replicates(), expected)
+    assert data.table.loc[0, "response"] != -999.0
+
+
+def test_compound_plot_weights_experiments_equally_with_unbalanced_replicates():
+    data = bc.DoseResponseData(
+        pd.DataFrame(
+            {
+                "compound_id": ["a"] * 6,
+                "experiment_id": ["exp1"] * 2 + ["exp2"] * 4,
+                "concentration": [1.0] * 6,
+                "response": [0.0, 2.0, 8.0, 10.0, 12.0, 14.0],
+            }
+        )
+    )
+    results = bc.fit(
+        data,
+        fixed={
+            "ymin": 0.0,
+            "ymax": 100.0,
+            "hill_slope": 1.0,
+            "IC50": 1.0,
+        },
+    )
+    fig, ax = plt.subplots()
+    bc.plot_compounds(data, results, ax=ax, show_curves=False, errorbar_kind="sem")
+
+    # Independent experiment means are 1 and 11, with grand mean 6 and SEM 5.
+    np.testing.assert_allclose(np.asarray(ax.lines[0].get_ydata(), dtype=float), [6.0])
+    np.testing.assert_allclose(ax.collections[0].get_segments()[0][:, 1], [1.0, 11.0])
+    plt.close(fig)
 
 
 def test_model_contract_rejects_duplicate_specs_and_invalid_outputs():

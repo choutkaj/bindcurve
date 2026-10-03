@@ -40,13 +40,16 @@ def numerical_four_state_fbs(
             RLs = R * Ls / Kds
             RL = R * L / Kd
             RLLs = R * L * Ls / (Kd * Kd3)
-            return np.array(
-                [
-                    R + RLs + RL + RLLs - RT,
-                    Ls + RLs + RLLs - LsT,
-                    (1.0 + N) * L + RL + RLLs - LT,
-                ]
-            ) / scales
+            return (
+                np.array(
+                    [
+                        R + RLs + RL + RLLs - RT,
+                        Ls + RLs + RLLs - LsT,
+                        (1.0 + N) * L + RL + RLLs - LT,
+                    ]
+                )
+                / scales
+            )
 
         solution = least_squares(
             residuals,

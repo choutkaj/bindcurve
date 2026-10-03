@@ -89,6 +89,7 @@ def test_ic50_evaluation_is_finite_and_monotone_at_extreme_concentrations():
     assert response[0] == pytest.approx(95.0)
     assert response[-1] == pytest.approx(5.0)
 
+
 def test_ic50_summary_exposes_derived_log_face_in_parameters():
     data = make_data(ic50_curve)
     results = bc.fit(data, model="ic50", fixed={"ymin": 0.0, "ymax": 100.0})

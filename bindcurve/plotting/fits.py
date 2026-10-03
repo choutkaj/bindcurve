@@ -15,13 +15,14 @@ from bindcurve.plotting.common import (
     _make_plot_grid_from_table,
     _matching_fits,
     _normalize_error_style,
+    _plot_series_curve,
     _resolve_compound_ids,
     _resolve_series_colors,
 )
 from bindcurve.plotting.confidence import _plot_series_confidence_band
 from bindcurve.plotting.observations import (
     _observation_table_for_fit,
-    _plot_series_observation_group,
+    _plot_series_observations,
 )
 from bindcurve.results import FitResult, FitResults
 
@@ -50,8 +51,9 @@ def _build_fit_series(
         experiments=experiments,
     )
     series = []
+    table = data.table
     for fit in fits:
-        observations = _observation_table_for_fit(data, fit)
+        observations = _observation_table_for_fit(table, fit)
         observation_groups = [] if observations.empty else [observations]
         series.append(
             CurveSeries(
@@ -62,39 +64,6 @@ def _build_fit_series(
             )
         )
     return series
-
-
-def _plot_series_curve(
-    ax: Axes,
-    fit: FitResult,
-    grid: np.ndarray,
-    *,
-    label: str,
-    color: object,
-    show_markers: bool,
-    marker_kind: str,
-    marker_size: float,
-    curve_width: float,
-    curve_style: str,
-) -> None:
-    line_kwargs: dict[str, object] = {
-        "label": label,
-        "color": color,
-        "linewidth": curve_width,
-        "linestyle": curve_style,
-    }
-    if show_markers:
-        # Keep markers in the legend handle, not on the fitted line itself.
-        line_kwargs.update(
-            {
-                "marker": marker_kind,
-                "markersize": marker_size,
-                "markerfacecolor": color,
-                "markeredgecolor": color,
-                "markevery": [],
-            }
-        )
-    ax.plot(grid, _evaluate_fit(fit, grid), **line_kwargs)
 
 
 def _residual_table_for_fit(
@@ -174,11 +143,9 @@ def plot_residuals(
 
         residual_label = label
         if residual_label is None:
-            experiment = fit.experiment_id or fit.model_name
-            if len(resolved_compound_ids) > 1:
-                residual_label = f"{fit.compound_id} {experiment}"
-            else:
-                residual_label = str(experiment)
+            residual_label = _series_label_for_fit(
+                fit, n_compounds=len(resolved_compound_ids)
+            )
 
         ax.scatter(
             residuals["concentration"],
@@ -242,27 +209,17 @@ def plot_fits(
 
     for spec in series:
         label_on_curve = show_curves and spec.fit is not None
-        observations_visible = show_markers or error_style is not None
-        if observations_visible:
-            label_used = False
-            for group in spec.observation_groups:
-                group_label = "_nolegend_"
-                if not label_on_curve and not label_used:
-                    group_label = spec.label
-                plotted = _plot_series_observation_group(
-                    ax,
-                    group,
-                    label=group_label,
-                    color=spec.color,
-                    show_markers=show_markers,
-                    marker_kind=marker_kind,
-                    marker_size=marker_size,
-                    error_style=error_style,
-                    errorbar_linewidth=errorbar_linewidth,
-                    errorbar_capsize=errorbar_capsize,
-                )
-                if plotted and group_label != "_nolegend_":
-                    label_used = True
+        _plot_series_observations(
+            ax,
+            spec,
+            label_on_curve=label_on_curve,
+            show_markers=show_markers,
+            marker_kind=marker_kind,
+            marker_size=marker_size,
+            error_style=error_style,
+            errorbar_linewidth=errorbar_linewidth,
+            errorbar_capsize=errorbar_capsize,
+        )
 
         if spec.fit is None:
             continue
@@ -287,8 +244,8 @@ def plot_fits(
         if show_curves:
             _plot_series_curve(
                 ax,
-                spec.fit,
                 grid,
+                _evaluate_fit(spec.fit, grid),
                 label=spec.label,
                 color=spec.color,
                 show_markers=show_markers,

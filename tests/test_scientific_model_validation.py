@@ -115,31 +115,37 @@ def test_depletion_aware_direct_models_are_unit_invariant(model_name, parameters
 
 
 def test_dir_specific_preserves_tiny_free_receptor_in_tracer_excess():
-    components = bc.get_model("dir_specific").evaluate_components(
-        np.array([1.0]),
-        ymin=0.0,
-        ymax=1.0,
-        LsT=1.0e15,
-        Kds=1.0,
-    ).components
+    components = (
+        bc.get_model("dir_specific")
+        .evaluate_components(
+            np.array([1.0]),
+            ymin=0.0,
+            ymax=1.0,
+            LsT=1.0e15,
+            Kds=1.0,
+        )
+        .components
+    )
 
     assert components["R"][0] > 0.0
     assert components["R"][0] == pytest.approx(1.0e-15, rel=1.0e-12)
-    assert components["R"][0] + components["RLs"][0] == pytest.approx(
-        1.0, rel=1.0e-12
-    )
+    assert components["R"][0] + components["RLs"][0] == pytest.approx(1.0, rel=1.0e-12)
 
 
 def test_three_state_specific_obeys_independent_equilibria_and_mass_balances():
-    components = bc.get_model("comp_3st_specific").evaluate_components(
-        np.logspace(-7, 5, 100),
-        ymin=0.0,
-        ymax=1.0,
-        RT=0.7,
-        LsT=0.2,
-        Kds=0.3,
-        Kd=1.9,
-    ).components
+    components = (
+        bc.get_model("comp_3st_specific")
+        .evaluate_components(
+            np.logspace(-7, 5, 100),
+            ymin=0.0,
+            ymax=1.0,
+            RT=0.7,
+            LsT=0.2,
+            Kds=0.3,
+            Kd=1.9,
+        )
+        .components
+    )
 
     assert np.allclose(
         components["RT"],
@@ -175,16 +181,20 @@ def test_three_state_specific_obeys_independent_equilibria_and_mass_balances():
 
 def test_three_state_total_obeys_roehrl_nonspecific_mass_balance():
     N = 0.6
-    components = bc.get_model("comp_3st_total").evaluate_components(
-        np.logspace(-7, 5, 100),
-        ymin=0.0,
-        ymax=1.0,
-        RT=0.7,
-        LsT=0.2,
-        Kds=0.3,
-        Kd=1.9,
-        N=N,
-    ).components
+    components = (
+        bc.get_model("comp_3st_total")
+        .evaluate_components(
+            np.logspace(-7, 5, 100),
+            ymin=0.0,
+            ymax=1.0,
+            RT=0.7,
+            LsT=0.2,
+            Kds=0.3,
+            Kd=1.9,
+            N=N,
+        )
+        .components
+    )
 
     assert np.allclose(
         components["RT"],
@@ -194,9 +204,7 @@ def test_three_state_total_obeys_roehrl_nonspecific_mass_balance():
     )
     assert np.allclose(
         components["LT"],
-        components["L"]
-        + components["RL"]
-        + components["L_nonspecific_bound"],
+        components["L"] + components["RL"] + components["L_nonspecific_bound"],
         rtol=2.0e-12,
         atol=1.0e-14,
     )
@@ -222,21 +230,21 @@ def test_three_state_total_obeys_roehrl_nonspecific_mass_balance():
 
 def test_three_state_solver_is_stable_for_extreme_concentration_ratios():
     RT = 2.172723469932662e-6
-    components = bc.get_model("comp_3st_specific").evaluate_components(
-        np.array([106139.16205049057]),
-        ymin=0.0,
-        ymax=1.0,
-        RT=RT,
-        LsT=686450.9185295302,
-        Kds=0.00012087951717196983,
-        Kd=0.00001652150832486005,
-    ).components
-
-    receptor_sum = (
-        components["R"][0]
-        + components["RLs"][0]
-        + components["RL"][0]
+    components = (
+        bc.get_model("comp_3st_specific")
+        .evaluate_components(
+            np.array([106139.16205049057]),
+            ymin=0.0,
+            ymax=1.0,
+            RT=RT,
+            LsT=686450.9185295302,
+            Kds=0.00012087951717196983,
+            Kd=0.00001652150832486005,
+        )
+        .components
     )
+
+    receptor_sum = components["R"][0] + components["RLs"][0] + components["RL"][0]
     assert 0.0 < components["R"][0] <= RT
     assert receptor_sum == pytest.approx(RT, rel=2.0e-12)
 
@@ -305,9 +313,7 @@ def test_four_state_high_competitor_limit_matches_roehrl_equation_28():
         Kds=parameters["Kd3"],
     )[0]
 
-    assert high_competitor == pytest.approx(
-        asymptotic_direct, rel=2.0e-10, abs=1.0e-12
-    )
+    assert high_competitor == pytest.approx(asymptotic_direct, rel=2.0e-10, abs=1.0e-12)
 
 
 def test_four_state_is_competitor_independent_when_kd3_equals_kds():
@@ -331,24 +337,25 @@ def test_four_state_total_obeys_all_equilibria_and_mass_balances():
     Kds = 0.3
     Kd = 1.9
     Kd3 = 2.1
-    components = bc.get_model("comp_4st_total").evaluate_components(
-        np.logspace(-7, 5, 80),
-        ymin=0.0,
-        ymax=1.0,
-        RT=0.7,
-        LsT=0.2,
-        Kds=Kds,
-        Kd=Kd,
-        Kd3=Kd3,
-        N=N,
-    ).components
+    components = (
+        bc.get_model("comp_4st_total")
+        .evaluate_components(
+            np.logspace(-7, 5, 80),
+            ymin=0.0,
+            ymax=1.0,
+            RT=0.7,
+            LsT=0.2,
+            Kds=Kds,
+            Kd=Kd,
+            Kd3=Kd3,
+            N=N,
+        )
+        .components
+    )
 
     assert np.allclose(
         components["RT"],
-        components["R"]
-        + components["RLs"]
-        + components["RL"]
-        + components["RLLs"],
+        components["R"] + components["RLs"] + components["RL"] + components["RLLs"],
         rtol=2.0e-8,
         atol=1.0e-11,
     )
@@ -405,9 +412,7 @@ def test_four_state_total_obeys_all_equilibria_and_mass_balances():
     )
     assert np.allclose(
         components["L_bound_total"],
-        components["RL"]
-        + components["RLLs"]
-        + components["L_nonspecific_bound"],
+        components["RL"] + components["RLLs"] + components["L_nonspecific_bound"],
     )
 
 

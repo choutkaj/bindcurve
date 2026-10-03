@@ -1,175 +1,98 @@
 # BindCurve data formats
 
-BindCurve stores dose-response data internally as a normalized long-form table. The same two tabular layouts are supported across `from_dataframe()`, `from_csv()`, `to_dataframe()`, `to_csv()`, `from_json()`, and `to_json()`:
+BindCurve stores observations in a validated long-form table and supports `long`
+and `wide` layouts through `from_dataframe()`, `from_csv()`, `from_json()`,
+`to_dataframe()`, `to_csv()`, and `to_json()`.
 
-1. `long`
-2. `wide`
+## Long format
 
-The `long` format is the canonical format and matches the internal `DoseResponseData` structure. The `wide` format is the recommended spreadsheet-friendly format for users who enter or export data from Excel.
-
-## Common concepts
-
-BindCurve organizes dose-response data using the following concepts:
-
-- `compound_id`: compound, ligand, inhibitor, analyte, or other fitted entity.
-- `experiment_id`: independent biological or biochemical experiment.
-- `concentration`: dose or concentration value.
-- `replicate_id`: technical replicate identifier.
-- `response`: measured response value.
-
-Concentrations must be positive numeric values. BindCurve does not perform unit conversion during fitting. All concentration values in a dataset should therefore use the same unit. Units can be stored as annotations when constructing `DoseResponseData`, for example `concentration_unit="uM"` and `response_unit="percent"`.
-
-If `experiment_id` is missing, BindCurve fills it with `experiment_1`. If `replicate_id` is missing in long-form data, BindCurve creates replicate identifiers automatically within each compound, experiment, and concentration group.
-
-## Format 1: `long`
-
-The `long` format contains one measured response value per row.
-
-Required columns:
-
-```text
-compound_id, concentration, response
-```
-
-Optional columns:
-
-```text
-experiment_id, replicate_id
-```
-
-Recommended complete schema:
-
-```text
-compound_id, experiment_id, concentration, replicate_id, response
-```
-
-Example:
+Each row is one technical replicate observation:
 
 ```csv
 compound_id,experiment_id,concentration,replicate_id,response
 Cmpd_1,exp_1,0.001,rep_1,98.1
 Cmpd_1,exp_1,0.001,rep_2,97.5
 Cmpd_1,exp_1,0.003,rep_1,94.2
-Cmpd_1,exp_1,0.003,rep_2,95.0
 Cmpd_1,exp_2,0.001,rep_1,97.9
-Cmpd_1,exp_2,0.001,rep_2,98.3
 ```
 
-Read a long-form CSV with:
+Required columns are `compound_id`, `concentration`, and `response`. Missing
+`experiment_id` defaults to `experiment_1`. Missing `replicate_id` is generated
+within each compound, experiment, and concentration group.
+
+Identifiers must be nonmissing and nonblank. Concentrations must be finite and
+positive; responses must be finite. Duplicate observation identities are rejected.
+Additional observation metadata columns are preserved in long format.
+
+Known observation uncertainty can be supplied as either `sigma` (standard
+deviation) or `weight` (reciprocal standard deviation), never both. Values must be
+finite and positive. These are known measurement uncertainties, not empirical
+replicate SD or SEM.
 
 ```python
 import bindcurve as bc
 
 data = bc.DoseResponseData.from_csv(
-    "synthetic_direct_binding_long.csv",
-    format="long",
-    concentration_unit="uM",
-    response_unit="percent",
+    "observations.csv",
+    metadata={"concentration_unit": "uM", "response_unit": "percent"},
 )
 ```
 
-Because `long` is the default format, this is equivalent to:
+BindCurve performs no unit conversion. Metadata annotates the numerical scale;
+all concentration-like inputs must already use a consistent scale.
 
-```python
-data = bc.DoseResponseData.from_csv("synthetic_direct_binding_long.csv")
-```
+## Wide format
 
-## Format 2: `wide`
-
-The `wide` format contains one row per compound, independent experiment, and concentration. Technical replicates are stored in separate response columns.
-
-Required columns:
-
-```text
-compound_id, concentration, response_1
-```
-
-Strongly recommended columns:
-
-```text
-experiment_id
-```
-
-Additional technical replicates should be named using the same prefix:
-
-```text
-response_1, response_2, response_3, ...
-```
-
-Example:
+Each row represents one compound, experiment, and concentration; response columns
+contain technical replicates:
 
 ```csv
 compound_id,experiment_id,concentration,response_1,response_2,response_3
 Cmpd_1,exp_1,0.001,98.1,97.5,99.0
 Cmpd_1,exp_1,0.003,94.2,95.0,93.7
 Cmpd_1,exp_2,0.001,97.9,98.3,98.6
-Cmpd_1,exp_2,0.003,93.9,94.5,94.1
 ```
-
-Read a wide CSV with:
 
 ```python
-import bindcurve as bc
-
-data = bc.DoseResponseData.from_csv(
-    "synthetic_direct_binding_wide.csv",
-    format="wide",
-    concentration_unit="uM",
-    response_unit="percent",
-)
+data = bc.DoseResponseData.from_csv("observations-wide.csv", format="wide")
 ```
 
-The alias `format="wide"` is also accepted.
+Columns beginning with `response_` are discovered by default. Use `replicate_cols`
+or `replicate_prefix` to customize discovery. Missing response cells are omitted.
+Non-replicate metadata and uncertainty columns are unsupported in wide format;
+use long format to retain them.
 
-## Choosing a format
+Wide export requires replicate identifiers consisting of the selected prefix
+(default `response_`) followed by an integer. Data imported from the default wide
+layout already meets this requirement. Automatically generated long-format IDs
+use `replicate_`, so exporting those IDs requires `replicate_prefix="replicate_"`.
+Arbitrary named replicate IDs cannot be represented by wide export.
 
-Use `long` when data are generated by scripts or automated pipelines, each row already represents one observation, or you want maximum compatibility with tidy-data tools.
-
-Use `wide` when users prepare the data manually in Excel, technical replicates are naturally stored side by side, or you want a compact spreadsheet layout without losing replicate-level data.
-
-## DataFrame and JSON APIs
-
-Use a long-form DataFrame directly with:
-
-```python
-data = bc.DoseResponseData.from_dataframe(df)
-```
-
-Use a wide-form DataFrame with:
+## Column mappings and serialization
 
 ```python
 data = bc.DoseResponseData.from_dataframe(
-    df,
-    format="wide",
+    observations,
     compound_col="compound",
     concentration_col="dose",
-    experiment_col="experiment",
-    replicate_cols=["response_1", "response_2", "response_3"],
+    response_col="signal",
 )
+
+long_table = data.to_dataframe()
+data.to_csv("normalized.csv")
+json_text = data.to_json()
+restored = bc.DoseResponseData.from_json(json_text)
 ```
 
-Serialize back out with:
+Use the same column mappings when importing an export with custom column names.
+Output names must be unique, including retained metadata and wide response
+columns. Colliding mappings raise an error before serialization.
 
-```python
-long_df = data.to_dataframe()
-wide_df = data.to_dataframe(format="wide")
+CSV stores the table only. JSON emitted by `to_json()` contains `format`,
+`metadata`, and `table`, and preserves dataset metadata. `from_json()` accepts
+JSON text or a file path, and also accepts a bare table payload. An explicitly
+requested format must agree with the JSON envelope's format.
 
-data.to_csv("dose_response_long.csv")
-data.to_csv("dose_response_wide.csv", format="wide")
-
-json_text = data.to_json(format="wide", indent=2)
-round_tripped = bc.DoseResponseData.from_json(json_text)
-```
-
-JSON payloads produced by `to_json()` include the serialized table, the chosen `format`, and `metadata`, so `from_json()` can round-trip a `DoseResponseData` object without separate side inputs.
-
-## Example files
-
-This repository contains four synthetic example CSV files in the repository root:
-
-- `synthetic_direct_binding_long.csv`
-- `synthetic_direct_binding_wide.csv`
-- `synthetic_competitive_binding_long.csv`
-- `synthetic_competitive_binding_wide.csv`
-
-The direct-binding examples contain three compounds. The competitive-binding examples contain ten compounds. Each example includes two independent experiments and two technical replicates per concentration.
+Public table and dataset-metadata access returns isolated copies. Filtering
+preserves row order and metadata. Concatenation requires matching dataset
+metadata and nonoverlapping compound/experiment identities.

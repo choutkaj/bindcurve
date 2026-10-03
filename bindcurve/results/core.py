@@ -2,28 +2,21 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
-from scipy.stats import t as student_t
 
 from bindcurve.modeling.base import BaseDoseResponseModel
-from bindcurve.modeling.parameters import ParameterSpec
-from bindcurve.quality import ResultQualityThresholds
+from bindcurve.results.summaries import summarize_fit_parameters
 from bindcurve.results.types import (
     ConcentrationSummary,
     FitResult,
     ParameterSummary,
+    ReportRepresentation,
     ReportUncertainty,
+    RoundingMode,
     SummaryRecord,
 )
-
-if TYPE_CHECKING:
-    from matplotlib.figure import Figure
-
-ReportRepresentation = Literal["linear", "log", "both"]
-RoundingMode = Literal["sigfig", "decimals"]
 
 
 @dataclass(frozen=True)
@@ -37,6 +30,18 @@ class FitResults:
         object.__setattr__(self, "fit_results", tuple(self.fit_results))
         if any(fit.model is not self.model for fit in self.fit_results):
             raise ValueError("Every fit result must reference FitResults.model.")
+        identities = [
+            (
+                str(fit.compound_id),
+                None if fit.experiment_id is None else str(fit.experiment_id),
+            )
+            for fit in self.fit_results
+        ]
+        if len(identities) != len(set(identities)):
+            raise ValueError(
+                "Duplicate fit results share the same compound and experiment "
+                "identifiers."
+            )
         successful = [fit for fit in self.fit_results if fit.success]
         expected_parameters = {spec.name for spec in self.model.parameter_specs}
         for fit in successful:
@@ -89,6 +94,13 @@ class FitResults:
     def failed(self) -> list[FitResult]:
         """Return failed fits."""
         return [fit for fit in self.fit_results if not fit.success]
+
+    def _fits_by_compound(self) -> dict[str, list[FitResult]]:
+        """Group fits once, retaining their original compound and experiment order."""
+        grouped: dict[str, list[FitResult]] = {}
+        for fit in self.fit_results:
+            grouped.setdefault(str(fit.compound_id), []).append(fit)
+        return grouped
 
     def fit_summary(self) -> pd.DataFrame:
         """Represent individual fits as a DataFrame."""
@@ -149,16 +161,15 @@ class FitResults:
         fixed parameters retain their common value.
         """
         compound_fits = [
-            fit
-            for fit in self.successful()
-            if str(fit.compound_id) == str(compound_id)
+            fit for fit in self.successful() if str(fit.compound_id) == str(compound_id)
         ]
         if not compound_fits:
             raise KeyError(f"Compound {compound_id!r} has no successful fits.")
         summary_lookup = {
             summary.parameter: summary
-            for summary in self.summaries
-            if str(summary.compound_id) == str(compound_id)
+            for summary in summarize_fit_parameters(
+                compound_fits, parameter_specs=self.model.parameter_specs
+            )
         }
 
         values: dict[str, float] = {}
@@ -249,7 +260,7 @@ class FitResults:
         if not self.fit_results:
             return pd.DataFrame()
 
-        compound_ids = _ordered_compound_ids(self.fit_results)
+        fits_by_compound = self._fits_by_compound()
         summary_lookup: dict[tuple[str, str], SummaryRecord] = {}
         summary_kind: dict[str, str] = {}
         alias_map: dict[str, str] = {}
@@ -278,15 +289,8 @@ class FitResults:
                 parameter_order.append(name)
 
         rows: list[dict[str, object]] = []
-        for compound_id in compound_ids:
-            all_compound_fits = [
-                fit
-                for fit in self.fit_results
-                if str(fit.compound_id) == str(compound_id)
-            ]
-            compound_fits = [
-                fit for fit in successful if str(fit.compound_id) == str(compound_id)
-            ]
+        for compound_id, all_compound_fits in fits_by_compound.items():
+            compound_fits = [fit for fit in all_compound_fits if fit.success]
             row: dict[str, object] = {
                 "compound_id": compound_id,
                 "N_exp": _compound_N_exp(all_compound_fits),
@@ -368,112 +372,12 @@ class FitResults:
             include_n_exp=include_n_exp,
         )
 
-    def quality_report(
-        self,
-        *,
-        parameter: str = "auto",
-        compounds: str | Iterable[str] | None = None,
-        thresholds: ResultQualityThresholds | None = None,
-    ) -> pd.DataFrame:
-        """Return compound-level fit and summary QC metrics."""
-        from bindcurve.results.quality import build_results_quality_report
-
-        return build_results_quality_report(
-            self,
-            parameter=parameter,
-            compounds=compounds,
-            thresholds=thresholds,
-        )
-
-    def quality_dashboard(
-        self,
-        *,
-        parameter: str = "auto",
-        compounds: str | Iterable[str] | None = None,
-        thresholds: ResultQualityThresholds | None = None,
-        figsize: tuple[float, float] | None = None,
-    ) -> Figure:
-        """Return a graphical dashboard summarizing results-level QC."""
-        from bindcurve.plotting.quality import plot_results_quality_dashboard
-
-        return plot_results_quality_dashboard(
-            self,
-            parameter=parameter,
-            compounds=compounds,
-            thresholds=thresholds,
-            figsize=figsize,
-        )
-
-
-def _ordered_compound_ids(fits: list[FitResult]) -> list[str]:
-    compound_ids: list[str] = []
-    seen: set[str] = set()
-    for fit in fits:
-        compound_id = str(fit.compound_id)
-        if compound_id in seen:
-            continue
-        seen.add(compound_id)
-        compound_ids.append(compound_id)
-    return compound_ids
-
 
 def _compound_N_exp(fits: list[FitResult]) -> int:
     experiment_ids = {
-        str(fit.experiment_id)
-        for fit in fits
-        if fit.experiment_id is not None
+        str(fit.experiment_id) for fit in fits if fit.experiment_id is not None
     }
     return len(experiment_ids) if experiment_ids else len(fits)
-
-
-def _sample_sd(values: np.ndarray) -> float | None:
-    if len(values) < 2:
-        return None
-    return float(np.std(values, ddof=1))
-
-
-def _sample_sem(values: np.ndarray) -> float | None:
-    sd = _sample_sd(values)
-    if sd is None:
-        return None
-    return float(sd / np.sqrt(len(values)))
-
-
-def _student_t_multiplier(sample_size: int) -> float | None:
-    if sample_size < 2:
-        return None
-    return float(student_t.ppf(0.975, df=sample_size - 1))
-
-
-def _ci95_interval(
-    mean: float,
-    sem: float | None,
-    sample_size: int,
-) -> tuple[float | None, float | None]:
-    multiplier = _student_t_multiplier(sample_size)
-    if multiplier is None or sem is None:
-        return (None, None)
-    delta = multiplier * sem
-    return (float(mean - delta), float(mean + delta))
-
-
-def _symmetric_interval(
-    center: float,
-    delta: float | None,
-) -> tuple[float | None, float | None]:
-    if delta is None:
-        return (None, None)
-    return (float(center - delta), float(center + delta))
-
-
-def _back_transform_log_interval(
-    log10_mean: float,
-    log10_delta: float | None,
-) -> tuple[float | None, float | None]:
-    lower, upper = _symmetric_interval(log10_mean, log10_delta)
-    if lower is None or upper is None:
-        return (None, None)
-    return (float(10**lower), float(10**upper))
 
 
 def _compound_n_obs(fits: list[FitResult]) -> int | None:
@@ -557,102 +461,3 @@ def _update_concentration_summary_row(
     row[f"{name}_SEM_upper"] = np.nan if sem_upper is None else sem_upper
     row[f"{name}_CI95_lower"] = np.nan if ci95_lower is None else ci95_lower
     row[f"{name}_CI95_upper"] = np.nan if ci95_upper is None else ci95_upper
-
-
-def summarize_fit_parameters(
-    fits: Iterable[FitResult],
-    *,
-    parameter_specs: tuple[ParameterSpec, ...],
-) -> list[SummaryRecord]:
-    """Summarize successful fit parameters by compound."""
-    successful = [fit for fit in fits if fit.success]
-    compound_ids = _ordered_compound_ids(successful)
-    summaries: list[SummaryRecord] = []
-    spec_by_parameter = {spec.name: spec for spec in parameter_specs}
-
-    for compound_id in compound_ids:
-        compound_fits = [
-            fit for fit in successful if str(fit.compound_id) == str(compound_id)
-        ]
-        parameter_order: list[str] = []
-        seen_parameters: set[str] = set()
-        for fit in compound_fits:
-            for name in fit.parameters:
-                if name in seen_parameters:
-                    continue
-                seen_parameters.add(name)
-                parameter_order.append(name)
-
-        for fitted_parameter in parameter_order:
-            estimates = [
-                fit.parameters[fitted_parameter]
-                for fit in compound_fits
-                if fitted_parameter in fit.parameters
-            ]
-            if not estimates:
-                continue
-            if not any(estimate.vary for estimate in estimates):
-                continue
-
-            values = np.asarray([estimate.value for estimate in estimates], dtype=float)
-            spec = spec_by_parameter[fitted_parameter]
-            if spec.kind != "concentration":
-                mean = float(np.mean(values))
-                sd = _sample_sd(values)
-                sem = _sample_sem(values)
-                ci95_lower, ci95_upper = _ci95_interval(mean, sem, len(values))
-                summaries.append(
-                    ParameterSummary(
-                        compound_id=compound_id,
-                        parameter=fitted_parameter,
-                        N_exp=len(values),
-                        mean=mean,
-                        sd=sd,
-                        sem=sem,
-                        ci95_lower=ci95_lower,
-                        ci95_upper=ci95_upper,
-                    )
-                )
-                continue
-
-            log_values = _to_log10_values(values, spec)
-            log10_mean = float(np.mean(log_values))
-            log10_sd = _sample_sd(log_values)
-            log10_sem = _sample_sem(log_values)
-            log10_ci95_lower, log10_ci95_upper = _ci95_interval(
-                log10_mean,
-                log10_sem,
-                len(log_values),
-            )
-            summaries.append(
-                ConcentrationSummary(
-                    compound_id=compound_id,
-                    parameter=spec.name,
-                    log_parameter=spec.resolved_log_name,
-                    N_exp=len(log_values),
-                    reportable=spec.reportable,
-                    log10_mean=log10_mean,
-                    log10_sd=log10_sd,
-                    log10_sem=log10_sem,
-                    log10_ci95_lower=log10_ci95_lower,
-                    log10_ci95_upper=log10_ci95_upper,
-                )
-            )
-    return summaries
-
-
-def _to_log10_values(
-    values: np.ndarray,
-    spec: ParameterSpec,
-) -> np.ndarray:
-    linear_values = np.asarray(values, dtype=float)
-    if np.any(linear_values <= 0.0):
-        raise ValueError(
-            f"Concentration summary for {spec.name!r} requires strictly "
-            "positive values."
-        )
-    if np.any(~np.isfinite(linear_values)):
-        raise ValueError(
-            f"Concentration summary for {spec.name!r} requires finite values."
-        )
-    return np.log10(linear_values)

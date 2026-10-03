@@ -235,14 +235,14 @@ def convert_ic50_to_kd(
         rows.append(
             asdict(
                 IC50ConversionResult(
-                compound_id=str(row[compound_col]),
-                model=model,
-                IC50=ic50_value,
-                Kd=kd_value,
-                lower_IC50=lower_ic50,
-                upper_IC50=upper_ic50,
-                lower_Kd=lower_kd,
-                upper_Kd=upper_kd,
+                    compound_id=str(row[compound_col]),
+                    model=model,
+                    IC50=ic50_value,
+                    Kd=kd_value,
+                    lower_IC50=lower_ic50,
+                    upper_IC50=upper_ic50,
+                    lower_Kd=lower_kd,
+                    upper_Kd=upper_kd,
                 )
             )
         )
