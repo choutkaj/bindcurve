@@ -24,10 +24,10 @@ Identifiers must be nonmissing and nonblank. Concentrations must be finite and
 positive; responses must be finite. Duplicate observation identities are rejected.
 Additional observation metadata columns are preserved in long format.
 
-Known observation uncertainty can be supplied as either `sigma` (standard
-deviation) or `weight` (reciprocal standard deviation), never both. Values must be
-finite and positive. These are known measurement uncertainties, not empirical
-replicate SD or SEM.
+Known observation uncertainty can be supplied as `sigma`, the absolute standard
+deviation of each observation. Values must be finite and positive. These are known
+measurement uncertainties, not empirical replicate SD or SEM. A `weight` column is
+rejected; convert weights to standard deviations first.
 
 ```python
 import bindcurve as bc

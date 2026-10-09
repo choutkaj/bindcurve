@@ -115,6 +115,7 @@ class FitResults:
                 "error_type": fit.error_type,
                 "error_message": fit.error_message,
                 "optimizer_message": fit.optimizer_message,
+                "warnings": "; ".join(fit.warnings) or None,
             }
             if fit.metrics is not None:
                 row.update(
@@ -296,6 +297,7 @@ class FitResults:
                 "N_exp": _compound_N_exp(all_compound_fits),
                 "N_fit_successful": len(compound_fits),
                 "N_fit_failed": len(all_compound_fits) - len(compound_fits),
+                "N_fit_flagged": sum(bool(fit.warnings) for fit in compound_fits),
                 "N_obs": _compound_n_obs(compound_fits),
             }
 
@@ -315,6 +317,7 @@ class FitResults:
             "N_exp",
             "N_fit_successful",
             "N_fit_failed",
+            "N_fit_flagged",
             "N_obs",
         ]
         for name in parameter_order:

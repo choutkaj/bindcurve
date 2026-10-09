@@ -73,7 +73,11 @@ class FitMetrics:
 
 @dataclass(frozen=True)
 class FitResult:
-    """Immutable result for one fitted curve."""
+    """Immutable result for one fitted curve.
+
+    ``warnings`` lists quality caveats for a fit that converged but whose
+    estimates may not be supported by the data.
+    """
 
     model: BaseDoseResponseModel
     compound_id: str
@@ -87,10 +91,12 @@ class FitResult:
     failure_stage: str | None = None
     error_type: str | None = None
     error_message: str | None = None
+    warnings: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not str(self.compound_id).strip():
             raise ValueError("compound_id must not be blank.")
+        object.__setattr__(self, "warnings", tuple(str(w) for w in self.warnings))
         parameters = dict(self.parameters)
         for name, estimate in parameters.items():
             if name != estimate.name:

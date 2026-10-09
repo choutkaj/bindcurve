@@ -171,5 +171,6 @@ def test_all_failed_report_retains_failure_counts_and_unavailable_summary():
             "report": "unavailable: no successful fit summary",
             "N_fit_successful": 0,
             "N_fit_failed": 1,
+            "N_fit_flagged": 0,
         }
     ]

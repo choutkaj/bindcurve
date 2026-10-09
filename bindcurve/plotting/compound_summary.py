@@ -11,7 +11,6 @@ from bindcurve.plotting.common import (
     CurveSeries,
     DoseRepresentation,
     XScale,
-    _evaluate_fit,
     _get_axes,
     _make_plot_grid_from_table,
     _normalize_dose_representation,
@@ -84,8 +83,9 @@ def plot_compounds(
     """Plot one summary dose-response curve per compound.
 
     A plotted series is one compound. Markers and fitted curve share one label
-    and one base color by default. The curve is the pointwise arithmetic mean
-    of the successful experiment-level fitted predictions; failed fits are
+    and one base color by default. The curve is the model evaluated at
+    ``FitResults.parameter_values()``, so it passes through the same summary
+    concentration parameters that ``report()`` prints; failed fits are
     excluded. Plotting never fits or modifies data. Grand-mean or
     experiment-level observations are selected with ``dose_representation``.
     """
@@ -127,10 +127,9 @@ def plot_compounds(
                 n_points=n_points,
                 xscale=xscale,
             )
-            predictions = np.stack(
-                [np.asarray(_evaluate_fit(fit, grid), dtype=float) for fit in spec.fits]
+            response = results.model.evaluate(
+                grid, **results.parameter_values(spec.compound_id)
             )
-            response = np.mean(predictions, axis=0)
             _plot_series_curve(
                 ax,
                 grid,

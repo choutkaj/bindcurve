@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 import lmfit
 import numpy as np
+from scipy.stats import chi2
 
 from bindcurve.datasets import CompoundData, DoseResponseData
 from bindcurve.fitting.settings import FitSettings
@@ -74,11 +76,14 @@ class _FitCalculator:
         observations = compound.fit_observations()
         concentration = observations["concentration"].to_numpy(dtype=float)
         y = observations["response"].to_numpy(dtype=float)
-        sigma = (
-            observations["sigma"].to_numpy(dtype=float)
-            if "sigma" in observations.columns
-            else None
-        )
+        known_sigma = "sigma" in observations.columns
+        if known_sigma:
+            sigma = observations["sigma"].to_numpy(dtype=float)
+        else:
+            # A mean of n replicates has variance sigma**2 / n. Only these relative
+            # weights are known; they are 1 when replicate counts are equal.
+            n_replicates = observations["n_replicates"].to_numpy(dtype=float)
+            sigma = np.sqrt(np.mean(n_replicates) / n_replicates)
 
         guesses = self.model.guess(compound)
         parameters = self.model.make_lmfit_parameters(
@@ -101,6 +106,7 @@ class _FitCalculator:
                 concentration=concentration,
                 y=y,
                 sigma=sigma,
+                known_sigma=known_sigma,
                 covariance=None,
                 variable_names=(),
                 success=True,
@@ -111,7 +117,7 @@ class _FitCalculator:
             self.model.residual,
             parameters,
             fcn_args=(concentration, y, sigma),
-            scale_covar=sigma is None,
+            scale_covar=not known_sigma,
         )
         lmfit_result = minimizer.minimize(
             method=self.settings.lmfit_method,
@@ -134,6 +140,7 @@ class _FitCalculator:
             concentration=concentration,
             y=y,
             sigma=sigma,
+            known_sigma=known_sigma,
             covariance=covariance,
             variable_names=variable_names,
             success=bool(lmfit_result.success),
@@ -148,7 +155,8 @@ class _FitCalculator:
         parameters: lmfit.Parameters,
         concentration: np.ndarray,
         y: np.ndarray,
-        sigma: np.ndarray | None,
+        sigma: np.ndarray,
+        known_sigma: bool,
         covariance: np.ndarray | None,
         variable_names: tuple[str, ...],
         success: bool,
@@ -160,6 +168,7 @@ class _FitCalculator:
             y=y,
             predicted=predicted,
             sigma=sigma,
+            known_sigma=known_sigma,
             n_varying=len(variable_names),
         )
         variable_index = {name: index for index, name in enumerate(variable_names)}
@@ -203,36 +212,84 @@ class _FitCalculator:
             failure_stage=None if success else "optimization",
             error_type=None if success else "OptimizationFailure",
             error_message=None if success else optimizer_message,
+            warnings=(
+                self._quality_warnings(
+                    estimates,
+                    concentration=concentration,
+                    metrics=metrics,
+                    has_covariance=covariance is not None,
+                )
+                if success
+                else ()
+            ),
         )
+
+    def _quality_warnings(
+        self,
+        estimates: Mapping[str, ParameterEstimate],
+        *,
+        concentration: np.ndarray,
+        metrics: FitMetrics,
+        has_covariance: bool,
+    ) -> tuple[str, ...]:
+        """Flag converged fits whose estimates the data may not support."""
+        messages = []
+        if metrics.n_varying_parameters > 0 and not has_covariance:
+            messages.append("Standard errors could not be estimated.")
+
+        lowest, highest = float(np.min(concentration)), float(np.max(concentration))
+        for spec in self.model.concentration_parameter_specs:
+            estimate = estimates[spec.name]
+            if not estimate.vary:
+                continue
+            if not lowest <= estimate.value <= highest:
+                messages.append(
+                    f"{spec.name} lies outside the tested concentration range."
+                )
+            if estimate.stderr is not None and estimate.stderr > estimate.value:
+                messages.append(
+                    f"{spec.name} is poorly determined: its standard error exceeds "
+                    "the estimate."
+                )
+
+        degrees_of_freedom = metrics.n_data - metrics.n_varying_parameters
+        if metrics.chi_square is not None and degrees_of_freedom > 0:
+            # Two-sided test of the supplied sigma against the residual scatter.
+            p_value = 2.0 * min(
+                chi2.sf(metrics.chi_square, degrees_of_freedom),
+                chi2.cdf(metrics.chi_square, degrees_of_freedom),
+            )
+            if p_value < 0.001:
+                messages.append(
+                    "Residual scatter is inconsistent with the supplied sigma "
+                    f"(reduced chi-square = {metrics.reduced_chi_square:.3g})."
+                )
+        return tuple(messages)
 
     @staticmethod
     def _calculate_metrics(
         *,
         y: np.ndarray,
         predicted: np.ndarray,
-        sigma: np.ndarray | None,
+        sigma: np.ndarray,
+        known_sigma: bool,
         n_varying: int,
     ) -> FitMetrics:
         raw_residual = y - predicted
+        weighted_residual = raw_residual / sigma
         n_data = len(y)
         degrees_of_freedom = n_data - n_varying
         rss = float(np.sum(raw_residual**2))
         reduced_rss = (
             float(rss / degrees_of_freedom) if degrees_of_freedom > 0 else None
         )
-        chi_square = (
-            float(np.sum((raw_residual / sigma) ** 2)) if sigma is not None else None
-        )
+        chi_square = float(np.sum(weighted_residual**2)) if known_sigma else None
         reduced_chi_square = (
             float(chi_square / degrees_of_freedom)
             if chi_square is not None and degrees_of_freedom > 0
             else None
         )
-        if sigma is None:
-            likelihood_term = -np.inf if rss == 0.0 else n_data * np.log(rss / n_data)
-            aic = float(likelihood_term + 2.0 * n_varying)
-            bic = float(likelihood_term + n_varying * np.log(n_data))
-        else:
+        if known_sigma:
             # Known heteroscedastic sigma requires the actual Gaussian
             # likelihood, including its observation-specific normalization.
             negative_twice_log_likelihood = float(
@@ -240,6 +297,16 @@ class _FitCalculator:
             )
             aic = float(negative_twice_log_likelihood + 2.0 * n_varying)
             bic = float(negative_twice_log_likelihood + n_varying * np.log(n_data))
+        else:
+            # With relative weights, the minimized objective is the weighted RSS.
+            weighted_rss = float(np.sum(weighted_residual**2))
+            likelihood_term = (
+                -np.inf
+                if weighted_rss == 0.0
+                else n_data * np.log(weighted_rss / n_data)
+            )
+            aic = float(likelihood_term + 2.0 * n_varying)
+            bic = float(likelihood_term + n_varying * np.log(n_data))
         ss_tot = float(np.sum((y - np.mean(y)) ** 2))
         r_squared = 1.0 - rss / ss_tot if ss_tot > 0 else None
         return FitMetrics(
@@ -270,7 +337,20 @@ def fit(
     fixed: Mapping[str, float] | None = None,
     bounds: Mapping[str, tuple[float | None, float | None]] | None = None,
 ) -> FitResults:
-    """Convenience function for fitting a registered model to dose-response data."""
+    """Convenience function for fitting a registered model to dose-response data.
+
+    Converged fits whose estimates the data may not support carry
+    ``FitResult.warnings``; a single ``UserWarning`` reports how many there are.
+    """
     model_object = get_model(model) if isinstance(model, str) else model
     calculator = _FitCalculator(model=model_object, settings=settings or FitSettings())
-    return calculator.fit(data, compounds=compounds, fixed=fixed, bounds=bounds)
+    results = calculator.fit(data, compounds=compounds, fixed=fixed, bounds=bounds)
+    n_flagged = sum(bool(fit.warnings) for fit in results.fit_results)
+    if n_flagged:
+        warnings.warn(
+            f"{n_flagged} of {len(results.fit_results)} fits have quality "
+            "warnings; see fit_summary()['warnings'].",
+            UserWarning,
+            stacklevel=2,
+        )
+    return results

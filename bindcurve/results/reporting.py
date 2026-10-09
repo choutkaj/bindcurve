@@ -52,6 +52,7 @@ def format_results_report(
         "report",
         "N_fit_successful",
         "N_fit_failed",
+        "N_fit_flagged",
     ]
     if not selected_compounds:
         return pd.DataFrame(columns=columns)
@@ -97,6 +98,7 @@ def format_results_report(
         compound_fits = fits_by_compound[compound_id]
         n_successful = sum(fit.success for fit in compound_fits)
         n_failed = len(compound_fits) - n_successful
+        n_flagged = sum(fit.success and bool(fit.warnings) for fit in compound_fits)
         summary = summary_lookup.get((compound_id, parameter_name))
         report_text = (
             "unavailable: no successful fit summary"
@@ -118,6 +120,7 @@ def format_results_report(
                 "report": report_text,
                 "N_fit_successful": n_successful,
                 "N_fit_failed": n_failed,
+                "N_fit_flagged": n_flagged,
             }
         )
     return pd.DataFrame(rows, columns=columns)

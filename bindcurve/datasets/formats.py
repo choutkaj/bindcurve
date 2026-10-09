@@ -19,7 +19,6 @@ def _standardize_long_dataframe_columns(
     experiment_col: str,
     replicate_col: str,
     sigma_col: str | None,
-    weight_col: str | None,
 ) -> pd.DataFrame:
     """Rename user-provided long-form columns to the canonical schema."""
     _require_columns(
@@ -30,7 +29,7 @@ def _standardize_long_dataframe_columns(
     role_columns = [compound_col, concentration_col, response_col]
     role_columns.extend(
         column
-        for column in (experiment_col, replicate_col, sigma_col, weight_col)
+        for column in (experiment_col, replicate_col, sigma_col)
         if column is not None and column in df.columns
     )
     if len(role_columns) != len(set(role_columns)):
@@ -46,8 +45,6 @@ def _standardize_long_dataframe_columns(
         rename_map[replicate_col] = "replicate_id"
     if sigma_col is not None and sigma_col in df.columns:
         rename_map[sigma_col] = "sigma"
-    if weight_col is not None and weight_col in df.columns:
-        rename_map[weight_col] = "weight"
     for source, target in rename_map.items():
         if source != target and target in df.columns:
             raise ValueError(

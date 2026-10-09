@@ -115,6 +115,7 @@ def test_file_to_fit_summary_report_and_plot(tmp_path, ax, model, parameter, fix
 
     fits = results.fit_summary().sort_values("experiment_id")
     assert fits["success"].tolist() == [True, True, True]
+    assert fits["warnings"].isna().all()
     assert fits["n_data"].tolist() == [16, 16, 16]
     np.testing.assert_allclose(fits[parameter], [1.0, 2.0, 4.0], rtol=1e-5)
     for name, value in fixed.items():
@@ -168,8 +169,7 @@ def test_file_to_fit_summary_report_and_plot(tmp_path, ax, model, parameter, fix
     assert pixels.ndim == 3 and np.ptp(pixels) > 0
 
 
-@pytest.mark.parametrize("uncertainty", ["sigma", "weight"])
-def test_weighted_file_to_fit_residuals_and_export(tmp_path, ax, uncertainty):
+def test_weighted_file_to_fit_residuals_and_export(tmp_path, ax):
     x = np.logspace(-2, 2, 12)
     y = 100.0 / (1.0 + x / 2.0) + np.sin(np.arange(len(x)))
     sigma = np.column_stack(
@@ -183,7 +183,7 @@ def test_weighted_file_to_fit_residuals_and_export(tmp_path, ax, uncertainty):
             "concentration": np.repeat(x, 2),
             "replicate_id": ["rep1", "rep2"] * len(x),
             "response": responses.ravel(),
-            uncertainty: (sigma if uncertainty == "sigma" else 1.0 / sigma).ravel(),
+            "sigma": sigma.ravel(),
         }
     )
     path = tmp_path / "weighted.csv"
@@ -268,7 +268,8 @@ def test_partial_failure_preserves_successful_analysis(tmp_path, ax):
         data, results, ax=ax, x_grid=x, show_markers=False, show_errorbars=False
     )
     assert len(ax.lines) == 1
-    expected = (100.0 / (1.0 + x / 2.0) + 100.0 / (1.0 + x / 8.0)) / 2.0
+    # The compound curve uses the geometric-mean IC50, sqrt(2 * 8) = 4.
+    expected = 100.0 / (1.0 + x / 4.0)
     np.testing.assert_allclose(ax.lines[0].get_ydata(), expected, atol=1e-5)
 
 

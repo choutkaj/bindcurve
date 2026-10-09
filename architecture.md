@@ -51,8 +51,11 @@ For each compound, the fitter:
 1. Selects each independent experiment.
 2. Averages technical replicate responses at each concentration arithmetically.
 3. Generates initial guesses and applies fixed values and bounds.
-4. Fits the experiment-level observations.
-5. Summarizes successful fitted parameters across independent experiments.
+4. Fits the experiment-level observations. Without known sigma, each mean is
+   weighted by its replicate count, so the estimate equals a least-squares fit to
+   the individual replicates; equal replicate counts give an unweighted fit.
+5. Flags converged fits whose estimates the data may not support.
+6. Summarizes successful fitted parameters across independent experiments.
 
 Technical replicates do not count as independent experiments. A `FitResults`
 collection rejects duplicate compound/experiment identities, inconsistent model
@@ -60,17 +63,28 @@ instances, incompatible parameter schemas, and inconsistent fixed parameters.
 
 ### Known observation uncertainty
 
-Input may contain either `sigma` (known observation standard deviation) or
-`weight` (reciprocal standard deviation). Both must be finite and positive.
+Input may contain `sigma`, the known observation standard deviation, which must
+be finite and positive. A `weight` column is rejected because its meaning
+(reciprocal SD, reciprocal variance, or relative weight) is ambiguous.
 For independent replicate errors, uncertainty of an arithmetic mean is propagated
 as `sqrt(sum(sigma_i**2)) / n`. Fitting standardizes residuals by this propagated
-sigma. Without known sigma, fitting uses unweighted residuals. Empirical replicate
-SD or SEM is not substituted for known observation sigma.
+sigma and treats it as absolute, so covariance is not rescaled by the residual
+scatter. Without known sigma, covariance is rescaled by the residual scatter.
+Empirical replicate SD or SEM is not substituted for known observation sigma.
 
 Fit diagnostics distinguish RSS and reduced RSS from chi-square and reduced
 chi-square. Chi-square is available only when observation uncertainty is known.
 The known-sigma likelihood includes its Gaussian normalization. Optimizer
 covariance is transformed back to public physical parameter coordinates.
+
+### Fit quality warnings
+
+A successful fit only means the optimizer converged. `FitResult.warnings` lists
+caveats when standard errors are unavailable, a varying concentration parameter
+lies outside the experiment's tested concentration range, its standard error
+exceeds the estimate, or, with known sigma, a two-sided chi-square test rejects
+the supplied sigma at p < 0.001. Flagged fits stay in the summaries; they are
+counted as `N_fit_flagged`, and `fit()` emits one `UserWarning` when any exist.
 
 ### Parameter summaries
 
@@ -93,11 +107,12 @@ of fixed parameters. It does not fit another curve.
 fits. Optional bands are covariance-based pointwise confidence bands around each
 fitted mean curve, using a Student-t multiplier.
 
-`plot_compounds()` draws the pointwise arithmetic mean of successful experiment
-predictions. Its grand-mean observations are arithmetic means of experiment means,
+`plot_compounds()` draws the model evaluated at `parameter_values()`, so the curve
+uses the same summary parameters that `report()` prints. Averaging curves pointwise
+would flatten them. Its grand-mean observations are arithmetic means of experiment means,
 so experiments contribute equally regardless of their technical replicate counts.
 Its SD/SEM error bars describe inter-experiment response variability. Failed fits
-are excluded from the prediction average; observations retain the selected data.
+are excluded from the curve parameters; observations retain the selected data.
 Compound plots do not have confidence bands.
 
 Each plotted series shares one base color and legend entry across markers and
@@ -121,7 +136,7 @@ results = bc.fit(
 is an internal implementation detail.
 
 - `fit_summary()` provides per-experiment estimates, numerical metrics, optimizer
-  messages, and failure details.
+  messages, quality warnings, and failure details.
 - `fixed_parameters()` lists fixed values separately.
 - `parameters()` provides long-form native and concentration summaries, including
   canonical log10 concentration statistics.
@@ -152,7 +167,7 @@ workflows, use `uv run --group test pytest tests/test_end_to_end.py`.
 
 The end-to-end tests cover CSV input, all eight models, experiment summaries and
 intervals, formatted reports, exported tables, and saved plots. They also cover
-sigma/reciprocal-weight fitting and standardized residuals, real partial failures,
+known-sigma fitting and standardized residuals, real partial failures,
 and conversion of an actual IC50 summary with its confidence limits. They run in
 the regular suite and in CI against the installed wheel using the tests shipped
 in the source distribution.
