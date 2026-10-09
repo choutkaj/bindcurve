@@ -6,10 +6,7 @@ from scipy.optimize import brentq
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
 from bindcurve.modeling.guesses import midpoint_guess
-from bindcurve.modeling.parameters import (
-    STRICTLY_POSITIVE_PARAMETER_MIN,
-    ParameterSpec,
-)
+from bindcurve.modeling.parameters import ParameterSpec, concentration_spec
 
 
 def _competitive_three_state_receptor_free(
@@ -171,17 +168,6 @@ def _competitive_three_state_total_component_arrays(
     }
 
 
-def _fixed_concentration(name: str) -> ParameterSpec:
-    return ParameterSpec(
-        name,
-        min=STRICTLY_POSITIVE_PARAMETER_MIN,
-        vary=False,
-        kind="concentration",
-        scale="log10",
-        reportable=False,
-    )
-
-
 class CompetitiveThreeStateSpecificKdModel(BaseDoseResponseModel):
     """Three-state competitive-binding model for specific binding."""
 
@@ -189,13 +175,11 @@ class CompetitiveThreeStateSpecificKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        *(_fixed_concentration(name) for name in ("RT", "LsT", "Kds")),
-        ParameterSpec(
-            "Kd",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
+        *(
+            concentration_spec(name, vary=False, reportable=False)
+            for name in ("RT", "LsT", "Kds")
         ),
+        concentration_spec("Kd"),
     )
 
     def _component_arrays(
@@ -222,14 +206,12 @@ class CompetitiveThreeStateTotalKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        *(_fixed_concentration(name) for name in ("RT", "LsT", "Kds")),
-        ParameterSpec("N", min=0.0, vary=False),
-        ParameterSpec(
-            "Kd",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
+        *(
+            concentration_spec(name, vary=False, reportable=False)
+            for name in ("RT", "LsT", "Kds")
         ),
+        ParameterSpec("N", min=0.0, vary=False),
+        concentration_spec("Kd"),
     )
 
     def _component_arrays(

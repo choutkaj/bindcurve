@@ -133,6 +133,10 @@ class _FitCalculator:
                 variable_names,
             )
             covariance = transform @ optimizer_covariance @ transform.T
+            # inv(J.T @ J) of an ill-conditioned fit is not exactly symmetric.
+            covariance = 0.5 * (covariance + covariance.T)
+            if not np.all(np.isfinite(covariance)):
+                covariance = None
         return self._build_result(
             compound=compound,
             experiment_id=experiment_id,

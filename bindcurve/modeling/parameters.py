@@ -62,3 +62,21 @@ class ParameterSpec:
         if self.log_name is not None:
             return self.log_name
         return f"log{self.name}"
+
+
+# Far beyond any physical concentration in any unit, while keeping runaway fits
+# of inactive compounds, and the products formed inside the models, finite.
+CONCENTRATION_MIN = 1.0e-100
+CONCENTRATION_MAX = 1.0e100
+
+
+def concentration_spec(name: str, **options: object) -> ParameterSpec:
+    """Return a positive concentration parameter optimized on a log10 coordinate."""
+    return ParameterSpec(
+        name,
+        min=CONCENTRATION_MIN,
+        max=CONCENTRATION_MAX,
+        kind="concentration",
+        scale="log10",
+        **options,
+    )

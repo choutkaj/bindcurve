@@ -10,7 +10,7 @@ ErrorMode = Literal["raise", "collect"]
 class FitSettings:
     """Settings controlling dose-response fitting."""
 
-    lmfit_method: str = "leastsq"
+    lmfit_method: str = "least_squares"
     errors: ErrorMode = "raise"
     max_nfev: int | None = None
 

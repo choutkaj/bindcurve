@@ -57,6 +57,12 @@ For each compound, the fitter:
 5. Flags converged fits whose estimates the data may not support.
 6. Summarizes successful fitted parameters across independent experiments.
 
+Fits use lmfit's `least_squares` method (scipy's trust-region reflective
+algorithm) by default; it applies bounds directly, without transforming the
+parameter coordinate. Concentration parameters are optimized as `log10` values
+within 1e-100 to 1e100, far beyond any physical concentration, which keeps
+runaway fits of inactive compounds finite so they can be flagged.
+
 Technical replicates do not count as independent experiments. A `FitResults`
 collection rejects duplicate compound/experiment identities, inconsistent model
 instances, incompatible parameter schemas, and inconsistent fixed parameters.

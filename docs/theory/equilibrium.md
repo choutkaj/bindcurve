@@ -317,11 +317,13 @@ $$
 F_b^*=\frac{[RL^*]+[RLL^*]}{[L_T^*]}.
 $$
 
-Eliminating the free ligands generally produces a quintic polynomial in true
-free receptor. `bindcurve` finds candidate roots in the physical interval
-$0\le[R]\le[R_T]$, reconstructs all species to enforce non-negativity and the
-mass balances, and falls back to direct numerical solution of the receptor
-balance when necessary.
+For a given free receptor concentration, the tracer and competitor balances
+give both free ligands through a quadratic. `bindcurve` then solves the
+remaining receptor balance by bracketing on $0\le[R]\le[R_T]$. A
+thermodynamically consistent four-state system has exactly one positive
+equilibrium, and the receptor balance changes sign on this interval, so the
+bracket always contains the physical root. This avoids selecting among the
+roots of the quintic polynomial that elimination of the free ligands produces.
 
 The limiting behavior gives useful checks on the model:
 
