@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.optimize import minimize_scalar
 
 import bindcurve as bc
 from bindcurve.fitting.calculator import _FitCalculator
@@ -25,7 +26,7 @@ def _ic50_response(
     return 100.0 / (1.0 + (concentration / IC50) ** hill_slope)
 
 
-def make_uncertain_data(*, uncertainty: str = "sigma") -> bc.DoseResponseData:
+def make_uncertain_data() -> bc.DoseResponseData:
     concentration = np.logspace(-2, 2, 10)
     sigma = np.linspace(0.4, 1.3, concentration.size)
     noise = np.asarray([0.2, -0.4, 0.1, 0.5, -0.3, 0.6, -0.2, 0.3, -0.1, 0.4])
@@ -36,14 +37,9 @@ def make_uncertain_data(*, uncertainty: str = "sigma") -> bc.DoseResponseData:
             "concentration": concentration,
             "replicate_id": [f"rep{index}" for index in range(concentration.size)],
             "response": _ic50_response(concentration) + noise,
+            "sigma": sigma,
         }
     )
-    if uncertainty == "sigma":
-        table["sigma"] = sigma
-    elif uncertainty == "weight":
-        table["weight"] = 1.0 / sigma
-    else:  # pragma: no cover - test helper guard
-        raise ValueError(uncertainty)
     return bc.DoseResponseData.from_dataframe(table)
 
 
@@ -59,7 +55,7 @@ def fitted_curve_count(ax: plt.Axes) -> int:
 
 
 def test_sigma_fit_metrics_match_independent_residual_calculation():
-    data = make_uncertain_data(uncertainty="sigma")
+    data = make_uncertain_data()
     fit = fit_one_parameter(data).successful()[0]
     observations = data.select_compound("cmpd_a").fit_observations()
     parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
@@ -90,24 +86,67 @@ def test_sigma_fit_metrics_match_independent_residual_calculation():
     )
 
 
-def test_sigma_and_reciprocal_weight_are_equivalent():
-    sigma_fit = fit_one_parameter(
-        make_uncertain_data(uncertainty="sigma")
-    ).successful()[0]
-    weight_fit = fit_one_parameter(
-        make_uncertain_data(uncertainty="weight")
-    ).successful()[0]
+def test_unequal_replicate_counts_weight_means_like_individual_observations():
+    rng = np.random.default_rng(3)
+    counts = np.array([1, 1, 1, 1, 4, 4, 4, 4])
+    x = np.repeat(np.logspace(-2, 2, counts.size), counts)
+    y = _ic50_response(x) + rng.normal(0.0, 3.0, x.size)
+    table = pd.DataFrame({"compound_id": "cmpd_a", "concentration": x, "response": y})
 
-    assert weight_fit.parameters["IC50"].value == pytest.approx(
-        sigma_fit.parameters["IC50"].value,
-        rel=1e-10,
+    fit = fit_one_parameter(bc.DoseResponseData(table)).successful()[0]
+
+    def least_squares_ic50(xs: np.ndarray, ys: np.ndarray) -> float:
+        optimum = minimize_scalar(
+            lambda log_ic50: np.sum((ys - _ic50_response(xs, IC50=10**log_ic50)) ** 2),
+            bounds=(-1.0, 1.0),
+            method="bounded",
+            options={"xatol": 1e-12},
+        )
+        return float(10**optimum.x)
+
+    # A mean of n replicates carries n observations' worth of information.
+    # Tolerance reflects lmfit's finite-difference precision, not the weighting.
+    assert fit.parameters["IC50"].value == pytest.approx(
+        least_squares_ic50(x, y), rel=1e-4
     )
-    assert weight_fit.metrics is not None
-    assert sigma_fit.metrics is not None
-    assert weight_fit.metrics.chi_square == pytest.approx(
-        sigma_fit.metrics.chi_square,
-        rel=1e-10,
+    means = table.groupby("concentration")["response"].mean()
+    unweighted_means_ic50 = least_squares_ic50(means.index.to_numpy(), means.to_numpy())
+    assert fit.parameters["IC50"].value != pytest.approx(
+        unweighted_means_ic50, rel=1e-4
     )
+
+
+def test_concentration_estimate_outside_tested_range_is_flagged_and_counted():
+    concentration = np.logspace(-3, -1, 8)
+    table = pd.DataFrame(
+        {
+            "compound_id": "cmpd_a",
+            "concentration": concentration,
+            "response": _ic50_response(concentration, IC50=50.0),
+        }
+    )
+
+    with pytest.warns(UserWarning, match="1 of 1 fits have quality warnings"):
+        results = fit_one_parameter(bc.DoseResponseData(table))
+
+    fit = results.fit_results[0]
+    assert fit.success
+    assert fit.parameters["IC50"].value == pytest.approx(50.0, rel=1e-4)
+    assert "IC50 lies outside the tested concentration range." in fit.warnings
+    assert "outside the tested" in results.fit_summary().loc[0, "warnings"]
+    assert results.summary().loc[0, "N_fit_flagged"] == 1
+    assert results.report().loc[0, "N_fit_flagged"] == 1
+
+
+def test_sigma_inconsistent_with_residual_scatter_is_flagged():
+    table = make_uncertain_data().table
+    table["sigma"] = table["sigma"] / 100.0
+
+    with pytest.warns(UserWarning, match="quality warnings"):
+        fit = fit_one_parameter(bc.DoseResponseData(table)).fit_results[0]
+
+    assert any("inconsistent with the supplied sigma" in w for w in fit.warnings)
+    assert fit_one_parameter(make_uncertain_data()).fit_results[0].warnings == ()
 
 
 def test_all_fixed_parameters_are_evaluated_without_false_optimizer_failure():
@@ -149,11 +188,10 @@ def test_replicate_sigma_is_propagated_for_the_arithmetic_mean():
 
     assert observations.loc[0, "response"] == pytest.approx(12.0)
     assert observations.loc[0, "sigma"] == pytest.approx(np.sqrt(13.0) / 2.0)
-    assert observations.loc[0, "weight"] == pytest.approx(2.0 / np.sqrt(13.0))
 
 
 def test_standardized_residual_plot_uses_the_same_sigma_definition():
-    data = make_uncertain_data(uncertainty="sigma")
+    data = make_uncertain_data()
     fit = fit_one_parameter(data).successful()[0]
     observations = data.select_compound("cmpd_a").fit_observations()
     parameters = {name: estimate.value for name, estimate in fit.parameters.items()}
@@ -181,7 +219,7 @@ def test_standardized_residual_plot_uses_the_same_sigma_definition():
         ("response", np.nan),
         ("response", -np.inf),
         ("sigma", 0.0),
-        ("weight", np.inf),
+        ("sigma", np.inf),
     ],
 )
 def test_numeric_input_validation_rejects_nonfinite_or_nonpositive_values(
@@ -201,11 +239,10 @@ def test_numeric_input_validation_rejects_nonfinite_or_nonpositive_values(
         bc.DoseResponseData.from_dataframe(pd.DataFrame([row]))
 
 
-def test_data_rejects_both_sigma_and_weight():
-    table = make_uncertain_data().table
-    table["weight"] = 1.0 / table["sigma"]
+def test_data_rejects_ambiguous_weight_column():
+    table = make_uncertain_data().table.rename(columns={"sigma": "weight"})
 
-    with pytest.raises(ValueError, match="either sigma or weight"):
+    with pytest.raises(ValueError, match="'weight' column is not supported"):
         bc.DoseResponseData.from_dataframe(table)
 
 

@@ -95,14 +95,8 @@ class CompoundData:
         Technical-replicate responses retain their arithmetic mean. When each
         replicate has a known standard deviation, the standard deviation of
         that arithmetic mean is propagated exactly under independent errors.
-        ``weight`` is defined as reciprocal standard deviation.
         """
-        uncertainty_column = None
-        if "sigma" in self._table.columns:
-            uncertainty_column = "sigma"
-        elif "weight" in self._table.columns:
-            uncertainty_column = "weight"
-        if uncertainty_column is None:
+        if "sigma" not in self._table.columns:
             return self.aggregate_replicates()
 
         rows: list[dict[str, float | int]] = []
@@ -110,18 +104,13 @@ class CompoundData:
             "concentration",
             sort=True,
         ):
-            if uncertainty_column == "sigma":
-                sigma = group["sigma"].to_numpy(dtype=float)
-            else:
-                sigma = 1.0 / group["weight"].to_numpy(dtype=float)
+            sigma = group["sigma"].to_numpy(dtype=float)
             n_replicates = len(group)
-            sigma_mean = float(np.sqrt(np.sum(sigma**2)) / n_replicates)
             rows.append(
                 {
                     "concentration": float(concentration),
                     "response": float(group["response"].mean()),
-                    "sigma": sigma_mean,
-                    "weight": 1.0 / sigma_mean,
+                    "sigma": float(np.sqrt(np.sum(sigma**2)) / n_replicates),
                     "n_replicates": n_replicates,
                 }
             )
@@ -168,7 +157,6 @@ class DoseResponseData:
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
         sigma_col: str | None = "sigma",
-        weight_col: str | None = "weight",
         replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
@@ -185,7 +173,6 @@ class DoseResponseData:
                 experiment_col=experiment_col,
                 replicate_col=replicate_col,
                 sigma_col=sigma_col,
-                weight_col=weight_col,
             )
             return cls(
                 table=table,
@@ -217,7 +204,6 @@ class DoseResponseData:
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
         sigma_col: str | None = "sigma",
-        weight_col: str | None = "weight",
         replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
@@ -237,7 +223,6 @@ class DoseResponseData:
             experiment_col=experiment_col,
             replicate_col=replicate_col,
             sigma_col=sigma_col,
-            weight_col=weight_col,
             replicate_cols=replicate_cols,
             replicate_prefix=replicate_prefix,
             metadata=metadata,
@@ -255,7 +240,6 @@ class DoseResponseData:
         experiment_col: str = "experiment_id",
         replicate_col: str = "replicate_id",
         sigma_col: str | None = "sigma",
-        weight_col: str | None = "weight",
         replicate_cols: list[str] | None = None,
         replicate_prefix: str = "response_",
         metadata: dict | None = None,
@@ -292,7 +276,6 @@ class DoseResponseData:
             experiment_col=experiment_col,
             replicate_col=replicate_col,
             sigma_col=sigma_col,
-            weight_col=weight_col,
             replicate_cols=replicate_cols,
             replicate_prefix=replicate_prefix,
             metadata=resolved_metadata,
@@ -544,12 +527,8 @@ class DoseResponseData:
             self._table["concentration"], errors="raise"
         )
         self._table["response"] = pd.to_numeric(self._table["response"], errors="raise")
-        for column in ("sigma", "weight"):
-            if column in self._table.columns:
-                self._table[column] = pd.to_numeric(
-                    self._table[column],
-                    errors="raise",
-                )
+        if "sigma" in self._table.columns:
+            self._table["sigma"] = pd.to_numeric(self._table["sigma"], errors="raise")
 
     def validate(self) -> None:
         """Validate the dose-response data schema and basic numerical assumptions."""
@@ -563,14 +542,17 @@ class DoseResponseData:
             raise ValueError("response must contain only finite values.")
         if np.any(concentration <= 0.0):
             raise ValueError("All concentrations must be positive.")
-        if "sigma" in self._table.columns and "weight" in self._table.columns:
-            raise ValueError("Provide either sigma or weight, not both.")
-        for column in ("sigma", "weight"):
-            if column not in self._table.columns:
-                continue
-            values = self._table[column].to_numpy(dtype=float)
-            if np.any(~np.isfinite(values)) or np.any(values <= 0.0):
-                raise ValueError(f"{column} must contain finite positive values.")
+        if "weight" in self._table.columns:
+            # Weights are ambiguous (1/sigma, 1/sigma**2, or relative), so only
+            # known standard deviations are accepted.
+            raise ValueError(
+                "A 'weight' column is not supported; provide the known observation "
+                "standard deviation as 'sigma' instead."
+            )
+        if "sigma" in self._table.columns:
+            sigma = self._table["sigma"].to_numpy(dtype=float)
+            if np.any(~np.isfinite(sigma)) or np.any(sigma <= 0.0):
+                raise ValueError("sigma must contain finite positive values.")
 
         key = [
             "compound_id",

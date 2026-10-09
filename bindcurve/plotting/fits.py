@@ -84,14 +84,9 @@ def _residual_table_for_fit(
     plotted["predicted"] = predicted
     plotted["residual"] = plotted["response"].to_numpy(dtype=float) - predicted
     if standardized:
-        if "sigma" in plotted.columns:
-            sigma = plotted["sigma"].to_numpy(dtype=float)
-        elif "weight" in plotted.columns:
-            sigma = 1.0 / plotted["weight"].to_numpy(dtype=float)
-        else:
-            raise ValueError(
-                "Standardized residuals require observation sigma or weight."
-            )
+        if "sigma" not in plotted.columns:
+            raise ValueError("Standardized residuals require observation sigma.")
+        sigma = plotted["sigma"].to_numpy(dtype=float)
         plotted["residual"] = plotted["residual"].to_numpy(dtype=float) / sigma
     return plotted
 

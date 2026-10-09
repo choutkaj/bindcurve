@@ -128,7 +128,7 @@ def test_plot_fits_supports_explicit_styling_args():
     plt.close(fig)
 
 
-def test_plot_compounds_averages_experiment_level_predictions_without_refitting():
+def test_plot_compounds_draws_the_curve_at_summary_parameters():
     data = make_data()
     results = make_results(data)
     fig, ax = plt.subplots()
@@ -140,20 +140,13 @@ def test_plot_compounds_averages_experiment_level_predictions_without_refitting(
     assert len(curve_lines(ax)) == 1
     curve = curve_lines(ax)[0]
     grid = np.asarray(curve.get_xdata(), dtype=float)
-    predictions = np.stack(
-        [
-            fit.model.evaluate(
-                grid,
-                **{name: estimate.value for name, estimate in fit.parameters.items()},
-            )
-            for fit in results.successful()
-            if fit.compound_id == "cmpd_a"
-        ]
-    )
-    expected = np.mean(predictions, axis=0)
+    fits = results.successful()
+    # Geometric-mean IC50 and arithmetic-mean Hill slope, as in the summaries.
+    ic50 = np.exp(np.mean([np.log(fit.parameters["IC50"].value) for fit in fits]))
+    hill_slope = np.mean([fit.parameters["hill_slope"].value for fit in fits])
     np.testing.assert_allclose(
         curve.get_ydata(),
-        expected,
+        ic50_curve(grid, ic50=ic50, hill_slope=hill_slope),
     )
     plt.close(fig)
 

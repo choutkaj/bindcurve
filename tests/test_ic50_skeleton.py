@@ -144,6 +144,7 @@ def test_report_formats_geometric_center_and_intervals():
         "report",
         "N_fit_successful",
         "N_fit_failed",
+        "N_fit_flagged",
     ]
     assert list(report["compound_id"]) == ["cmpd_a", "cmpd_b"]
     assert report.loc[0, "report"].endswith("uM, N_exp = 3")
