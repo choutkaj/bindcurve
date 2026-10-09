@@ -1,36 +1,12 @@
-# IC50 conversion
-
-Convert fitted IC50 values to dissociation constants with scalar formulas or a
-DataFrame-oriented convenience function.
-
-## `IC50ConversionResult`
+# IC₅₀ conversion
 
 ```{eval-rst}
-.. autoclass:: bindcurve.IC50ConversionResult
-   :members:
-   :show-inheritance:
-```
+.. automodule:: bindcurve.conversion
+   :no-members:
 
-## `convert_ic50_to_kd`
-
-```{eval-rst}
-.. autofunction:: bindcurve.convert_ic50_to_kd
-```
-
-## `cheng_prusoff`
-
-```{eval-rst}
 .. autofunction:: bindcurve.cheng_prusoff
-```
 
-## `cheng_prusoff_corrected`
+.. autofunction:: bindcurve.munson_rodbard
 
-```{eval-rst}
-.. autofunction:: bindcurve.cheng_prusoff_corrected
-```
-
-## `coleska`
-
-```{eval-rst}
 .. autofunction:: bindcurve.coleska
 ```

@@ -8,7 +8,7 @@ dynamic = ["version"]
 requires-python = ">=3.10,<3.15"
 description = "A Python package for fitting and plotting dose-response curves."
 readme = "README.md"
-keywords = ["dose-response", "curve-fitting", "binding", "biochemistry", "lmfit"]
+keywords = ["dose-response", "curve-fitting", "binding", "biochemistry"]
 authors = [
   {name = "Jan Choutka", email = "jan.choutka@uochb.cas.cz"},
 ]
@@ -18,7 +18,6 @@ dependencies = [
   "numpy",
   "pandas",
   "matplotlib",
-  "lmfit",
   "scipy",
 ]
 classifiers = [
@@ -51,7 +50,6 @@ lint = [
 notebook = [
   "ipykernel",
   "jupyterlab",
-  "sympy",
 ]
 docs = [
   "myst-nb>=1.2,<2",
@@ -83,3 +81,4 @@ ignore = []
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
+pythonpath = ["tests"]

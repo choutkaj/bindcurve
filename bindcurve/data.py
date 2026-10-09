@@ -1,0 +1,152 @@
+"""Validated dose-response observations."""
+
+from __future__ import annotations
+
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Literal
+
+import numpy as np
+import pandas as pd
+
+REQUIRED_COLUMNS = ("compound_id", "concentration", "response")
+DEFAULT_EXPERIMENT = "experiment_1"
+
+
+class DoseResponseData:
+    """Long-form dose-response observations, one row per measured response.
+
+    Parameters
+    ----------
+    table
+        Columns ``compound_id``, ``concentration`` and ``response`` are
+        required. ``experiment_id`` identifies independent experiments and
+        defaults to a single experiment. ``sigma`` optionally gives the known
+        absolute standard deviation of each response. Other columns are kept.
+
+    Notes
+    -----
+    Concentrations must be finite and positive and share one unit. Rows with
+    the same compound, experiment and concentration are technical replicates.
+    """
+
+    def __init__(self, table: pd.DataFrame) -> None:
+        self._table = _validated(table)
+
+    @classmethod
+    def from_wide(
+        cls, table: pd.DataFrame, *, prefix: str = "response_"
+    ) -> DoseResponseData:
+        """Create data from one row per concentration with replicate columns.
+
+        Replicate responses are the columns whose names start with ``prefix``.
+        Missing replicate values are ignored.
+        """
+        responses = [
+            column for column in table.columns if str(column).startswith(prefix)
+        ]
+        if not responses:
+            raise ValueError(f"No response columns starting with {prefix!r}.")
+        keys = [column for column in table.columns if column not in responses]
+        unknown = set(keys) - {"compound_id", "experiment_id", "concentration"}
+        if unknown:
+            raise ValueError(
+                f"Wide tables cannot contain other columns: {sorted(unknown)}."
+            )
+        long = table.melt(id_vars=keys, value_vars=responses, value_name="response")
+        return cls(long.drop(columns="variable").dropna(subset=["response"]))
+
+    @classmethod
+    def from_csv(
+        cls,
+        path: str | Path,
+        *,
+        format: Literal["long", "wide"] = "long",
+        **read_csv_kwargs: object,
+    ) -> DoseResponseData:
+        """Read a long or wide CSV file; see the constructor and `from_wide`."""
+        table = pd.read_csv(path, **read_csv_kwargs)
+        if format == "long":
+            return cls(table)
+        if format == "wide":
+            return cls.from_wide(table)
+        raise ValueError("format must be 'long' or 'wide'.")
+
+    @property
+    def table(self) -> pd.DataFrame:
+        """A copy of the validated observation table."""
+        return self._table.copy()
+
+    @property
+    def compounds(self) -> list[str]:
+        """Sorted compound identifiers."""
+        return sorted(self._table["compound_id"].unique())
+
+    def select(self, compounds: str | Iterable[str]) -> DoseResponseData:
+        """Return the observations of the given compound or compounds."""
+        selected = [compounds] if isinstance(compounds, str) else list(compounds)
+        missing = sorted(set(selected) - set(self.compounds))
+        if missing:
+            raise KeyError(f"Unknown compound(s): {missing}")
+        return DoseResponseData(self._table[self._table["compound_id"].isin(selected)])
+
+    def summary(self) -> pd.DataFrame:
+        """One row per compound with experiment, observation and range counts."""
+        grouped = self._table.groupby("compound_id")
+        return pd.DataFrame(
+            {
+                "N_exp": grouped["experiment_id"].nunique(),
+                "N_obs": grouped.size(),
+                "concentration_min": grouped["concentration"].min(),
+                "concentration_max": grouped["concentration"].max(),
+            }
+        ).reset_index()
+
+
+def replicate_means(table: pd.DataFrame, by: list[str]) -> pd.DataFrame:
+    """Mean, sample SD, SEM and count of ``response`` per group.
+
+    With a ``sigma`` column, the known standard deviation of each mean,
+    ``sqrt(sum(sigma**2)) / n`` for independent errors, is returned as ``sigma``.
+    """
+    groups = table.groupby(by, sort=True)
+    means = groups["response"].agg(response="mean", sd="std", n="count")
+    means["sem"] = means["sd"] / np.sqrt(means["n"])
+    if "sigma" in table.columns:
+        variance = (table["sigma"] ** 2).groupby([table[c] for c in by]).sum()
+        means["sigma"] = np.sqrt(variance) / means["n"]
+    return means.reset_index()
+
+
+def _validated(table: pd.DataFrame) -> pd.DataFrame:
+    missing = [column for column in REQUIRED_COLUMNS if column not in table.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+    if "weight" in table.columns:
+        # Weights are ambiguous (1/sigma, 1/sigma**2, or relative).
+        raise ValueError(
+            "A 'weight' column is not supported; provide the known observation "
+            "standard deviation as 'sigma' instead."
+        )
+    if table.empty:
+        raise ValueError("The observation table is empty.")
+
+    table = table.copy()
+    if "experiment_id" not in table.columns:
+        table["experiment_id"] = DEFAULT_EXPERIMENT
+    for column in ("compound_id", "experiment_id"):
+        if table[column].isna().any():
+            raise ValueError(f"{column} contains missing values.")
+        table[column] = table[column].astype(str)
+
+    numeric = ["concentration", "response"]
+    if "sigma" in table.columns:
+        numeric.append("sigma")
+    for column in numeric:
+        table[column] = pd.to_numeric(table[column], errors="raise").astype(float)
+        if not np.isfinite(table[column]).all():
+            raise ValueError(f"{column} must contain only finite values.")
+    for column in ("concentration", "sigma"):
+        if column in table.columns and (table[column] <= 0.0).any():
+            raise ValueError(f"{column} must be positive.")
+    return table.reset_index(drop=True)

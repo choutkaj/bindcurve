@@ -164,8 +164,8 @@ $$
 =\frac{[RL^*]}{[L_T^*]}
 $$
 
-to the response. The component API exposes both the specific and total bound
-fractions. The factor $(1+N^*)$ changes the mass balance and the apparent
+to the response. `BindingModel.species` returns the specific fraction `Fbs`
+and the nonspecifically immobilized tracer `Ls_nonspecific`. The factor $(1+N^*)$ changes the mass balance and the apparent
 location of the curve; it does **not** mean that the microscopic $K_d^*$ has
 changed or that total binding is simply $(1+N^*)$ times specific binding.
 
