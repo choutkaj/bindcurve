@@ -22,9 +22,6 @@ python -m pip install bindcurve
 
 ## Fit an inhibition curve
 
-`bindcurve` accepts long-form observations. The required columns are
-`compound_id`, `concentration`, and `response`:
-
 ```python
 import bindcurve as bc
 import pandas as pd
@@ -37,12 +34,8 @@ observations = pd.DataFrame(
     }
 )
 
-data = bc.DoseResponseData.from_dataframe(observations)
-results = bc.fit(
-    data,
-    model="ic50",
-    fixed={"ymin": 0.0, "ymax": 100.0},
-)
+data = bc.DoseResponseData(observations)
+results = bc.fit(data, "ic50", fixed={"ymin": 0.0, "ymax": 100.0})
 
 print(results.summary()[["compound_id", "IC50"]])
 ```
@@ -52,6 +45,46 @@ print(results.summary()[["compound_id", "IC50"]])
 0     example   1.0
 ```
 
-Concentrations must use one consistent unit. The fitted IC₅₀ is reported in
-that same unit. See the [logistic-model theory](theory/logistic.md) for the
-model definition and interpretation.
+`fit` fits every independent experiment of every compound separately.
+`results.experiments()` lists the experiment-level fits, `results.summary()`
+summarizes them per compound, `results.report()` formats the potency for a
+manuscript, and `bc.plot_fits(results)` draws them. See the
+[logistic-model theory](theory/logistic.md) for the model itself.
+
+## Input data
+
+Observations are long-form, one row per measured response:
+
+```text
+compound_id,experiment_id,concentration,response
+Cmpd_1,exp_1,0.001,98.1
+Cmpd_1,exp_1,0.001,97.5
+Cmpd_1,exp_1,0.003,94.2
+Cmpd_1,exp_2,0.001,97.9
+```
+
+- `compound_id`, `concentration` and `response` are required.
+- `experiment_id` identifies independent experiments; it defaults to a single
+  experiment. Rows sharing compound, experiment and concentration are
+  technical replicates, which are averaged before fitting.
+- `sigma`, if present, is the known absolute standard deviation of each
+  response. It is not the empirical replicate SD or SEM.
+- Concentrations must be positive and share one unit; fitted concentrations
+  are reported in that unit. Other columns are kept but not used.
+
+The wide layout has one row per concentration and replicate responses in
+columns starting with `response_`:
+
+```text
+compound_id,experiment_id,concentration,response_1,response_2,response_3
+Cmpd_1,exp_1,0.001,98.1,97.5,99.0
+Cmpd_1,exp_1,0.003,94.2,95.0,93.7
+```
+
+```python
+data = bc.DoseResponseData.from_csv("observations.csv")
+data = bc.DoseResponseData.from_csv("observations-wide.csv", format="wide")
+```
+
+Rename columns with pandas if your files use other names, and use
+`data.select(...)` to fit a subset of compounds.

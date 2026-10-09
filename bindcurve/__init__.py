@@ -1,68 +1,33 @@
-"""Object-oriented dose-response fitting with an lmfit backend."""
+"""Fitting and plotting of dose-response and equilibrium-binding curves."""
 
 from importlib.metadata import PackageNotFoundError, version
 
-from bindcurve.conversion import (
-    IC50ConversionResult,
-    cheng_prusoff,
-    cheng_prusoff_corrected,
-    coleska,
-    convert_ic50_to_kd,
-)
-from bindcurve.datasets import DoseResponseData
-from bindcurve.fitting import FitSettings, fit
-from bindcurve.modeling import (
-    BaseDoseResponseModel,
-    ModelEvaluation,
-    ParameterSpec,
-    get_model,
-)
-from bindcurve.plotting import (
-    CurvePoint,
-    plot_asymptotes,
-    plot_compounds,
-    plot_curve_points,
-    plot_fits,
-    plot_residuals,
-)
-from bindcurve.results import (
-    ConcentrationSummary,
-    FitMetrics,
-    FitResult,
-    FitResults,
-    ParameterEstimate,
-    ParameterSummary,
-)
+from bindcurve.conversion import cheng_prusoff, coleska, munson_rodbard
+from bindcurve.data import DoseResponseData
+from bindcurve.fitting import fit
+from bindcurve.models import BindingModel, Model, Parameter, get_model
+from bindcurve.plotting import plot_compounds, plot_fits, plot_residuals
+from bindcurve.results import FitResult, FitResults
 
 try:
     __version__ = version("bindcurve")
-except PackageNotFoundError:  # pragma: no cover - useful in editable source trees
+except PackageNotFoundError:  # pragma: no cover - source tree without metadata
     __version__ = "0+unknown"
 
 __all__ = [
-    "BaseDoseResponseModel",
-    "ConcentrationSummary",
-    "CurvePoint",
+    "BindingModel",
     "DoseResponseData",
-    "FitMetrics",
     "FitResult",
     "FitResults",
-    "FitSettings",
-    "IC50ConversionResult",
-    "ModelEvaluation",
-    "ParameterEstimate",
-    "ParameterSummary",
-    "ParameterSpec",
+    "Model",
+    "Parameter",
     "__version__",
     "cheng_prusoff",
-    "cheng_prusoff_corrected",
     "coleska",
-    "convert_ic50_to_kd",
     "fit",
     "get_model",
-    "plot_asymptotes",
+    "munson_rodbard",
     "plot_compounds",
-    "plot_curve_points",
     "plot_fits",
     "plot_residuals",
 ]

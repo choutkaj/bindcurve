@@ -1,8 +1,6 @@
 # API reference
 
-The reference below documents the public objects exported from the top-level
-`bindcurve` package. Signatures, parameter descriptions, return values, and
-class members are generated from the source docstrings.
+These are the public objects exported from the top-level `bindcurve` package.
 
 ## Data and fitting
 
@@ -11,22 +9,9 @@ class members are generated from the source docstrings.
    :nosignatures:
 
    bindcurve.DoseResponseData
-   bindcurve.FitSettings
    bindcurve.fit
-```
-
-## Results
-
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
    bindcurve.FitResults
    bindcurve.FitResult
-   bindcurve.FitMetrics
-   bindcurve.ParameterEstimate
-   bindcurve.ParameterSummary
-   bindcurve.ConcentrationSummary
 ```
 
 ## Plotting
@@ -35,42 +20,35 @@ class members are generated from the source docstrings.
 .. autosummary::
    :nosignatures:
 
-   bindcurve.CurvePoint
    bindcurve.plot_fits
    bindcurve.plot_compounds
    bindcurve.plot_residuals
-   bindcurve.plot_asymptotes
-   bindcurve.plot_curve_points
 ```
 
-## Model infrastructure
+## Models
 
 ```{eval-rst}
 .. autosummary::
    :nosignatures:
 
-   bindcurve.BaseDoseResponseModel
-   bindcurve.ModelEvaluation
-   bindcurve.ParameterSpec
    bindcurve.get_model
+   bindcurve.Model
+   bindcurve.BindingModel
+   bindcurve.Parameter
 ```
 
-## IC50 conversion
+## IC₅₀ conversion
 
 ```{eval-rst}
 .. autosummary::
    :nosignatures:
 
-   bindcurve.IC50ConversionResult
-   bindcurve.convert_ic50_to_kd
    bindcurve.cheng_prusoff
-   bindcurve.cheng_prusoff_corrected
+   bindcurve.munson_rodbard
    bindcurve.coleska
 ```
 
 ## Package metadata
-
-`bindcurve.__version__` contains the installed package version.
 
 ```{eval-rst}
 .. autodata:: bindcurve.__version__
@@ -81,8 +59,7 @@ class members are generated from the source docstrings.
 :maxdepth: 2
 
 data-fitting
-results
 plotting
-modeling
+models
 conversion
 ```

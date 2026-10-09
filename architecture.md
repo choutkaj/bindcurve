@@ -1,184 +1,72 @@
-# BindCurve architecture
+# bindcurve architecture
 
-BindCurve fits dose-response and equilibrium-binding data through one canonical
-pipeline. ITC, SPR, and kinetic traces are outside its scope.
+bindcurve fits dose-response and equilibrium-binding curves to plate-style
+titration data. ITC, SPR and kinetic traces are out of scope.
 
-## Package boundaries
+## Modules
 
-- `datasets/dose_response.py` owns validated observations, selection, and the
-  public import/export methods. Public tables and metadata are isolated copies.
-- `datasets/formats.py` handles table layouts, column mappings, and JSON sources.
-- `datasets/aggregation.py` computes arithmetic response means, sample SD, and SEM.
-- `modeling/` owns equations, physical components, parameter specifications,
-  initial guesses, and conversion between physical and optimizer coordinates.
-- `fitting/` coordinates experiment-level fitting through lmfit. It contains no
-  model-specific equations.
-- `results/types.py` defines result records and uncertainty representations.
-- `results/summaries.py` computes across-experiment parameter statistics.
-- `results/core.py` validates result collections and exposes numerical tables.
-- `results/reporting.py` formats manuscript-facing reports.
-- `plotting/` renders observations, fitted predictions, residuals, confidence
-  bands, and annotations. Plotting never performs a new fit.
-- `conversion/` implements IC50-to-Kd conversions and their input validation.
+| Module | Responsibility |
+| --- | --- |
+| `data.py` | `DoseResponseData`: validated long-form observations, the wide layout, and `replicate_means`. |
+| `models/` | `Model`, `BindingModel` and `Parameter`; one module per equation family; the `MODELS` registry. |
+| `fitting.py` | `fit()`: per-experiment least squares, covariance, quality warnings. |
+| `results.py` | `FitResult`, `FitResults`, across-experiment statistics and reports. |
+| `plotting.py` | `plot_fits`, `plot_compounds`, `plot_residuals`. Plotting never fits. |
+| `conversion.py` | Vectorized IC50-to-Kd conversions. |
+
+Dependencies point one way: `data` and `models` are independent;
+`results` uses both; `fitting` and `plotting` use `results`.
 
 ## Scientific contract
 
-The following rules are shared by fitting, summaries, and plotting. Architectural
-cleanup must preserve them, along with model equations and numerical tolerances.
+Refactoring must preserve the following, together with the model equations,
+their solvers and numerical tolerances.
 
-### Canonical observations
+### Models
 
-The canonical table is long-form:
+Every model maps a fraction onto two plateaus,
+`ymin + (ymax - ymin) * fraction(x)`, on the untransformed concentration axis.
+Binding models expose their equilibrium species through `species()`. Root
+selection and cancellation-free forms in `models/` are scientific choices:
+the direct quadratic uses the rationalized root, and the competitive models
+bracket the receptor balance normalized by `RT`, which has exactly one root.
+`Parameter(concentration=True)` marks positive concentrations; `fixed=True`
+marks assay constants that `fit()` requires.
 
-```text
-compound_id | experiment_id | concentration | replicate_id | response | metadata...
-```
+### Fitting
 
-`compound_id`, `concentration`, and `response` are required. Missing experiment
-identifiers default to `experiment_1`; missing replicate identifiers are generated
-within each compound, experiment, and concentration group. Observations have unique
-compound/experiment/concentration/replicate identities. Concentrations are finite
-and positive; responses are finite. See [data formats](data_formats.md).
+`fit()` fits each compound/experiment separately:
 
-BindCurve is unitless. All concentration-like values supplied together must use
-one consistent numerical scale. Fitted concentration parameters retain that scale.
-Model evaluation also accepts zero concentration for evaluating limits.
+1. Technical replicates are averaged per concentration.
+2. Without `sigma`, each mean is weighted by its replicate count (equivalent
+   to fitting the replicates) and the covariance is scaled by the residual
+   scatter. With `sigma`, the propagated sigma of each mean,
+   `sqrt(sum(sigma**2)) / n`, is absolute and the covariance is not scaled.
+3. Concentrations are optimized as log10 values within 1e-100 to 1e100 by
+   `scipy.optimize.least_squares`. Covariance is `inv(J.T J)` via SVD, `None`
+   if `J` is rank deficient, and is transformed back to linear values.
+4. Converged fits are flagged when standard errors are missing, a fitted
+   concentration lies outside the tested range, its standard error exceeds
+   it, or a known sigma fails a two-sided chi-square test at p < 0.001.
+   `fit()` emits one `UserWarning` for flagged fits; they stay in summaries.
 
-### One fit per independent experiment
+Errors re-raise by default; `errors="collect"` records failed fits.
 
-For each compound, the fitter:
+### Summaries
 
-1. Selects each independent experiment.
-2. Averages technical replicate responses at each concentration arithmetically.
-3. Generates initial guesses and applies fixed values and bounds.
-4. Fits the experiment-level observations. Without known sigma, each mean is
-   weighted by its replicate count, so the estimate equals a least-squares fit to
-   the individual replicates; equal replicate counts give an unweighted fit.
-5. Flags converged fits whose estimates the data may not support.
-6. Summarizes successful fitted parameters across independent experiments.
+Across successful experiments, native parameters get the mean, sample SD,
+SEM and Student-t 95% CI. Concentration parameters get the same on log10
+values; their center is the geometric mean and the CI is back-transformed.
+`parameters()` returns these centers plus the fixed values, and
+`plot_compounds()` draws the model there, so plots match `report()`.
+Confidence bands are pointwise delta-method bands using the normal quantile
+for known sigma and Student t otherwise.
 
-Fits use lmfit's `least_squares` method (scipy's trust-region reflective
-algorithm) by default; it applies bounds directly, without transforming the
-parameter coordinate. Concentration parameters are optimized as `log10` values
-within 1e-100 to 1e100, far beyond any physical concentration, which keeps
-runaway fits of inactive compounds finite so they can be flagged.
+## Testing
 
-Technical replicates do not count as independent experiments. A `FitResults`
-collection rejects duplicate compound/experiment identities, inconsistent model
-instances, incompatible parameter schemas, and inconsistent fixed parameters.
+`tests/references.py` holds references that never call bindcurve's solvers:
+high-precision bisection, simultaneous mass-balance solutions, data built
+from free species, and exact IC50s. Keep expectations analytic or
+independently computed; avoid optimizer-output snapshots and pixel tests.
 
-### Known observation uncertainty
-
-Input may contain `sigma`, the known observation standard deviation, which must
-be finite and positive. A `weight` column is rejected because its meaning
-(reciprocal SD, reciprocal variance, or relative weight) is ambiguous.
-For independent replicate errors, uncertainty of an arithmetic mean is propagated
-as `sqrt(sum(sigma_i**2)) / n`. Fitting standardizes residuals by this propagated
-sigma and treats it as absolute, so covariance is not rescaled by the residual
-scatter. Without known sigma, covariance is rescaled by the residual scatter.
-Empirical replicate SD or SEM is not substituted for known observation sigma.
-
-Fit diagnostics distinguish RSS and reduced RSS from chi-square and reduced
-chi-square. Chi-square is available only when observation uncertainty is known.
-The known-sigma likelihood includes its Gaussian normalization. Optimizer
-covariance is transformed back to public physical parameter coordinates.
-
-### Fit quality warnings
-
-A successful fit only means the optimizer converged. `FitResult.warnings` lists
-caveats when standard errors are unavailable, a varying concentration parameter
-lies outside the experiment's tested concentration range, its standard error
-exceeds the estimate, or, with known sigma, a two-sided chi-square test rejects
-the supplied sigma at p < 0.001. Flagged fits stay in the summaries; they are
-counted as `N_fit_flagged`, and `fit()` emits one `UserWarning` when any exist.
-
-### Parameter summaries
-
-Native additive parameters use arithmetic means, sample SD (`ddof=1`),
-`SEM = SD / sqrt(N_exp)`, and two-sided Student-t 95% confidence intervals.
-
-Positive concentration parameters use those same statistics on `log10` values.
-Their linear center is `10**log10_mean`; linear SD, SEM, and CI95 intervals are
-back-transformed log intervals. Linear concentration uncertainty is consequently
-asymmetric. With one successful experiment, spread and confidence intervals are
-unavailable. Fixed parameters are excluded from estimated-parameter summaries.
-
-`parameter_values()` returns arithmetic means for varying native parameters,
-geometric centers for varying concentration parameters, and the common values
-of fixed parameters. It does not fit another curve.
-
-### Plotting
-
-`plot_fits()` displays observations and predictions for successful experiment-level
-fits. Optional bands are covariance-based pointwise confidence bands around each
-fitted mean curve, using a Student-t multiplier.
-
-`plot_compounds()` draws the model evaluated at `parameter_values()`, so the curve
-uses the same summary parameters that `report()` prints. Averaging curves pointwise
-would flatten them. Its grand-mean observations are arithmetic means of experiment means,
-so experiments contribute equally regardless of their technical replicate counts.
-Its SD/SEM error bars describe inter-experiment response variability. Failed fits
-are excluded from the curve parameters; observations retain the selected data.
-Compound plots do not have confidence bands.
-
-Each plotted series shares one base color and legend entry across markers and
-curves. Asymptotes and arbitrary curve points have dedicated annotation functions.
-
-## Public fitting and results API
-
-```python
-import bindcurve as bc
-
-results = bc.fit(
-    data,
-    model="ic50",
-    settings=bc.FitSettings(errors="raise"),
-    fixed={"ymin": 0.0, "ymax": 100.0},
-)
-```
-
-`get_model(name)` resolves built-in models. `fit()` also accepts a custom
-`BaseDoseResponseModel` instance, which is retained in its results. The calculator
-is an internal implementation detail.
-
-- `fit_summary()` provides per-experiment estimates, numerical metrics, optimizer
-  messages, quality warnings, and failure details.
-- `fixed_parameters()` lists fixed values separately.
-- `parameters()` provides long-form native and concentration summaries, including
-  canonical log10 concentration statistics.
-- `summary()` provides one row per compound, experiment and fit counts,
-  observation counts, parameter centers/intervals, RSS, and chi-square.
-- `report()` formats a selected concentration summary in linear, log, or both
-  representations. Invalid options are rejected even if all fits failed.
-
-The default error mode re-raises fitting exceptions. `FitSettings(errors="collect")`
-records exceptions as failed `FitResult` objects and continues with other
-experiments. Optimizer-reported failures retain their diagnostic context. Failed
-fits remain visible in result tables and are excluded from parameter summaries.
-
-## Maintenance
-
-The maintained user documentation lives in `docs/` and is built with Sphinx.
-`quarto_website/` and `docs_legacy/` are historical material, not current API
-references. The root architecture and data-format documents describe the current
-implementation.
-
-Preserve independent equilibrium, mass-balance, concentration-scale, cancellation,
-weighting, and uncertainty tests when refactoring. Numerical root selection,
-stability expressions, and solver tolerances are scientific implementation
-choices, not formatting opportunities.
-
-Run the complete suite with `uv run --group test pytest`. To run just the public
-workflows, use `uv run --group test pytest tests/test_end_to_end.py`.
-
-The end-to-end tests cover CSV input, all eight models, experiment summaries and
-intervals, formatted reports, exported tables, and saved plots. They also cover
-known-sigma fitting and standardized residuals, real partial failures,
-and conversion of an actual IC50 summary with its confidence limits. They run in
-the regular suite and in CI against the installed wheel using the tests shipped
-in the source distribution.
-
-Keep regression expectations small and independently justified: analytic values,
-mass balances, and numerical tolerances. Avoid optimizer-output snapshots and
-pixel comparisons. Share repetitive input construction where useful, but keep
-scientific reference calculations independent of production model evaluation.
+Run the suite with `uv run --group test pytest`.

@@ -41,7 +41,7 @@ the finite-concentration conversions below.
 
 ## Munson-Rodbard finite-concentration correction
 
-Function: `cheng_prusoff_corrected`
+Function: `munson_rodbard`
 
 Let
 

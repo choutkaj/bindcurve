@@ -50,19 +50,12 @@ napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 nitpicky = True
 
-# CompoundData is intentionally excluded from the top-level public API reference,
-# but it remains visible in a few advanced method annotations.
-nitpick_ignore = [
-    ("py:class", "bindcurve.datasets.dose_response.CompoundData"),
-]
-
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "pandas": ("https://pandas.pydata.org/docs", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
-    "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
 }
 
 # These verified DOI resolver links work for readers, but their publishers

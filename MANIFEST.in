@@ -2,7 +2,6 @@ include README.md
 include LICENSE
 include CITATION.cff
 include architecture.md
-include data_formats.md
 include .python-version
 
 recursive-include bindcurve *.py
