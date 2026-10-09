@@ -31,8 +31,8 @@ def solve_four_state_mass_balance(
     - RLLs = R*L*Ls/(Kd*Kd3)
 
     The returned value is Fbs, the fraction of total labeled ligand bound in
-    RLs + RLLs. This is an independent numerical validation target for the
-    polynomial implementation.
+    RLs + RLLs. It solves all three balances simultaneously, independently
+    of the production solver.
     """
     scales = np.array([RT, LsT, LT], dtype=float)
     lower = np.zeros(3, dtype=float)
@@ -72,7 +72,7 @@ def solve_four_state_mass_balance(
     return float((RLs + RLLs) / LsT)
 
 
-def polynomial_four_state_fbs(
+def model_four_state_fbs(
     LT: np.ndarray,
     *,
     RT: float,
@@ -104,12 +104,12 @@ def test_specific_four_state_matches_numerical_mass_balance_typical_case():
     }
     LT = np.logspace(-3, 2, 12)
 
-    polynomial = polynomial_four_state_fbs(LT, **params)
+    computed = model_four_state_fbs(LT, **params)
     numerical = np.array(
         [solve_four_state_mass_balance(float(x), **params) for x in LT]
     )
 
-    assert np.allclose(polynomial, numerical, rtol=1.0e-7, atol=1.0e-9)
+    assert np.allclose(computed, numerical, rtol=1.0e-7, atol=1.0e-9)
 
 
 def test_specific_four_state_matches_numerical_mass_balance_cooperative_case():
@@ -122,12 +122,12 @@ def test_specific_four_state_matches_numerical_mass_balance_cooperative_case():
     }
     LT = np.logspace(-4, 2, 12)
 
-    polynomial = polynomial_four_state_fbs(LT, **params)
+    computed = model_four_state_fbs(LT, **params)
     numerical = np.array(
         [solve_four_state_mass_balance(float(x), **params) for x in LT]
     )
 
-    assert np.allclose(polynomial, numerical, rtol=1.0e-7, atol=1.0e-9)
+    assert np.allclose(computed, numerical, rtol=1.0e-7, atol=1.0e-9)
 
 
 def test_specific_four_state_matches_numerical_mass_balance_anti_cooperative_case():
@@ -140,12 +140,12 @@ def test_specific_four_state_matches_numerical_mass_balance_anti_cooperative_cas
     }
     LT = np.logspace(-4, 2, 12)
 
-    polynomial = polynomial_four_state_fbs(LT, **params)
+    computed = model_four_state_fbs(LT, **params)
     numerical = np.array(
         [solve_four_state_mass_balance(float(x), **params) for x in LT]
     )
 
-    assert np.allclose(polynomial, numerical, rtol=1.0e-7, atol=1.0e-9)
+    assert np.allclose(computed, numerical, rtol=1.0e-7, atol=1.0e-9)
 
 
 def test_total_four_state_matches_numerical_mass_balance_with_effective_kd():
@@ -159,7 +159,7 @@ def test_total_four_state_matches_numerical_mass_balance_with_effective_kd():
     }
     LT = np.logspace(-3, 2, 12)
 
-    polynomial = CompetitiveFourStateTotalKdModel().evaluate(
+    computed = CompetitiveFourStateTotalKdModel().evaluate(
         LT,
         ymin=0.0,
         ymax=1.0,
@@ -179,10 +179,10 @@ def test_total_four_state_matches_numerical_mass_balance_with_effective_kd():
         ]
     )
 
-    assert np.allclose(polynomial, numerical, rtol=1.0e-7, atol=1.0e-9)
+    assert np.allclose(computed, numerical, rtol=1.0e-7, atol=1.0e-9)
 
 
-def test_specific_four_state_rejects_extraneous_interval_root_by_mass_balance():
+def test_specific_four_state_matches_mass_balance_in_tight_competition():
     params = {
         "RT": 1.1230881504118417,
         "LsT": 0.16772085032232287,
@@ -192,10 +192,10 @@ def test_specific_four_state_rejects_extraneous_interval_root_by_mass_balance():
     }
     LT = 0.2819073703806677
 
-    polynomial = polynomial_four_state_fbs(np.array([LT]), **params)[0]
+    computed = model_four_state_fbs(np.array([LT]), **params)[0]
     numerical = solve_four_state_mass_balance(LT, **params)
 
-    assert polynomial == pytest.approx(numerical, rel=1.0e-7, abs=1.0e-9)
+    assert computed == pytest.approx(numerical, rel=1.0e-7, abs=1.0e-9)
 
 
 def test_specific_four_state_is_invariant_to_concentration_units():
@@ -207,11 +207,11 @@ def test_specific_four_state_is_invariant_to_concentration_units():
         "Kd3": 0.5,
     }
     LT = np.logspace(-3, 2, 12)
-    reference = polynomial_four_state_fbs(LT, **params)
+    reference = model_four_state_fbs(LT, **params)
 
     scale = 1.0e9
     scaled_params = {name: value * scale for name, value in params.items()}
-    scaled = polynomial_four_state_fbs(
+    scaled = model_four_state_fbs(
         LT * scale,
         **scaled_params,
     )

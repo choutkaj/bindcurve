@@ -9,10 +9,6 @@ from bindcurve.modeling import (
     CompetitiveFourStateSpecificKdModel,
     CompetitiveFourStateTotalKdModel,
 )
-from bindcurve.modeling.four_state import (
-    _competitive_four_state_coefficients,
-    _select_physical_root,
-)
 
 
 def numerical_four_state_fbs(
@@ -124,54 +120,6 @@ def test_registry_contains_competitive_four_state_models():
         bc.get_model("comp_4st_total"),
         CompetitiveFourStateTotalKdModel,
     )
-
-
-def test_four_state_root_selector_returns_physical_free_receptor_root():
-    kwargs = {
-        "RT": 0.05,
-        "LsT": 0.005,
-        "Kds": 0.02,
-        "Kd": 1.6,
-        "Kd3": 0.5,
-    }
-    coefficients = _competitive_four_state_coefficients(0.1, **kwargs)
-    root = _select_physical_root(
-        coefficients,
-        lower_bound=0.0,
-        upper_bound=kwargs["RT"],
-    )
-
-    assert 0.0 <= root <= kwargs["RT"]
-    assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
-
-
-def test_four_state_root_selector_handles_degenerate_quartic_case():
-    kwargs = {
-        "RT": 0.05,
-        "LsT": 0.005,
-        "Kds": 0.02,
-        "Kd": 0.8,
-        "Kd3": 0.02,
-    }
-    coefficients = _competitive_four_state_coefficients(0.1, **kwargs)
-
-    assert coefficients[0] == 0.0
-
-    root = _select_physical_root(
-        coefficients,
-        lower_bound=0.0,
-        upper_bound=kwargs["RT"],
-    )
-
-    assert 0.0 <= root <= kwargs["RT"]
-    assert np.isclose(np.polyval(coefficients, root), 0.0, atol=1.0e-10)
-
-
-def test_four_state_root_selector_rejects_polynomial_with_no_physical_root():
-    coefficients = np.array([1.0, 0.0, 1.0])
-
-    with pytest.raises(ValueError, match="No physical four-state root"):
-        _select_physical_root(coefficients, lower_bound=0.0, upper_bound=0.05)
 
 
 def test_comp_4st_specific_recovers_kd_from_synthetic_data(make_competition_data):

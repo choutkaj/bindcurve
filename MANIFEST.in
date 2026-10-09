@@ -9,7 +9,6 @@ recursive-include bindcurve *.py
 recursive-include tests *.py
 
 prune .github
-prune algebra
 prune assets
 prune docs
 prune docs_legacy

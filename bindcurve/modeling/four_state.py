@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from functools import partial
 
 import numpy as np
@@ -9,193 +8,11 @@ from scipy.optimize import brentq
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
 from bindcurve.modeling.guesses import midpoint_guess
-from bindcurve.modeling.parameters import (
-    STRICTLY_POSITIVE_PARAMETER_MIN,
-    ParameterSpec,
-)
+from bindcurve.modeling.parameters import ParameterSpec, concentration_spec
 
 
 def _competition_guess(compound: CompoundData) -> dict[str, float]:
     return midpoint_guess(compound, concentration_parameter="Kd")
-
-
-def _competitive_four_state_coefficients(
-    LT: float,
-    *,
-    RT: float,
-    LsT: float,
-    Kds: float,
-    Kd: float,
-    Kd3: float,
-) -> np.ndarray:
-    """Return quintic coefficients for true free receptor in the four-state model.
-
-    The polynomial variable is literal free receptor concentration ``R``:
-
-    ``a*R**5 + b*R**4 + c*R**3 + d*R**2 + e*R + f = 0``.
-
-    After the physical root is selected in ``0 <= R <= RT``, the observable
-    tracer-bound fraction is computed from the actual four-state species
-    ``RLs + RLLs`` rather than from a transformed receptor-like coordinate.
-
-    The total/nonspecific model should call this with an effective ``Kd`` of
-    ``(1 + N) * Kd`` rather than maintaining a duplicated coefficient
-    expression.
-    """
-    LT = float(LT)
-
-    a = Kds - Kd3
-    b = (
-        -Kd3 * Kd
-        - Kd3 * Kds
-        - Kd3 * LT
-        + Kd3 * RT
-        - Kd3 * LsT
-        + Kd * Kds
-        + Kds**2
-        + Kds * LT
-        - 2.0 * Kds * RT
-        + Kds * LsT
-    )
-    c = (
-        Kd3 * Kd * RT
-        - Kd3 * Kd * LsT
-        - Kd3 * Kds * LT
-        + Kd3 * Kds * RT
-        + Kd * Kds**2
-        - 2.0 * Kd * Kds * RT
-        + 2.0 * Kd * Kds * LsT
-        + 2.0 * Kds**2 * LT
-        - 2.0 * Kds**2 * RT
-        - Kds * LT * RT
-        + Kds * LT * LsT
-        + Kds * RT**2
-        - Kds * RT * LsT
-    )
-    d = (
-        Kd3 * Kd**2 * Kds
-        + Kd3 * Kd * Kds**2
-        + Kd3 * Kd * Kds * LT
-        + Kd3 * Kd * Kds * LsT
-        + Kd * Kds**2 * LT
-        - 2.0 * Kd * Kds**2 * RT
-        + Kd * Kds**2 * LsT
-        + Kd * Kds * RT**2
-        - 2.0 * Kd * Kds * RT * LsT
-        + Kd * Kds * LsT**2
-        + Kds**2 * LT**2
-        - 2.0 * Kds**2 * LT * RT
-        + Kds**2 * RT**2
-    )
-    e = (
-        Kd3 * Kd**2 * Kds**2
-        - Kd3 * Kd**2 * Kds * RT
-        + Kd3 * Kd**2 * Kds * LsT
-        + Kd3 * Kd * Kds**2 * LT
-        - Kd3 * Kd * Kds**2 * RT
-        - Kd * Kds**2 * LT * RT
-        + Kd * Kds**2 * LT * LsT
-        + Kd * Kds**2 * RT**2
-        - Kd * Kds**2 * RT * LsT
-    )
-    f = -Kd3 * Kd**2 * Kds**2 * RT
-
-    return np.array([a, b, c, d, e, f], dtype=float)
-
-
-def _trim_leading_near_zero(
-    coefficients: np.ndarray,
-    *,
-    relative_tolerance: float = 1.0e-14,
-) -> np.ndarray:
-    """Remove leading coefficients that are zero at working precision."""
-    coefficients = np.asarray(coefficients, dtype=float)
-    scale = float(np.max(np.abs(coefficients))) if coefficients.size else 0.0
-    if scale == 0.0:
-        return np.array([0.0], dtype=float)
-
-    threshold = relative_tolerance * scale
-    for index, coefficient in enumerate(coefficients):
-        if abs(float(coefficient)) > threshold:
-            return coefficients[index:]
-
-    return np.array([0.0], dtype=float)
-
-
-def _scaled_polynomial_residual(coefficients: np.ndarray, root: float) -> float:
-    coefficients = _trim_leading_near_zero(coefficients)
-    degree = len(coefficients) - 1
-    root_scale = max(1.0, abs(root))
-    denominator = sum(
-        abs(coefficient) * root_scale ** (degree - index)
-        for index, coefficient in enumerate(coefficients)
-    )
-    if denominator == 0.0:
-        denominator = 1.0
-    return abs(float(np.polyval(coefficients, root))) / denominator
-
-
-def _select_physical_root(
-    coefficients: np.ndarray,
-    *,
-    lower_bound: float,
-    upper_bound: float,
-    candidate_score: Callable[[float], float] | None = None,
-    score_tolerance: float = 1.0e-10,
-    imaginary_tolerance: float = 1.0e-7,
-    interval_tolerance: float = 1.0e-8,
-) -> float:
-    """Select the physical four-state free-receptor root.
-
-    The physical root must be effectively real and lie in the feasible interval
-    for literal free receptor concentration. For the four-state receptor
-    polynomial this interval is ``0 <= R <= RT``. If ``candidate_score`` is
-    provided, candidates must also reconstruct a physically consistent state;
-    otherwise, the scaled polynomial residual is used as the selector.
-    """
-    coefficients = _trim_leading_near_zero(coefficients)
-    roots = np.roots(coefficients)
-    interval_scale = max(1.0, abs(lower_bound), abs(upper_bound))
-    lower = lower_bound - interval_tolerance * interval_scale
-    upper = upper_bound + interval_tolerance * interval_scale
-
-    candidates: list[float] = []
-    for root in roots:
-        real_part = float(np.real(root))
-        imaginary_part = float(abs(np.imag(root)))
-        if imaginary_part > imaginary_tolerance * max(1.0, abs(real_part)):
-            continue
-        if lower <= real_part <= upper:
-            candidates.append(float(np.clip(real_part, lower_bound, upper_bound)))
-
-    if not candidates:
-        raise ValueError(
-            "No physical four-state root found in the feasible free-receptor "
-            f"interval {lower_bound} <= R <= {upper_bound}. Roots were: "
-            f"{roots!r}"
-        )
-
-    if candidate_score is None:
-        return min(
-            candidates,
-            key=lambda root: _scaled_polynomial_residual(coefficients, root),
-        )
-
-    scored_candidates = [
-        (
-            float(candidate_score(root)),
-            _scaled_polynomial_residual(coefficients, root),
-            root,
-        )
-        for root in candidates
-    ]
-    score, _, selected = min(scored_candidates)
-    if not np.isfinite(score) or score > score_tolerance:
-        raise ValueError(
-            "No four-state polynomial root satisfied the physical mass balances. "
-            f"Candidate scores were: {scored_candidates!r}"
-        )
-    return selected
 
 
 def _competitive_four_state_receptor_free(
@@ -207,60 +24,31 @@ def _competitive_four_state_receptor_free(
     Kd: float,
     Kd3: float,
 ) -> np.ndarray:
+    """Return free receptor by solving the receptor mass balance on [0, RT].
+
+    For a given free receptor, both free ligands follow from a quadratic. A
+    thermodynamically consistent four-state system has exactly one positive
+    equilibrium, and the receptor balance changes sign on ``0 <= R <= RT``, so
+    bracketing always finds the physical root.
+    """
     LT = np.asarray(LT, dtype=float)
     if RT == 0.0:
         return np.zeros_like(LT, dtype=float)
 
-    # Normalize every concentration by RT before constructing the polynomial.
-    # This keeps the root interval at [0, 1] and makes root selection invariant
-    # to a consistent change of concentration units.
+    # Normalize every concentration by RT. This keeps the root interval at
+    # [0, 1] and makes the solution invariant to concentration units.
     concentration_scale = float(RT)
-    normalized_LsT = LsT / concentration_scale
-    normalized_Kds = Kds / concentration_scale
-    normalized_Kd = Kd / concentration_scale
-    normalized_Kd3 = Kd3 / concentration_scale
-
-    flat_LT = LT.ravel()
-    R_values = []
-
-    for concentration in flat_LT:
-        normalized_LT = float(concentration) / concentration_scale
-        coefficients = _competitive_four_state_coefficients(
-            normalized_LT,
-            RT=1.0,
-            LsT=normalized_LsT,
-            Kds=normalized_Kds,
-            Kd=normalized_Kd,
-            Kd3=normalized_Kd3,
+    R_values = [
+        concentration_scale
+        * _solve_four_state_receptor_mass_balance(
+            float(concentration) / concentration_scale,
+            LsT=LsT / concentration_scale,
+            Kds=Kds / concentration_scale,
+            Kd=Kd / concentration_scale,
+            Kd3=Kd3 / concentration_scale,
         )
-        score_candidate = partial(
-            _competitive_four_state_mass_balance_score,
-            LT=normalized_LT,
-            RT=1.0,
-            LsT=normalized_LsT,
-            Kds=normalized_Kds,
-            Kd=normalized_Kd,
-            Kd3=normalized_Kd3,
-        )
-
-        try:
-            normalized_R = _select_physical_root(
-                coefficients,
-                lower_bound=0.0,
-                upper_bound=1.0,
-                candidate_score=score_candidate,
-            )
-        except ValueError:
-            normalized_R = _solve_four_state_receptor_mass_balance(
-                normalized_LT,
-                RT=1.0,
-                LsT=normalized_LsT,
-                Kds=normalized_Kds,
-                Kd=normalized_Kd,
-                Kd3=normalized_Kd3,
-            )
-        R_values.append(normalized_R * concentration_scale)
-
+        for concentration in LT.ravel()
+    ]
     return np.asarray(R_values, dtype=float).reshape(LT.shape)
 
 
@@ -345,85 +133,30 @@ def _competitive_four_state_mass_balance_residual(
     return float(R + RLs + RL + RLLs - RT)
 
 
-def _competitive_four_state_mass_balance_score(
-    R: float,
-    LT: float,
-    *,
-    RT: float,
-    LsT: float,
-    Kds: float,
-    Kd: float,
-    Kd3: float,
-) -> float:
-    """Score a candidate using physical bounds and normalized mass balance."""
-    R_array = np.asarray(R, dtype=float)
-    L = _competitive_four_state_ligand_free(
-        R_array,
-        np.asarray(LT, dtype=float),
-        LsT=LsT,
-        Kds=Kds,
-        Kd=Kd,
-        Kd3=Kd3,
-    ).item()
-    Ls = LsT / (1.0 + R / Kds + R * L / (Kd * Kd3))
-    tolerance = 1.0e-8
-    if (
-        not np.isfinite(L)
-        or not np.isfinite(Ls)
-        or L < -tolerance * max(1.0, LT)
-        or L > LT + tolerance * max(1.0, LT)
-        or Ls < -tolerance * max(1.0, LsT)
-        or Ls > LsT + tolerance * max(1.0, LsT)
-    ):
-        return np.inf
-    residual = _competitive_four_state_mass_balance_residual(
-        R,
-        LT,
-        RT=RT,
-        LsT=LsT,
-        Kds=Kds,
-        Kd=Kd,
-        Kd3=Kd3,
-    )
-    return abs(residual) / max(abs(RT), np.finfo(float).tiny)
-
-
 def _solve_four_state_receptor_mass_balance(
     LT: float,
     *,
-    RT: float,
     LsT: float,
     Kds: float,
     Kd: float,
     Kd3: float,
 ) -> float:
-    """Solve the physical receptor balance directly as a robust fallback."""
+    """Return free receptor normalized by total receptor (``RT = 1``)."""
     residual = partial(
         _competitive_four_state_mass_balance_residual,
         LT=LT,
-        RT=RT,
+        RT=1.0,
         LsT=LsT,
         Kds=Kds,
         Kd=Kd,
         Kd3=Kd3,
     )
-    lower_residual = residual(0.0)
-    upper_residual = residual(RT)
-    tolerance = 1.0e-12 * max(1.0, abs(RT))
-    if abs(lower_residual) <= tolerance:
-        return 0.0
-    if abs(upper_residual) <= tolerance:
-        return float(RT)
-    if lower_residual >= 0.0 or upper_residual <= 0.0:
-        raise ValueError(
-            "Could not bracket the physical four-state receptor mass balance: "
-            f"f(0)={lower_residual}, f(RT)={upper_residual}."
-        )
+    # residual(0) = -1 and residual(1) = bound receptor >= 0.
     return float(
         brentq(
             residual,
             0.0,
-            RT,
+            1.0,
             # The normalized physical root may be far below 1e-14 when tracer
             # is present in extreme excess, so an ordinary absolute tolerance
             # can collapse a valid positive root to zero.
@@ -563,22 +296,10 @@ class CompetitiveFourStateSpecificKdModel(BaseDoseResponseModel):
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
         *(
-            ParameterSpec(
-                name,
-                min=STRICTLY_POSITIVE_PARAMETER_MIN,
-                vary=False,
-                kind="concentration",
-                scale="log10",
-                reportable=False,
-            )
+            concentration_spec(name, vary=False, reportable=False)
             for name in ("RT", "LsT", "Kds", "Kd3")
         ),
-        ParameterSpec(
-            "Kd",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-        ),
+        concentration_spec("Kd"),
     )
 
     def _component_arrays(
@@ -607,23 +328,11 @@ class CompetitiveFourStateTotalKdModel(BaseDoseResponseModel):
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
         *(
-            ParameterSpec(
-                name,
-                min=STRICTLY_POSITIVE_PARAMETER_MIN,
-                vary=False,
-                kind="concentration",
-                scale="log10",
-                reportable=False,
-            )
+            concentration_spec(name, vary=False, reportable=False)
             for name in ("RT", "LsT", "Kds", "Kd3")
         ),
         ParameterSpec("N", min=0.0, vary=False),
-        ParameterSpec(
-            "Kd",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-        ),
+        concentration_spec("Kd"),
     )
 
     def _component_arrays(

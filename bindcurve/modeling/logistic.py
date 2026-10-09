@@ -9,6 +9,7 @@ from bindcurve.modeling.guesses import midpoint_guess
 from bindcurve.modeling.parameters import (
     STRICTLY_POSITIVE_PARAMETER_MIN,
     ParameterSpec,
+    concentration_spec,
 )
 
 
@@ -40,13 +41,7 @@ class IC50Model(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec(
-            "IC50",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-            log_name="logIC50",
-        ),
+        concentration_spec("IC50", log_name="logIC50"),
         ParameterSpec(
             "hill_slope",
             initial=1.0,

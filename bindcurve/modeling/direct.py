@@ -5,10 +5,7 @@ import numpy as np
 from bindcurve.datasets import CompoundData
 from bindcurve.modeling.base import BaseDoseResponseModel
 from bindcurve.modeling.guesses import midpoint_guess
-from bindcurve.modeling.parameters import (
-    STRICTLY_POSITIVE_PARAMETER_MIN,
-    ParameterSpec,
-)
+from bindcurve.modeling.parameters import ParameterSpec, concentration_spec
 
 
 def _direct_specific_receptor_free(
@@ -134,12 +131,7 @@ class DirectSimpleKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec(
-            "Kds",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-        ),
+        concentration_spec("Kds"),
     )
 
     def _component_arrays(
@@ -168,20 +160,8 @@ class DirectSpecificKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec(
-            "LsT",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            vary=False,
-            kind="concentration",
-            scale="log10",
-            reportable=False,
-        ),
-        ParameterSpec(
-            "Kds",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-        ),
+        concentration_spec("LsT", vary=False, reportable=False),
+        concentration_spec("Kds"),
     )
 
     def _component_arrays(
@@ -206,21 +186,9 @@ class DirectTotalKdModel(BaseDoseResponseModel):
     parameter_specs = (
         ParameterSpec("ymin"),
         ParameterSpec("ymax"),
-        ParameterSpec(
-            "LsT",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            vary=False,
-            kind="concentration",
-            scale="log10",
-            reportable=False,
-        ),
+        concentration_spec("LsT", vary=False, reportable=False),
         ParameterSpec("Ns", min=0.0, vary=False),
-        ParameterSpec(
-            "Kds",
-            min=STRICTLY_POSITIVE_PARAMETER_MIN,
-            kind="concentration",
-            scale="log10",
-        ),
+        concentration_spec("Kds"),
     )
 
     def _component_arrays(

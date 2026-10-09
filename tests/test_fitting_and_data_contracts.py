@@ -105,9 +105,8 @@ def test_unequal_replicate_counts_weight_means_like_individual_observations():
         return float(10**optimum.x)
 
     # A mean of n replicates carries n observations' worth of information.
-    # Tolerance reflects lmfit's finite-difference precision, not the weighting.
     assert fit.parameters["IC50"].value == pytest.approx(
-        least_squares_ic50(x, y), rel=1e-4
+        least_squares_ic50(x, y), rel=1e-6
     )
     means = table.groupby("concentration")["response"].mean()
     unweighted_means_ic50 = least_squares_ic50(means.index.to_numpy(), means.to_numpy())
@@ -147,6 +146,37 @@ def test_sigma_inconsistent_with_residual_scatter_is_flagged():
 
     assert any("inconsistent with the supplied sigma" in w for w in fit.warnings)
     assert fit_one_parameter(make_uncertain_data()).fit_results[0].warnings == ()
+
+
+def test_inactive_compound_runaway_potency_is_flagged_not_raised():
+    concentration = np.logspace(-2, 2, 10)
+    # Every response sits above the fixed top plateau, so IC50 runs upward.
+    table = pd.DataFrame(
+        {"compound_id": "cmpd_a", "concentration": concentration, "response": 101.0}
+    )
+
+    with pytest.warns(UserWarning, match="quality warnings"):
+        fit = fit_one_parameter(bc.DoseResponseData(table)).fit_results[0]
+
+    assert fit.success
+    assert "IC50 lies outside the tested concentration range." in fit.warnings
+
+
+def test_unidentifiable_fit_with_free_plateaus_is_flagged_not_raised():
+    # No inhibition is visible below the true IC50 of 50, so the free plateaus
+    # and IC50 are not identifiable from this concentration range.
+    concentration = np.logspace(-3, -1, 8)
+    response = _ic50_response(concentration, IC50=50.0, hill_slope=1.0)
+    response += np.random.default_rng(1).normal(0.0, 2.0, concentration.size)
+    table = pd.DataFrame(
+        {"compound_id": "cmpd_a", "concentration": concentration, "response": response}
+    )
+
+    with pytest.warns(UserWarning, match="quality warnings"):
+        fit = bc.fit(bc.DoseResponseData(table)).fit_results[0]
+
+    assert fit.success
+    assert fit.warnings
 
 
 def test_all_fixed_parameters_are_evaluated_without_false_optimizer_failure():
