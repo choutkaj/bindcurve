@@ -28,8 +28,6 @@ def test_defaults_and_identifier_types():
         ({"concentration": [0.0, 1.0]}, "concentration must be positive"),
         ({"concentration": [np.nan, 1.0]}, "concentration must contain only finite"),
         ({"response": [np.inf, 1.0]}, "response must contain only finite"),
-        ({"sigma": [1.0, 0.0]}, "sigma must be positive"),
-        ({"weight": [1.0, 1.0]}, "'weight' column is not supported"),
         ({"compound_id": ["a", None]}, "compound_id contains missing"),
     ],
 )
@@ -100,18 +98,12 @@ def test_select_and_summary():
     assert summary.loc["b", "concentration_max"] == 3.0
 
 
-def test_replicate_means_propagate_known_sigma():
+def test_replicate_means():
     observed = pd.DataFrame(
-        {
-            "concentration": [1.0, 1.0, 2.0],
-            "response": [10.0, 14.0, 5.0],
-            "sigma": [2.0, 3.0, 1.0],
-        }
+        {"concentration": [1.0, 1.0, 2.0], "response": [10.0, 14.0, 5.0]}
     )
     means = replicate_means(observed, ["concentration"])
     assert means["response"].tolist() == [12.0, 5.0]
     assert means["n"].tolist() == [2, 1]
     assert means["sd"].iloc[0] == pytest.approx(np.sqrt(8.0))
     assert means["sem"].iloc[0] == pytest.approx(2.0)
-    # Independent errors: sd(mean) = sqrt(sum(sigma**2)) / n.
-    assert means["sigma"].tolist() == pytest.approx([np.sqrt(13.0) / 2.0, 1.0])

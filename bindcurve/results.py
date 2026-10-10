@@ -28,8 +28,6 @@ class FitResult:
         Names of the fitted parameters, in the order of ``covariance``.
     n_data
         Number of fitted concentrations (replicate means).
-    chi_square
-        Weighted residual sum of squares, available when sigma is known.
     warnings
         Reasons why a converged fit may not be supported by the data.
     """
@@ -45,7 +43,6 @@ class FitResult:
     covariance: np.ndarray | None = None
     n_data: int | None = None
     rss: float | None = None
-    chi_square: float | None = None
     r_squared: float | None = None
     warnings: tuple[str, ...] = ()
 
@@ -92,7 +89,6 @@ class FitResults:
                 "warnings": "; ".join(fit.warnings) or None,
                 "n_data": fit.n_data,
                 "rss": fit.rss,
-                "chi_square": fit.chi_square,
                 "r_squared": fit.r_squared,
             }
             for name in self.free:

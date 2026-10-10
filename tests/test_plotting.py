@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.colors import to_rgba
-from scipy.stats import norm
 from scipy.stats import t as student_t
 
 import bindcurve as bc
@@ -18,7 +17,7 @@ def ic50_curve(x, IC50=1.5, hill_slope=1.1):
     return 100.0 / (1.0 + (x / IC50) ** hill_slope)
 
 
-def make_results(sigma=None, compounds=("a",)):
+def make_results(compounds=("a",)):
     x = np.logspace(-2, 2, 12)
     rows = []
     for compound_id in compounds:
@@ -35,11 +34,10 @@ def make_results(sigma=None, compounds=("a",)):
                         }
                     )
                 )
-    table = pd.concat(rows)
-    if sigma is not None:
-        table["sigma"] = sigma
     return bc.fit(
-        bc.DoseResponseData(table), "ic50", fixed={"ymin": 0.0, "ymax": 100.0}
+        bc.DoseResponseData(pd.concat(rows)),
+        "ic50",
+        fixed={"ymin": 0.0, "ymax": 100.0},
     )
 
 
@@ -86,9 +84,8 @@ def test_plot_fits_labels_include_compounds_when_several_are_shown(ax):
     assert labels == ["a e2", "b e2"]
 
 
-@pytest.mark.parametrize("sigma", [None, 1.0])
-def test_confidence_band_is_the_delta_method_band(ax, sigma):
-    results = make_results(sigma=sigma)
+def test_confidence_band_is_the_delta_method_band(ax):
+    results = make_results()
     fit = results.fits[0]
     x = np.logspace(-2, 2, 30)
     low, high = _confidence_band(fit, x, 0.9)
@@ -106,8 +103,8 @@ def test_confidence_band_is_the_delta_method_band(ax, sigma):
     )
     to_log = np.diag([1 / (np.log(10) * fit.values["IC50"]), 1.0])
     se = np.sqrt(np.einsum("ij,jk,ik->i", J, to_log @ fit.covariance @ to_log, J))
-    # Known sigma: absolute covariance and a normal quantile; otherwise Student t.
-    q = norm.ppf(0.95) if sigma else student_t.ppf(0.95, fit.n_data - 2)
+    # The residual variance is estimated, so the quantile is Student t.
+    q = student_t.ppf(0.95, fit.n_data - 2)
     np.testing.assert_allclose(high - fit.predict(x), q * se, rtol=1e-6)
     np.testing.assert_allclose(fit.predict(x) - low, q * se, rtol=1e-6)
 
@@ -135,16 +132,13 @@ def test_plot_compounds_draws_grand_means_and_the_summary_curve(ax):
 
 
 def test_plot_residuals(ax):
-    results = make_results(sigma=0.5)
-    bc.plot_residuals(results, experiments="e1", standardized=True, ax=ax)
+    results = make_results()
+    bc.plot_residuals(results, experiments="e1", ax=ax)
     fit = results.fits[0]
     observed = results.data.table.query("experiment_id == 'e1'")
     means = observed.groupby("concentration")["response"].mean()
-    sigma_of_mean = 0.5 / np.sqrt(2)
-    expected = (means.to_numpy() - fit.predict(means.index.to_numpy())) / sigma_of_mean
+    expected = means.to_numpy() - fit.predict(means.index.to_numpy())
     np.testing.assert_allclose(ax.collections[0].get_offsets()[:, 1], expected)
-    with pytest.raises(ValueError, match="sigma"):
-        bc.plot_residuals(make_results(), standardized=True, ax=ax)
 
 
 def test_invalid_plot_options_are_rejected(ax):

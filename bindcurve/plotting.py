@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.colors import is_color_like
-from scipy.stats import norm
 from scipy.stats import t as student_t
 
 from bindcurve.data import replicate_means
@@ -103,9 +102,7 @@ def plot_compounds(
     ):
         observed = table[table["compound_id"] == compound_id]
         experiment_means = replicate_means(observed, ["experiment_id", "concentration"])
-        means = replicate_means(
-            experiment_means.drop(columns="sigma", errors="ignore"), ["concentration"]
-        )
+        means = replicate_means(experiment_means, ["concentration"])
         _errorbar(ax, means, errorbars, color)
         if any(fit.success for fit in results.fits if fit.compound_id == compound_id):
             x = _grid(means["concentration"])
@@ -120,19 +117,12 @@ def plot_residuals(
     *,
     compounds: str | Iterable[str] | None = None,
     experiments: str | Iterable[str] | None = None,
-    standardized: bool = False,
     ax: Axes | None = None,
 ) -> Axes:
-    """Plot observed minus fitted replicate means against concentration.
-
-    With ``standardized=True``, residuals are divided by the known sigma of
-    each mean, which requires a ``sigma`` column in the data.
-    """
+    """Plot observed minus fitted replicate means against concentration."""
     ax = ax or plt.subplots()[1]
     fits = _selected_fits(results, compounds, experiments)
     table = results.data.table
-    if standardized and "sigma" not in table.columns:
-        raise ValueError("Standardized residuals require a sigma column.")
     for fit in fits:
         observed = table[
             (table["compound_id"] == fit.compound_id)
@@ -140,8 +130,6 @@ def plot_residuals(
         ]
         means = replicate_means(observed, ["concentration"])
         residual = means["response"] - fit.predict(means["concentration"].to_numpy())
-        if standardized:
-            residual /= means["sigma"]
         ax.scatter(means["concentration"], residual, label=_label(fit, fits))
     ax.axhline(0.0, color="0.5", linestyle="--", linewidth=1.0)
     ax.set_xscale("log")
@@ -233,13 +221,8 @@ def _confidence_band(
             - fit.model.evaluate(x, **{**fit.values, name: down})
         ) / (up - down)
     variance = np.einsum("ij,jk,ik->i", jacobian, fit.covariance, jacobian)
-    # Known sigma gives an absolute covariance; otherwise sigma was estimated.
+    # The covariance is scaled by the estimated residual variance: Student t.
     dof = fit.n_data - len(fit.free)
-    quantile = 0.5 + confidence / 2.0
-    multiplier = (
-        norm.ppf(quantile)
-        if fit.chi_square is not None
-        else student_t.ppf(quantile, dof)
-    )
+    multiplier = student_t.ppf(0.5 + confidence / 2.0, dof)
     half_width = multiplier * np.sqrt(np.maximum(variance, 0.0))
     return y - half_width, y + half_width

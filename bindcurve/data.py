@@ -21,8 +21,7 @@ class DoseResponseData:
     table
         Columns ``compound_id``, ``concentration`` and ``response`` are
         required. ``experiment_id`` identifies independent experiments and
-        defaults to a single experiment. ``sigma`` optionally gives the known
-        absolute standard deviation of each response. Other columns are kept.
+        defaults to a single experiment. Other columns are kept.
 
     Notes
     -----
@@ -104,17 +103,10 @@ class DoseResponseData:
 
 
 def replicate_means(table: pd.DataFrame, by: list[str]) -> pd.DataFrame:
-    """Mean, sample SD, SEM and count of ``response`` per group.
-
-    With a ``sigma`` column, the known standard deviation of each mean,
-    ``sqrt(sum(sigma**2)) / n`` for independent errors, is returned as ``sigma``.
-    """
+    """Mean, sample SD, SEM and count of ``response`` per group."""
     groups = table.groupby(by, sort=True)
     means = groups["response"].agg(response="mean", sd="std", n="count")
     means["sem"] = means["sd"] / np.sqrt(means["n"])
-    if "sigma" in table.columns:
-        variance = (table["sigma"] ** 2).groupby([table[c] for c in by]).sum()
-        means["sigma"] = np.sqrt(variance) / means["n"]
     return means.reset_index()
 
 
@@ -122,12 +114,6 @@ def _validated(table: pd.DataFrame) -> pd.DataFrame:
     missing = [column for column in REQUIRED_COLUMNS if column not in table.columns]
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
-    if "weight" in table.columns:
-        # Weights are ambiguous (1/sigma, 1/sigma**2, or relative).
-        raise ValueError(
-            "A 'weight' column is not supported; provide the known observation "
-            "standard deviation as 'sigma' instead."
-        )
     if table.empty:
         raise ValueError("The observation table is empty.")
 
@@ -139,14 +125,10 @@ def _validated(table: pd.DataFrame) -> pd.DataFrame:
             raise ValueError(f"{column} contains missing values.")
         table[column] = table[column].astype(str)
 
-    numeric = ["concentration", "response"]
-    if "sigma" in table.columns:
-        numeric.append("sigma")
-    for column in numeric:
+    for column in ("concentration", "response"):
         table[column] = pd.to_numeric(table[column], errors="raise").astype(float)
         if not np.isfinite(table[column]).all():
             raise ValueError(f"{column} must contain only finite values.")
-    for column in ("concentration", "sigma"):
-        if column in table.columns and (table[column] <= 0.0).any():
-            raise ValueError(f"{column} must be positive.")
+    if (table["concentration"] <= 0.0).any():
+        raise ValueError("concentration must be positive.")
     return table.reset_index(drop=True)

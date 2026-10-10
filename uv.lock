@@ -215,10 +215,10 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "scipy" },
+    { name = "matplotlib", specifier = ">=3.6.3" },
+    { name = "numpy", specifier = ">=1.23.5" },
+    { name = "pandas", specifier = ">=1.5.3" },
+    { name = "scipy", specifier = ">=1.9.3" },
 ]
 
 [package.metadata.requires-dev]
