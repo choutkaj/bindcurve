@@ -38,17 +38,17 @@ marks assay constants that `fit()` requires.
 `fit()` fits each compound/experiment separately:
 
 1. Technical replicates are averaged per concentration.
-2. Without `sigma`, each mean is weighted by its replicate count (equivalent
-   to fitting the replicates) and the covariance is scaled by the residual
-   scatter. With `sigma`, the propagated sigma of each mean,
-   `sqrt(sum(sigma**2)) / n`, is absolute and the covariance is not scaled.
+2. Each mean is weighted by its replicate count (equivalent to fitting the
+   replicates) and the covariance is scaled by the residual scatter.
 3. Concentrations are optimized as log10 values within 1e-100 to 1e100 by
-   `scipy.optimize.least_squares`. Covariance is `inv(J.T J)` via SVD, `None`
+   `scipy.optimize.least_squares`; residuals and plateaus are measured in
+   units of the response range, so results do not depend on the response
+   scale or baseline. Covariance is `inv(J.T J)` via SVD, `None`
    if `J` is rank deficient, and is transformed back to linear values.
 4. Converged fits are flagged when standard errors are missing, a fitted
-   concentration lies outside the tested range, its standard error exceeds
-   it, or a known sigma fails a two-sided chi-square test at p < 0.001.
-   `fit()` emits one `UserWarning` for flagged fits; they stay in summaries.
+   concentration lies outside the tested range, or its standard error
+   exceeds it. `fit()` emits one `UserWarning` for flagged fits; they stay in
+   summaries.
 
 Errors re-raise by default; `errors="collect"` records failed fits.
 
@@ -59,8 +59,8 @@ SEM and Student-t 95% CI. Concentration parameters get the same on log10
 values; their center is the geometric mean and the CI is back-transformed.
 `parameters()` returns these centers plus the fixed values, and
 `plot_compounds()` draws the model there, so plots match `report()`.
-Confidence bands are pointwise delta-method bands using the normal quantile
-for known sigma and Student t otherwise.
+Confidence bands are pointwise delta-method bands using the Student-t
+quantile.
 
 ## Testing
 
