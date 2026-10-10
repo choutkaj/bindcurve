@@ -67,8 +67,6 @@ Cmpd_1,exp_2,0.001,97.9
 - `experiment_id` identifies independent experiments; it defaults to a single
   experiment. Rows sharing compound, experiment and concentration are
   technical replicates, which are averaged before fitting.
-- `sigma`, if present, is the known absolute standard deviation of each
-  response. It is not the empirical replicate SD or SEM.
 - Concentrations must be positive and share one unit; fitted concentrations
   are reported in that unit. Other columns are kept but not used.
 
