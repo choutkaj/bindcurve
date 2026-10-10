@@ -61,14 +61,18 @@ class DoseResponseData:
         path: str | Path,
         *,
         format: Literal["long", "wide"] = "long",
+        prefix: str = "response_",
         **read_csv_kwargs: object,
     ) -> DoseResponseData:
-        """Read a long or wide CSV file; see the constructor and `from_wide`."""
+        """Read a long or wide CSV file; see the constructor and `from_wide`.
+
+        ``prefix`` names the replicate response columns of wide files.
+        """
         table = pd.read_csv(path, **read_csv_kwargs)
         if format == "long":
             return cls(table)
         if format == "wide":
-            return cls.from_wide(table)
+            return cls.from_wide(table, prefix=prefix)
         raise ValueError("format must be 'long' or 'wide'.")
 
     @property

@@ -168,13 +168,21 @@ def _label(fit: FitResult, fits: list[FitResult]) -> str:
 
 def _colors(ax: Axes, colors: object, n: int) -> list[object]:
     if colors is None:
-        return [ax._get_lines.get_next_color() for _ in range(n)]
+        return [_next_color(ax) for _ in range(n)]
     if is_color_like(colors):
         return [colors] * n
     colors = list(colors)
     if len(colors) != n:
         raise ValueError(f"Expected {n} colors, got {len(colors)}.")
     return colors
+
+
+def _next_color(ax: Axes) -> object:
+    """Take the next color from the axes' property cycle."""
+    # An empty line advances the cycle like any plot call, through public API.
+    (line,) = ax.plot([], [])
+    line.remove()
+    return line.get_color()
 
 
 def _grid(concentration: pd.Series, n: int = 200) -> np.ndarray:

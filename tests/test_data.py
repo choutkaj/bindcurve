@@ -58,6 +58,15 @@ def test_long_and_wide_tutorial_files_agree(tmp_path):
     assert wide.compounds == ["simple", "specific", "total"]
 
 
+def test_wide_csv_files_accept_a_replicate_prefix(tmp_path):
+    path = tmp_path / "wide.csv"
+    pd.DataFrame(
+        {"compound_id": "a", "concentration": [1.0, 2.0], "rep1": [3.0, 4.0]}
+    ).to_csv(path, index=False)
+    data = bc.DoseResponseData.from_csv(path, format="wide", prefix="rep")
+    assert data.table["response"].tolist() == [3.0, 4.0]
+
+
 def test_wide_tables_drop_missing_replicates_and_reject_other_columns():
     wide = pd.DataFrame(
         {

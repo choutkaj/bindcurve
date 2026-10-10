@@ -84,6 +84,16 @@ def test_plot_fits_labels_include_compounds_when_several_are_shown(ax):
     assert labels == ["a e2", "b e2"]
 
 
+def test_default_colors_continue_the_axes_color_cycle(ax):
+    ax.set_prop_cycle(color=["red", "green", "blue"])
+    results = make_results()
+    bc.plot_fits(results, errorbars=None, ax=ax)
+    bc.plot_fits(results, errorbars=None, ax=ax)
+    colors = [to_rgba(line.get_color()) for line in curves(ax)]
+    assert colors == [to_rgba(c) for c in ("red", "green", "blue", "red")]
+    assert all(len(line.get_xdata()) for line in ax.lines)
+
+
 def test_confidence_band_is_the_delta_method_band(ax):
     results = make_results()
     fit = results.fits[0]
