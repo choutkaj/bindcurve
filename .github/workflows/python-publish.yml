@@ -41,6 +41,14 @@ jobs:
           uv pip install --python .venv-smoke/bin/python dist/*.whl
           .venv-smoke/bin/python -c "import bindcurve; print(bindcurve.__version__)"
 
+      - name: Test source distribution against the installed wheel
+        run: |
+          uv pip install --python .venv-smoke/bin/python pytest
+          .venv-smoke/bin/python -c "import pathlib, tarfile; tarfile.open(next(pathlib.Path('dist').glob('*.tar.gz'))).extractall('dist/sdist-check', filter='data')"
+          source_dir=$(find dist/sdist-check -mindepth 1 -maxdepth 1 -type d)
+          .venv-smoke/bin/python -I -m pytest --import-mode=importlib "$source_dir/tests"
+          rm -rf dist/sdist-check
+
       - name: Upload distributions
         uses: actions/upload-artifact@v7
         with:
