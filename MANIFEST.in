@@ -9,9 +9,7 @@ recursive-include bindcurve *.py
 recursive-include tests *.py
 
 prune .github
-prune assets
 prune docs
-prune logo
 prune tutorials
 
 # Keep the inputs required by the tests shipped in the source distribution.

@@ -8,7 +8,6 @@ tempCodeRunnerFile.py
 .ruff_cache
 pytest-cache-files-*
 build
-/logo/
 
 # Documentation builds
 docs/_build/

@@ -73,7 +73,7 @@ linkcheck_ignore = [
 
 # HTML output
 html_theme = "pydata_sphinx_theme"
-html_title = "bindcurve documentation"
+html_title = "bindcurve"
 html_static_path = ["_static"]
 # The Playground uses the full page width.
 html_sidebars = {"playground": []}
@@ -87,6 +87,11 @@ html_context = {
 html_theme_options = {
     "show_toc_level": 2,
     "navigation_depth": 4,
+    # Show every top-level section in the header, none under "More".
+    "header_links_before_dropdown": 7,
+    # A search icon instead of a search field leaves room for the links.
+    "navbar_persistent": [],
+    "navbar_end": ["search-button", "theme-switcher", "navbar-icon-links"],
     "use_edit_page_button": True,
     "icon_links": [
         {

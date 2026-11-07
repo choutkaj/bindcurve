@@ -5,6 +5,10 @@ binding curves. It estimates IC₅₀ values and dissociation constants from
 direct and competitive binding experiments, summarizes them over independent
 experiments, and plots the results.
 
+```bash
+pip install bindcurve
+```
+
 ::::{grid} 1 2 2 2
 :gutter: 3
 
