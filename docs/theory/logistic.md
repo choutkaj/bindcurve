@@ -46,9 +46,9 @@ parameter, including $\mathrm{IC}_{50}$. This keeps the parameters positive
 and makes the fit better conditioned. It does not change the model: the fitted
 $\mathrm{IC}_{50}$ is reported in the unit of the input concentrations.
 
-Results from several experiments are combined on the $\log_{10}$ scale. In the
-summary table, `logIC50` is the mean of $\log_{10}(\mathrm{IC}_{50})$ over
-experiments, and `IC50` is $10^{\mathtt{logIC50}}$, i.e. the geometric mean.
+Results from several independent experiments are combined on the $\log_{10}$
+scale. In the summary table, `logIC50` is the mean of
+$\log_{10}(\mathrm{IC}_{50})$ over independent experiments, and `IC50` is $10^{\mathtt{logIC50}}$, i.e. the geometric mean.
 Both are in the input unit.
 
 ```{important}

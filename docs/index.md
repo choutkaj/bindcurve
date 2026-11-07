@@ -1,7 +1,9 @@
 # bindcurve
 
-`bindcurve` is a Python package for fitting and plotting dose-response curves.
-This site is the canonical documentation for the project.
+`bindcurve` is a Python package for fitting dose-response and equilibrium
+binding curves. It estimates IC₅₀ values and dissociation constants from
+direct and competitive binding experiments, summarizes them over independent
+experiments, and plots the results.
 
 ::::{grid} 1 2 2 2
 :gutter: 3
@@ -17,21 +19,21 @@ Installation and a first fit.
 :link: user-guide/index
 :link-type: doc
 
-Task-oriented documentation for the main workflows.
+Input data, models, fitting, fit checks, reporting and plotting.
 :::
 
 :::{grid-item-card} Tutorials
 :link: tutorials/index
 :link-type: doc
 
-Executable, end-to-end examples.
+Complete IC₅₀, direct-binding and competitive-binding analyses.
 :::
 
 :::{grid-item-card} Theory
 :link: theory/index
 :link-type: doc
 
-Mathematical definitions and equilibrium models.
+Model equations, assumptions and IC₅₀-to-Kd conversions.
 :::
 
 :::{grid-item-card} API reference
@@ -52,4 +54,5 @@ user-guide/index
 tutorials/index
 theory/index
 api/index
+glossary
 ```

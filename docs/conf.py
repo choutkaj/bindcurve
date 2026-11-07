@@ -65,6 +65,7 @@ linkcheck_ignore = [
     r"https://doi\.org/10\.1021/bi048233g",
     r"https://doi\.org/10\.3109/10799898809049010",
     r"https://doi\.org/10\.3109/10799898909066075",
+    r"https://doi\.org/10\.1021/acs\.jmedchem\.6c01807",
 ]
 
 # HTML output

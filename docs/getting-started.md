@@ -1,7 +1,21 @@
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+  display_name: Python 3
+---
+
 # Getting started
 
-`bindcurve` supports Python 3.10 through 3.14. Install it into your project
-environment with either `uv` or `pip`:
+`bindcurve` fits dose-response and binding curves. It estimates
+{term}`IC₅₀` values with a four-parameter logistic model, and
+{term}`dissociation constants <Dissociation constant>` from direct and
+competitive binding experiments. Each {term}`independent experiment` is
+fitted separately, and the results are then summarized per compound.
+
+## Installation
+
+`bindcurve` needs Python 3.10 or newer. Install it with `uv` or `pip`:
 
 ::::{tab-set}
 :::{tab-item} uv
@@ -20,69 +34,76 @@ python -m pip install bindcurve
 :::
 ::::
 
-## Fit an inhibition curve
+The examples in this documentation use `matplotlib` for figures, which is
+installed with `bindcurve`. They run in a Python script or in a Jupyter
+notebook.
 
-```python
-import bindcurve as bc
+## A first fit
+
+The data below come from a single inhibition experiment: enzyme activity, in
+percent of the uninhibited control, measured at nine inhibitor concentrations
+in nM. `bindcurve` expects a table with one row per measured response:
+
+```{code-cell} python
+import matplotlib.pyplot as plt
 import pandas as pd
+
+import bindcurve as bc
 
 observations = pd.DataFrame(
     {
-        "compound_id": ["example"] * 7,
-        "concentration": [0.01, 0.1, 0.5, 1.0, 2.0, 10.0, 100.0],
-        "response": [99.0, 90.9, 66.7, 50.0, 33.3, 9.1, 1.0],
+        "compound_id": "inhibitor",
+        "concentration": [1, 3, 10, 30, 100, 300, 1000, 3000, 10000],
+        "response": [99.6, 99.4, 95.7, 87.7, 71.1, 44.6, 21.7, 12.2, 3.4],
     }
 )
-
 data = bc.DoseResponseData(observations)
-results = bc.fit(data, "ic50", fixed={"ymin": 0.0, "ymax": 100.0})
-
-print(results.summary()[["compound_id", "IC50"]])
 ```
 
-```text
-  compound_id  IC50
-0     example   1.0
+`DoseResponseData` checks the table: required columns, numeric responses, and
+positive concentrations. Fit the logistic model, named `"ic50"`, and look at
+the fitted parameters:
+
+```{code-cell} python
+results = bc.fit(data, "ic50")
+results.experiments()[["compound_id", "IC50", "IC50_stderr", "hill_slope", "r_squared"]]
 ```
 
-`fit` fits every independent experiment of every compound separately.
-`results.experiments()` lists the experiment-level fits, `results.summary()`
-summarizes them per compound, `results.report()` formats the potency for a
-manuscript, and `bc.plot_fits(results)` draws them. See the
-[logistic-model theory](theory/logistic.md) for the model itself.
+The IC₅₀ is about 235 nM, in the same unit as the input concentrations, with a
+standard error of about 14 nM. The {term}`Hill slope` is close to 1.
 
-## Input data
+Plot the data and the fitted curve:
 
-Observations are long-form, one row per measured response:
-
-```text
-compound_id,experiment_id,concentration,response
-Cmpd_1,exp_1,0.001,98.1
-Cmpd_1,exp_1,0.001,97.5
-Cmpd_1,exp_1,0.003,94.2
-Cmpd_1,exp_2,0.001,97.9
+```{code-cell} python
+fig, ax = plt.subplots(figsize=(5, 3.5))
+bc.plot_fits(results, ax=ax)
+ax.set_xlabel("inhibitor (nM)")
+ax.set_ylabel("activity (% of control)")
+plt.show()
 ```
 
-- `compound_id`, `concentration` and `response` are required.
-- `experiment_id` identifies independent experiments; it defaults to a single
-  experiment. Rows sharing compound, experiment and concentration are
-  technical replicates, which are averaged before fitting.
-- Concentrations must be positive and share one unit; fitted concentrations
-  are reported in that unit. Other columns are kept but not used.
+## How the data are processed
 
-The wide layout has one row per concentration and replicate responses in
-columns starting with `response_`:
+Real data usually have several {term}`technical replicates <Technical replicate>`
+(for example triplicate wells) within each
+{term}`independent experiment`, and several independent experiments per
+compound. `bindcurve` handles them in three steps:
 
-```text
-compound_id,experiment_id,concentration,response_1,response_2,response_3
-Cmpd_1,exp_1,0.001,98.1,97.5,99.0
-Cmpd_1,exp_1,0.003,94.2,95.0,93.7
-```
+1. Technical replicates, rows with the same compound, experiment and
+   concentration, are averaged.
+2. The model is fitted to the replicate means of each independent experiment
+   separately. `results.experiments()` lists these fits.
+3. `results.summary()` combines the experiment-level estimates of each
+   compound into a mean, standard deviation and 95% confidence interval, with
+   the independent experiments as $n$.
 
-```python
-data = bc.DoseResponseData.from_csv("observations.csv")
-data = bc.DoseResponseData.from_csv("observations-wide.csv", format="wide")
-```
+The example above is a single experiment, so its summary repeats that fit and
+has no spread.
 
-Rename columns with pandas if your files use other names, and use
-`data.select(...)` to fit a subset of compounds.
+## Next steps
+
+- [Input data](user-guide/data.md) describes the table format, CSV files,
+  technical replicates and independent experiments in detail.
+- The [tutorials](tutorials/index.md) work through complete IC₅₀,
+  direct-binding and competitive-binding analyses.
+- The [theory](theory/index.md) section defines every model.

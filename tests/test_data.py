@@ -55,7 +55,7 @@ def test_long_and_wide_tutorial_files_agree(tmp_path):
         long.table[key].sort_values(key).reset_index(drop=True),
         wide.table[key].sort_values(key).reset_index(drop=True),
     )
-    assert wide.compounds == ["simple", "specific", "total"]
+    assert wide.compounds == ["tracer_a", "tracer_b", "tracer_c"]
 
 
 def test_wide_csv_files_accept_a_replicate_prefix(tmp_path):

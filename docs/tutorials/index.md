@@ -1,37 +1,33 @@
 # Tutorials
 
-These short, executable tutorials introduce the main `bindcurve` workflows.
-Work through them in order or select the model family relevant to your assay.
+The tutorials are complete analyses of synthetic data sets, one for each type
+of experiment. Each data set has three independent experiments with technical
+triplicates, and concentrations in nM. The data were generated with
+[`make_data.py`](https://github.com/choutkaj/bindcurve/blob/main/docs/tutorials/data/make_data.py),
+which lists the true parameter values.
 
-::::{grid} 1 2 2 2
+::::{grid} 1 2 2 3
 :gutter: 3
 
-:::{grid-item-card} 1. IC₅₀ analysis
+:::{grid-item-card} IC₅₀ analysis
 :link: ic50-analysis
 :link-type: doc
 
-Fit and summarize multi-experiment inhibitory dose-response data.
+IC₅₀ values of two enzyme inhibitors.
 :::
 
-:::{grid-item-card} 2. Direct-binding Kd
+:::{grid-item-card} Direct binding
 :link: direct-binding
 :link-type: doc
 
-Use the simple, depletion-aware, and nonspecific direct-binding models.
+Tracer Kd values from FP titrations of receptor.
 :::
 
-:::{grid-item-card} 3. Competitive-binding Kd
+:::{grid-item-card} Competitive binding
 :link: competitive-binding
 :link-type: doc
 
-Fit complete and incomplete competition and convert an IC₅₀ to Kd.
-:::
-
-:::{grid-item-card} 4. Plotting and reporting
-:link: plotting-reporting
-:link-type: doc
-
-Create result tables, confidence bands, summary plots, and residuals.
+Competitor Kd values from FP competition, complete and incomplete.
 :::
 
 ::::
@@ -43,5 +39,4 @@ Create result tables, confidence bands, summary plots, and residuals.
 ic50-analysis
 direct-binding
 competitive-binding
-plotting-reporting
 ```
