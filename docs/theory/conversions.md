@@ -1,9 +1,11 @@
-# Converting IC₅₀ to $K_d$
+# Converting IC₅₀ to Kd
 
-An IC₅₀ is an assay-dependent midpoint, whereas $K_d$ is an equilibrium
-dissociation constant. `bindcurve` implements three conversions for the
-specific case of one-site, mutually exclusive, competitive equilibrium between
-a labeled tracer and an unlabeled competitor.
+An $\mathrm{IC}_{50}$ depends on the assay, whereas $K_d$ is a property of the
+competitor and the receptor. `bindcurve` provides three conversions from one to
+the other. All three assume one-site competitive binding at equilibrium: tracer
+and competitor bind the same site and cannot bind at the same time. The
+competitor constant is written $K_d$ here; in pharmacology it is often called
+the inhibition constant $K_i$.
 
 The notation is:
 
@@ -13,45 +15,60 @@ The notation is:
 | $[L_T^*]$ | `LsT` | total tracer concentration |
 | $K_d^*$ | `Kds` | tracer dissociation constant |
 | $K_d$ | `Kd` | competitor dissociation constant |
-| $\mathrm{IC}_{50}$ | `IC50` | total competitor giving 50% tracer displacement |
+| $\mathrm{IC}_{50}$ | `IC50` | total competitor concentration that displaces half of the bound tracer |
 
-Here, 50% displacement means
-$[RL^*]_{50}=[RL^*]_0/2$, where the subscript 0 denotes the
-competitor-free state. These conversions do not apply to noncompetitive or
-irreversible mechanisms, nonequilibrium measurements, functional-response
-IC₅₀ values, heterogeneous sites, or the four-state incomplete-competition
-model.
+A subscript 0 denotes the state without competitor and a subscript 50 the
+state at $\mathrm{IC}_{50}$, so half displacement means
+$[RL^*]_{50}=[RL^*]_0/2$.
+
+An $\mathrm{IC}_{50}$ fitted with the [logistic model](logistic.md) matches
+this definition when its top plateau is the competitor-free signal and its
+bottom plateau is the signal with all specifically bound tracer displaced. When
+receptor or tracer depletion is significant, the exact competition curve is not
+a perfect logistic, so the fitted midpoint is itself an approximation. If the
+assay constants are known, fitting the `comp_3st_specific` model gives $K_d$
+directly.
+
+The conversions do not apply to noncompetitive or irreversible inhibitors,
+measurements taken before equilibrium, $\mathrm{IC}_{50}$ values from
+functional assays, receptors with several kinds of sites, or the four-state
+model of incomplete competition.
+
+Some combinations of inputs are inconsistent with the binding model and give a
+$K_d$ of zero or less. The conversion functions return NaN for these instead of
+a meaningless affinity. A NaN $\mathrm{IC}_{50}$, such as one from a failed
+fit, also gives NaN.
 
 ## Cheng-Prusoff approximation
 
 Function: `cheng_prusoff`
 
-The familiar conversion used by the API is
+`bindcurve` implements the usual form of the Cheng-Prusoff equation:
 
 $$
 K_d=\frac{\mathrm{IC}_{50}}
 {1+\dfrac{[L_T^*]}{K_d^*}}.
 $$
 
-The classical relationship is written in terms of free tracer. Substitution of
-total tracer is accurate when tracer depletion by receptor is negligible, so
-$[L^*]\approx[L_T^*]$, and bound competitor contributes negligibly to its total
-concentration. In `bindcurve`, this approximation is the low-receptor limit of
-the finite-concentration conversions below.
+The equation assumes that the receptor binds only a small part of the tracer,
+so that $[L^*]\approx[L_T^*]$, and only a small part of the competitor, so
+that $\mathrm{IC}_{50}$ is close to the free competitor concentration. Both
+hold when the receptor concentration is low, and the two exact corrections
+below reduce to this equation in that limit.
 
-## Munson-Rodbard finite-concentration correction
+## Munson-Rodbard correction
 
 Function: `munson_rodbard`
 
-Let
+Munson and Rodbard derived an exact form that also accounts for the receptor
+concentration. Its input is the ratio of bound to free tracer without
+competitor,
 
 $$
-y_0=\frac{[RL^*]_0}{[L^*]_0}
+y_0=\frac{[RL^*]_0}{[L^*]_0}.
 $$
 
-be the bound-to-free tracer ratio before competitor is added. Under the same
-one-site competitive-equilibrium model, the exact finite-concentration
-correction is
+The competitor dissociation constant is then
 
 $$
 K_d=
@@ -62,91 +79,89 @@ K_d=
 -K_d^*\frac{y_0}{y_0+2}.
 $$
 
-The second term is **subtracted**. The original article printed a plus sign;
-the authors' erratum corrected it to a minus sign. When $y_0\to0$, this
-expression reduces to the Cheng-Prusoff approximation.
+The formula uses total tracer, $[L_T^*]$. Replacing it with free tracer does
+not give the exact result. The last term is subtracted: the original article
+printed it with a plus sign, which the authors corrected in an erratum. As
+$y_0\to0$, the formula reduces to the Cheng-Prusoff equation.
 
-Some combinations of $\mathrm{IC}_{50}$, $[L_T^*]$, $K_d^*$, and $y_0$ are
-incompatible with the assumed equilibrium and produce a non-positive result.
-`bindcurve` rejects such inputs rather than reporting them as affinities.
-
-## Nikolovska-Coleska finite-concentration correction
+## Nikolovska-Coleska correction
 
 Function: `coleska`
 
-This form derives the competitor-free state from $[R_T]$, $[L_T^*]$, and
-$K_d^*$ instead of requiring $y_0$.
+This exact correction computes the competitor-free state from $[R_T]$,
+$[L_T^*]$ and $K_d^*$, so $y_0$ does not need to be measured. The calculation
+goes step by step from the competitor-free state to half displacement.
 
-Before competitor is added, free receptor obeys
-
-$$
-[R_0]^2+a[R_0]+b=0,
-$$
-
-where
+Without competitor, free receptor solves the quadratic of the
+[direct-binding model](equilibrium.md#direct-binding-with-depletion),
 
 $$
+[R]_0^2+a[R]_0+b=0,
+\qquad
 a=[L_T^*]+K_d^*-[R_T],
 \qquad
-b=-K_d^*[R_T].
+b=-K_d^*[R_T],
 $$
 
-The physical root is
+whose non-negative root is
 
 $$
-[R_0]=\frac{-a+\sqrt{a^2-4b}}{2}.
+[R]_0=\frac{-a+\sqrt{a^2-4b}}{2}.
 $$
 
-The remaining competitor-free quantities are
+Free and bound tracer follow from the tracer equilibrium and the receptor
+balance:
 
 $$
-[L_0^*]=\frac{[L_T^*]}{1+[R_0]/K_d^*},
+[L^*]_0=\frac{[L_T^*]}{1+[R]_0/K_d^*},
 \qquad
-[RL_0^*]=\frac{[R_T]}{1+K_d^*/[L_0^*]}.
+[RL^*]_0=\frac{[R_T]}{1+K_d^*/[L^*]_0}.
 $$
 
-At 50% displacement,
+At $\mathrm{IC}_{50}$, half of this complex remains, and the rest of the
+tracer is free:
 
 $$
-[RL_{50}^*]=\frac{[RL_0^*]}{2},
+[RL^*]_{50}=\frac{[RL^*]_0}{2},
 \qquad
-[L_{50}^*]=[L_T^*]-[RL_{50}^*],
+[L^*]_{50}=[L_T^*]-[RL^*]_{50}.
 $$
 
-and tracer equilibrium gives
+The tracer equilibrium then gives free receptor,
 
 $$
-[R_{50}]=K_d^*\frac{[RL_{50}^*]}{[L_{50}^*]}.
+[R]_{50}=K_d^*\frac{[RL^*]_{50}}{[L^*]_{50}},
 $$
 
-Receptor conservation then requires
+and the receptor balance gives the competitor complex,
 
 $$
-[RL_{50}]=[R_T]-[R_{50}]-[RL_{50}^*].
+[RL]_{50}=[R_T]-[R]_{50}-[RL^*]_{50}.
 $$
 
-Both terms on the right are subtracted. The free competitor concentration is
+The free competitor is what remains of the total,
 
 $$
-[L_{50}]=\mathrm{IC}_{50}-[RL_{50}],
+[L]_{50}=\mathrm{IC}_{50}-[RL]_{50},
 $$
 
-and the competitor dissociation constant follows directly from its equilibrium:
+and the competitor equilibrium gives
 
 $$
-K_d=\frac{[R_{50}][L_{50}]}{[RL_{50}]}.
+K_d=\frac{[R]_{50}[L]_{50}}{[RL]_{50}}.
 $$
 
-An algebraically equivalent final expression used by the implementation is
+The implementation uses the equivalent form published by
+Nikolovska-Coleska et al.,
 
 $$
-K_d=\frac{[L_{50}]}
-{1+\dfrac{[L_{50}^*]+[R_0]}{K_d^*}}.
+K_d=\frac{[L]_{50}}
+{1+\dfrac{[L^*]_{50}+[R]_0}{K_d^*}}.
 $$
 
-Under consistent inputs, the Munson-Rodbard and Nikolovska-Coleska corrections
-recover the same one-site equilibrium $K_d$. The former requires $y_0$; the
-latter derives the initial state from total receptor and tracer concentrations.
+The Munson-Rodbard and Nikolovska-Coleska corrections give the same $K_d$ when
+their inputs describe the same assay. Use Munson-Rodbard when you have
+measured $y_0$, and Nikolovska-Coleska when you know $[R_T]$.
 
 ## References
 

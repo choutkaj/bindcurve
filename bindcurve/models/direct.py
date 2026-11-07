@@ -11,7 +11,8 @@ class DirectSimpleModel(BindingModel):
     """One-site binding with free receptor on the concentration axis.
 
     ``Fbs = R / (Kds + R)``. Use it when total receptor approximates free
-    receptor, i.e. when tracer depletion is negligible.
+    receptor, i.e. when ``LsT`` is much smaller than ``Kds`` so that tracer
+    occupies a negligible fraction of the receptor.
     """
 
     name = "dir_simple"
