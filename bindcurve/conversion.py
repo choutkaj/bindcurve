@@ -1,9 +1,9 @@
 """IC50-to-Kd conversions for one-site competitive binding equilibria.
 
 Each function accepts scalars or arrays (e.g. columns of
-`FitResults.summary`) and returns the competitor dissociation constant in the
-same concentration unit. IC50 values that are physically incompatible with the
-assay constants give NaN.
+`FitResults.summary <bindcurve.FitResults.summary>`) and returns the
+competitor dissociation constant in the same concentration unit. IC50 values
+that are physically incompatible with the assay constants give NaN.
 """
 
 from __future__ import annotations
@@ -15,6 +15,15 @@ def cheng_prusoff(IC50, *, LsT: float, Kds: float):
     """Cheng-Prusoff approximation, ``Kd = IC50 / (1 + LsT / Kds)``.
 
     Accurate when tracer depletion and receptor concentration are negligible.
+
+    Parameters
+    ----------
+    IC50 : float or numpy.ndarray
+        IC50 value or values of the competitor.
+    LsT
+        Total tracer concentration.
+    Kds
+        Dissociation constant of the tracer.
     """
     IC50 = np.asarray(IC50, dtype=float)
     _check_positive(IC50=IC50, LsT=LsT, Kds=Kds)
@@ -24,9 +33,19 @@ def cheng_prusoff(IC50, *, LsT: float, Kds: float):
 def munson_rodbard(IC50, *, LsT: float, Kds: float, y0: float):
     """Exact finite-concentration correction of Munson and Rodbard.
 
-    ``y0`` is the bound-to-free tracer ratio without competitor. The correction
-    term is subtracted, as in the authors' erratum (J Receptor Res. 1989, 9,
-    511).
+    The correction term is subtracted, as in the authors' erratum (Munson &
+    Rodbard, J. Recept. Res. 1989, 9, 511).
+
+    Parameters
+    ----------
+    IC50 : float or numpy.ndarray
+        IC50 value or values of the competitor.
+    LsT
+        Total tracer concentration.
+    Kds
+        Dissociation constant of the tracer.
+    y0
+        Ratio of bound to free tracer without competitor (dimensionless).
     """
     IC50 = np.asarray(IC50, dtype=float)
     _check_positive(IC50=IC50, LsT=LsT, Kds=Kds)
@@ -39,7 +58,19 @@ def munson_rodbard(IC50, *, LsT: float, Kds: float, y0: float):
 def coleska(IC50, *, RT: float, LsT: float, Kds: float):
     """Exact correction of Nikolovska-Coleska et al. from RT, LsT and Kds.
 
-    Follows appendix A.4.2 of Anal Biochem. 2004, 332, 261-273.
+    Follows appendix A.4.2 of Nikolovska-Coleska et al., Anal. Biochem. 2004,
+    332, 261-273.
+
+    Parameters
+    ----------
+    IC50 : float or numpy.ndarray
+        IC50 value or values of the competitor.
+    RT
+        Total receptor concentration.
+    LsT
+        Total tracer concentration.
+    Kds
+        Dissociation constant of the tracer.
     """
     IC50 = np.asarray(IC50, dtype=float)
     _check_positive(IC50=IC50, RT=RT, LsT=LsT, Kds=Kds)

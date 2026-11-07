@@ -24,7 +24,21 @@ MODELS: dict[str, Model] = {
 
 
 def get_model(name: str) -> Model:
-    """Return a built-in model by name, e.g. ``"ic50"`` or ``"comp_4st_specific"``."""
+    """Return a built-in model by name.
+
+    Parameters
+    ----------
+    name
+        One of ``"ic50"``, ``"dir_simple"``, ``"dir_specific"``,
+        ``"dir_total"``, ``"comp_3st_specific"``, ``"comp_3st_total"``,
+        ``"comp_4st_specific"`` or ``"comp_4st_total"``. The models and their
+        required assay constants are listed in :doc:`/user-guide/models`.
+
+    Raises
+    ------
+    KeyError
+        If there is no model of that name.
+    """
     try:
         return MODELS[name]
     except KeyError:

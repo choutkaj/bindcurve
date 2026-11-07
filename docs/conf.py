@@ -40,15 +40,18 @@ nb_execution_timeout = 120
 
 # Python API documentation
 autosummary_generate = True
-autodoc_class_signature = "separated"
+autodoc_class_signature = "mixed"
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
 autodoc_type_aliases = {
     "Figure": "matplotlib.figure.Figure",
 }
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 nitpicky = True
+# `name` in docstrings links to the Python object of that name.
+default_role = "py:obj"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

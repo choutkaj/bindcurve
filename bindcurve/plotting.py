@@ -47,6 +47,11 @@ def plot_fits(
         One color, or one color per fit. Defaults to the axes color cycle.
     ax
         Axes to draw on; a new figure is created by default.
+
+    Raises
+    ------
+    ValueError
+        If ``band`` is true and a fit has no covariance.
     """
     ax = ax or plt.subplots()[1]
     fits = _selected_fits(results, compounds, experiments)
@@ -119,7 +124,17 @@ def plot_residuals(
     experiments: str | Iterable[str] | None = None,
     ax: Axes | None = None,
 ) -> Axes:
-    """Plot observed minus fitted replicate means against concentration."""
+    """Plot observed minus fitted replicate means against concentration.
+
+    Parameters
+    ----------
+    results
+        Fitted results; failed fits are skipped.
+    compounds, experiments
+        Restrict the plot to these compounds and experiments.
+    ax
+        Axes to draw on; a new figure is created by default.
+    """
     ax = ax or plt.subplots()[1]
     fits = _selected_fits(results, compounds, experiments)
     table = results.data.table

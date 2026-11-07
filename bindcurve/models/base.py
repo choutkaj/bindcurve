@@ -15,12 +15,15 @@ class Parameter:
     Parameters
     ----------
     name
-        Keyword used in model evaluation, ``fixed`` and ``bounds``.
+        Keyword used in `Model.evaluate` and in the ``fixed`` and ``bounds``
+        arguments of `fit`.
     concentration
-        Positive concentration-like parameter. It is optimized on a log10
-        coordinate and summarized across experiments on the log10 scale.
+        Whether this is a positive, concentration-like parameter. Such
+        parameters are optimized on a log10 coordinate and summarized across
+        experiments on the log10 scale.
     fixed
-        Assay constant that must be supplied through ``fit(..., fixed=...)``.
+        Whether this is an assay constant that must be given in
+        ``fit(..., fixed=...)``.
     min, max
         Physical limits of the parameter value.
     """
@@ -38,24 +41,63 @@ PLATEAUS = (Parameter("ymin"), Parameter("ymax"))
 class Model(ABC):
     """Dose-response model mapping a fraction in [0, 1] onto two plateaus.
 
-    The response is ``ymin + (ymax - ymin) * fraction(x)``. Subclasses define
-    `name`, `parameters` (including ``ymin`` and ``ymax``) and `_fraction`.
+    The response is ``ymin + (ymax - ymin) * fraction(x)``.
+
+    Attributes
+    ----------
+    name
+        Name of the model, as used by `get_model`.
+    parameters
+        All parameters, including ``ymin`` and ``ymax``.
+
+    Notes
+    -----
+    A custom model sets ``name`` and ``parameters`` and implements
+    ``_fraction(self, x, **params)``, which receives the concentrations as an
+    array and every parameter as a keyword argument, already validated
+    against its `Parameter` limits, and returns the fraction at each
+    concentration. Fitted parameters other than the plateaus and
+    concentrations also need a starting value from an extended `guess`. The
+    model can then be passed to `fit` in place of a name.
     """
 
     name: str
     parameters: tuple[Parameter, ...]
 
     def evaluate(self, x: np.ndarray, **params: float) -> np.ndarray:
-        """Evaluate the response at untransformed concentrations ``x >= 0``."""
+        """Evaluate the response at concentrations ``x``.
+
+        Parameters
+        ----------
+        x
+            Concentrations on the linear (not log) scale, ``x >= 0``.
+        **params
+            A value for every parameter of the model, by name.
+
+        Raises
+        ------
+        TypeError
+            If parameters are missing or unknown.
+        ValueError
+            If a concentration or parameter value is invalid.
+        """
         x, params = self._checked(x, params)
         fraction = self._fraction(x, **params)
         return params["ymin"] + (params["ymax"] - params["ymin"]) * fraction
 
     def guess(self, x: np.ndarray, y: np.ndarray) -> dict[str, float]:
-        """Initial values from replicate means ``y`` at concentrations ``x``.
+        """Initial values for fitting replicate means ``y`` at concentrations ``x``.
 
-        The plateaus come from the response range and every concentration
-        parameter from the concentration closest to the half response.
+        The plateaus come from the response range and every fitted
+        concentration parameter from the concentration closest to the half
+        response. Subclasses with other fitted parameters extend the result.
+
+        Parameters
+        ----------
+        x
+            Concentrations of one experiment.
+        y
+            Replicate mean response at each concentration.
         """
         half = np.argmin(np.abs(y - (np.min(y) + np.max(y)) / 2.0))
         guesses = {"ymin": float(np.min(y)), "ymax": float(np.max(y))}
@@ -65,7 +107,18 @@ class Model(ABC):
         return guesses
 
     def parameter(self, name: str) -> Parameter:
-        """Return the parameter called ``name``."""
+        """Return the parameter called ``name``.
+
+        Parameters
+        ----------
+        name
+            Parameter name, e.g. ``"Kd"``.
+
+        Raises
+        ------
+        KeyError
+            If the model has no such parameter.
+        """
         for parameter in self.parameters:
             if parameter.name == name:
                 return parameter
@@ -101,10 +154,43 @@ class Model(ABC):
 
 
 class BindingModel(Model):
-    """Equilibrium-binding model whose fraction is the tracer-bound fraction."""
+    """Equilibrium-binding model whose fraction is the tracer-bound fraction.
+
+    Notes
+    -----
+    A custom binding model implements ``_species(self, x, **params)`` in place
+    of ``_fraction``. It returns a dict of arrays that includes the bound
+    fraction ``"Fbs"``.
+    """
 
     def species(self, x: np.ndarray, **params: float) -> dict[str, np.ndarray]:
-        """Return equilibrium species concentrations and the bound fraction ``Fbs``."""
+        """Return the equilibrium concentrations of all species.
+
+        Parameters
+        ----------
+        x
+            Concentrations of the titrated component, as in `Model.evaluate`.
+        **params
+            A value for every parameter of the model, by name.
+
+        Returns
+        -------
+        dict[str, numpy.ndarray]
+            Arrays shaped like ``x``, in the unit of the concentrations:
+
+            - ``R``: free receptor
+            - ``Ls``: free tracer
+            - ``RLs``: tracer-receptor complex
+            - ``L``: free competitor (competitive models)
+            - ``RL``: competitor-receptor complex (competitive models)
+            - ``RLLs``: ternary complex (four-state models)
+            - ``Ls_nonspecific``: nonspecifically bound tracer (``dir_total``)
+            - ``L_nonspecific``: nonspecifically bound competitor
+              (``comp_*_total``)
+            - ``Fbs``: fraction of tracer bound to receptor (dimensionless)
+
+            ``dir_simple`` returns only ``R`` and ``Fbs``.
+        """
         x, params = self._checked(x, params)
         return self._species(x, **params)
 

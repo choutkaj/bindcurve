@@ -18,16 +18,36 @@ from bindcurve.models import Model
 class FitResult:
     """Fit of one model to one experiment of one compound.
 
+    Created by `fit` and stored in `FitResults.fits`.
+
     Attributes
     ----------
+    compound_id
+        The fitted compound.
+    experiment_id
+        The fitted experiment.
+    model
+        The fitted model.
+    success
+        Whether the optimizer converged. A failed fit has no values.
+    message
+        Optimizer message, or the error of a failed fit.
     values
         All parameter values, fitted and fixed. Empty for a failed fit.
     stderr
         Standard errors of the fitted parameters, when they could be estimated.
     free
         Names of the fitted parameters, in the order of ``covariance``.
+    covariance
+        Covariance matrix of the fitted parameters, scaled by the residual
+        variance; None when it could not be estimated.
     n_data
         Number of fitted concentrations (replicate means).
+    rss
+        Residual sum of squares of the replicate means.
+    r_squared
+        Coefficient of determination of the replicate means; None when the
+        means are all equal.
     warnings
         Reasons why a converged fit may not be supported by the data.
     """
@@ -47,13 +67,21 @@ class FitResult:
     warnings: tuple[str, ...] = ()
 
     def predict(self, x: np.ndarray) -> np.ndarray:
-        """Evaluate the fitted curve at concentrations ``x``."""
+        """Evaluate the fitted curve at concentrations ``x``.
+
+        Parameters
+        ----------
+        x
+            Concentrations on the linear scale, ``x >= 0``.
+        """
         return self.model.evaluate(x, **self.values)
 
 
 @dataclass(frozen=True)
 class FitResults:
     """Experiment-level fits of one model to a dataset.
+
+    Returned by `fit`.
 
     Attributes
     ----------
@@ -78,7 +106,13 @@ class FitResults:
         return [p.name for p in self.model.parameters if p.name not in self.fixed]
 
     def experiments(self) -> pd.DataFrame:
-        """One row per experiment-level fit with estimates and diagnostics."""
+        """One row per experiment-level fit with estimates and diagnostics.
+
+        Columns are ``compound_id``, ``experiment_id``, ``success``,
+        ``message``, ``warnings``, ``n_data``, ``rss`` and ``r_squared`` (see
+        `FitResult`), then each fitted parameter and its standard error
+        (``Kd``, ``Kd_stderr``, ...).
+        """
         rows = []
         for fit in self.fits:
             row = {
@@ -100,10 +134,22 @@ class FitResults:
     def summary(self) -> pd.DataFrame:
         """One row per compound summarizing successful fits across experiments.
 
-        Native parameters get the arithmetic mean, sample SD, SEM and a
-        Student-t 95% confidence interval. Concentration parameters get the
-        same statistics on log10 values (``logIC50``, ``logIC50_SD``, ...),
-        the geometric mean (``IC50``) and the back-transformed interval.
+        Each independent experiment contributes one value per parameter.
+        ``N_fit``, ``N_failed`` and ``N_flagged`` count the successful, failed
+        and flagged (successful but with warnings) fits.
+
+        Concentration parameters are summarized on the log10 scale. For
+        ``IC50``, the columns are ``IC50`` (geometric mean), ``logIC50``,
+        ``logIC50_SD``, ``logIC50_SEM``, and ``IC50_CI95_lower`` and
+        ``IC50_CI95_upper`` (Student-t 95% confidence interval, back-transformed).
+
+        Other parameters get the arithmetic mean and the same statistics on
+        the linear scale, e.g. ``hill_slope``, ``hill_slope_SD``,
+        ``hill_slope_SEM``, ``hill_slope_CI95_lower`` and
+        ``hill_slope_CI95_upper``.
+
+        SD, SEM and the interval are NaN for a compound with fewer than two
+        successful fits.
         """
         rows = []
         for compound_id in self.data.compounds:
@@ -137,6 +183,18 @@ class FitResults:
 
         Fitted parameters take their `summary` centers (geometric means for
         concentrations); fixed parameters keep their fixed values.
+
+        Parameters
+        ----------
+        compound_id
+            Compound to return.
+
+        Raises
+        ------
+        KeyError
+            If the compound is not in the data.
+        ValueError
+            If the compound has no successful fits.
         """
         summary = self.summary().set_index("compound_id").loc[compound_id]
         if summary["N_fit"] == 0:
@@ -157,16 +215,24 @@ class FitResults:
         Parameters
         ----------
         parameter
-            Concentration parameter to report. Defaults to the only fitted one.
+            Concentration parameter to report. Defaults to the only fitted
+            concentration parameter.
         uncertainty
-            Spread across experiments. On the linear scale, SD and SEM are
-            shown as the back-transformed range ``10**(mean ± spread)``.
+            Spread across independent experiments: ``"sd"``, ``"sem"`` or
+            ``"ci95"``. On the linear scale, every choice is shown as a
+            back-transformed range, e.g. ``10**(mean ± SD)`` for ``"sd"``.
         log
             Report log10 values, e.g. ``-6.12 ± 0.15``, instead of linear ones.
         digits
             Significant figures for linear values, decimals for log values.
         unit
             Unit appended to linear values.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Columns ``compound_id``, ``report`` (the formatted text),
+            ``N_fit``, ``N_failed`` and ``N_flagged``.
         """
         if uncertainty not in ("sd", "sem", "ci95"):
             raise ValueError("uncertainty must be 'sd', 'sem' or 'ci95'.")

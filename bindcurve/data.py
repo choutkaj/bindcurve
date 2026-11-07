@@ -18,7 +18,7 @@ class DoseResponseData:
 
     Parameters
     ----------
-    table
+    table : pandas.DataFrame
         Columns ``compound_id``, ``concentration`` and ``response`` are
         required. ``experiment_id`` identifies independent experiments and
         defaults to a single experiment. Other columns are kept.
@@ -38,8 +38,15 @@ class DoseResponseData:
     ) -> DoseResponseData:
         """Create data from one row per concentration with replicate columns.
 
-        Replicate responses are the columns whose names start with ``prefix``.
-        Missing replicate values are ignored.
+        Parameters
+        ----------
+        table
+            Columns ``compound_id`` and ``concentration``, optionally
+            ``experiment_id``, and one column per technical replicate. No
+            other columns are allowed.
+        prefix
+            Start of the names of the replicate response columns. Missing
+            replicate values are ignored.
         """
         responses = [
             column for column in table.columns if str(column).startswith(prefix)
@@ -64,9 +71,19 @@ class DoseResponseData:
         prefix: str = "response_",
         **read_csv_kwargs: object,
     ) -> DoseResponseData:
-        """Read a long or wide CSV file; see the constructor and `from_wide`.
+        """Read a long or wide CSV file.
 
-        ``prefix`` names the replicate response columns of wide files.
+        Parameters
+        ----------
+        path
+            CSV file to read.
+        format
+            ``"long"`` for one row per response, as in `DoseResponseData`, or
+            ``"wide"`` for one row per concentration, as in `from_wide`.
+        prefix
+            Start of the names of the replicate response columns of wide files.
+        **read_csv_kwargs
+            Passed to `pandas.read_csv`, e.g. ``sep=";"``.
         """
         table = pd.read_csv(path, **read_csv_kwargs)
         if format == "long":
@@ -86,7 +103,18 @@ class DoseResponseData:
         return sorted(self._table["compound_id"].unique())
 
     def select(self, compounds: str | Iterable[str]) -> DoseResponseData:
-        """Return the observations of the given compound or compounds."""
+        """Return the observations of the given compound or compounds.
+
+        Parameters
+        ----------
+        compounds
+            One compound ID or several.
+
+        Raises
+        ------
+        KeyError
+            If a compound is not in the data.
+        """
         selected = [compounds] if isinstance(compounds, str) else list(compounds)
         missing = sorted(set(selected) - set(self.compounds))
         if missing:
@@ -94,7 +122,12 @@ class DoseResponseData:
         return DoseResponseData(self._table[self._table["compound_id"].isin(selected)])
 
     def summary(self) -> pd.DataFrame:
-        """One row per compound with experiment, observation and range counts."""
+        """One row per compound with counts and the concentration range.
+
+        Columns are ``compound_id``, ``N_exp`` (independent experiments),
+        ``N_obs`` (observations, counting technical replicates),
+        ``concentration_min`` and ``concentration_max``.
+        """
         grouped = self._table.groupby("compound_id")
         return pd.DataFrame(
             {

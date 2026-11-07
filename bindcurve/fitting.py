@@ -56,6 +56,14 @@ def fit(
     Returns
     -------
     FitResults
+        One fit per compound and experiment.
+
+    Raises
+    ------
+    KeyError
+        If ``fixed`` or ``bounds`` name a parameter the model does not have.
+    ValueError
+        If an assay constant is missing, or a fixed value or bound is invalid.
 
     Warns
     -----
