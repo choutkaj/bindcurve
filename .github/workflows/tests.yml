@@ -58,6 +58,34 @@ jobs:
       - name: Run tests
         run: uv run --frozen pytest
 
+  playground:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Sync test dependencies
+        run: uv sync --group test --frozen
+
+      - name: Compare the Playground models with bindcurve
+        run: |
+          uv run --frozen python tests/js/make_reference.py "$RUNNER_TEMP/reference.json"
+          node tests/js/test_models.mjs "$RUNNER_TEMP/reference.json"
+
   package:
     runs-on: ubuntu-latest
 

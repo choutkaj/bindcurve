@@ -71,6 +71,9 @@ linkcheck_ignore = [
 # HTML output
 html_theme = "pydata_sphinx_theme"
 html_title = "bindcurve documentation"
+html_static_path = ["_static"]
+# The Playground uses the full page width.
+html_sidebars = {"playground": []}
 html_show_sourcelink = False
 html_context = {
     "github_user": "choutkaj",

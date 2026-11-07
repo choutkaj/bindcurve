@@ -29,6 +29,13 @@ Input data, models, fitting, fit checks, reporting and plotting.
 Complete IC₅₀, direct-binding and competitive-binding analyses.
 :::
 
+:::{grid-item-card} Playground
+:link: playground
+:link-type: doc
+
+Change model parameters and see the curves update.
+:::
+
 :::{grid-item-card} Theory
 :link: theory/index
 :link-type: doc
@@ -52,6 +59,7 @@ Reference documentation for the public Python API.
 getting-started
 user-guide/index
 tutorials/index
+playground
 theory/index
 api/index
 glossary
