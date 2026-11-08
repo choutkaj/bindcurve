@@ -33,7 +33,17 @@ const SPECIES_COLORS = {
 // Default x range in decades around the model's characteristic constant.
 const X_DECADES = { ic50: [-3, 3], direct: [-3, 3], competition: [-2, 4] };
 
-const state = { model: "ic50", params: {}, xmin: 0, xmax: 0, kept: null };
+// yAuto: let Plotly fit the response axis; otherwise it is fixed to [ylo, yhi].
+const state = {
+  model: "ic50",
+  params: {},
+  xmin: 0,
+  xmax: 0,
+  yAuto: true,
+  ylo: 0,
+  yhi: 0,
+  kept: null,
+};
 
 const $ = (id) => document.getElementById(id);
 
@@ -143,6 +153,8 @@ function selectModel(name) {
   $("pg-species-block").hidden = !model.species;
   $("pg-species-note").hidden = Boolean(model.species) || name === "ic50";
   defaultRange();
+  state.yAuto = true;
+  $("pg-yauto").checked = true;
   draw();
 }
 
@@ -157,6 +169,35 @@ function buildRangeInputs() {
       draw();
     });
   }
+}
+
+function showYRange(lo, hi) {
+  $("pg-ymin").value = format(lo);
+  $("pg-ymax").value = format(hi);
+}
+
+// Typing a bound fixes the axis at the two shown values; Auto releases it.
+function buildYRangeInputs() {
+  const read = (id) => ($(id).value === "" ? Number.NaN : Number($(id).value));
+  const lock = () => {
+    const lo = read("pg-ymin");
+    const hi = read("pg-ymax");
+    if (Number.isFinite(lo) && Number.isFinite(hi) && lo < hi) {
+      Object.assign(state, { yAuto: false, ylo: lo, yhi: hi });
+      $("pg-yauto").checked = false;
+    }
+    draw();
+  };
+  $("pg-ymin").addEventListener("change", lock);
+  $("pg-ymax").addEventListener("change", lock);
+  $("pg-yauto").addEventListener("change", () => {
+    if ($("pg-yauto").checked) {
+      state.yAuto = true;
+      draw();
+    } else {
+      lock();
+    }
+  });
 }
 
 function buildButtons() {
@@ -263,7 +304,14 @@ function drawResponse(colors) {
       text: markerLabel, showarrow: false, font: { color: colors.muted },
     },
   ];
+  if (!state.yAuto) {
+    Object.assign(layout.yaxis, { range: [state.ylo, state.yhi], autorange: false });
+  }
   Plotly.react("pg-response", traces, layout, CONFIG);
+  // Show the axis range in use, which Plotly stores after autoranging.
+  const [lo, hi] = $("pg-response").layout.yaxis.range;
+  if (state.yAuto) showYRange(lo, hi);
+  else showYRange(state.ylo, state.yhi);
 }
 
 function drawSpecies(colors) {
@@ -316,6 +364,7 @@ function start() {
   }
   buildModelSelect();
   buildRangeInputs();
+  buildYRangeInputs();
   buildButtons();
   selectModel(state.model);
   // Redraw with the new colors when the light/dark theme changes.

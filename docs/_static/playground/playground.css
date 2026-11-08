@@ -93,6 +93,18 @@
   font-size: 0.9rem;
 }
 
+.pg-range-y {
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto;
+}
+
+.pg-controls .pg-auto {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 .pg-buttons {
   display: flex;
   flex-wrap: wrap;

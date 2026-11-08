@@ -32,6 +32,16 @@ comparison while you change parameters.
         <input id="pg-xmax" type="number" min="0" step="any">
       </div>
     </fieldset>
+    <fieldset>
+      <legend>Response range</legend>
+      <div class="pg-range pg-range-y">
+        <label for="pg-ymin">from</label>
+        <input id="pg-ymin" type="number" step="any">
+        <label for="pg-ymax">to</label>
+        <input id="pg-ymax" type="number" step="any">
+        <label class="pg-auto"><input id="pg-yauto" type="checkbox" checked> Auto</label>
+      </div>
+    </fieldset>
     <div class="pg-buttons">
       <button id="pg-keep" type="button">Keep curve</button>
       <button id="pg-clear" type="button">Clear</button>
